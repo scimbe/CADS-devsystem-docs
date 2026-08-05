@@ -16,9 +16,10 @@ LLM-judgment-in-disguise.
 
 - **History-only checks** (`preflight_annotations`) — a security-relevant keyword in the latest
   iteration's feedback, `devsystem.implement` running before any *substantive* `devsystem.test`
-  iteration, a new service proposal with no `price_ceiling`. These only need a run's `RunState` —
-  its iteration history — so they're usable everywhere a run's history is available, including
-  `devsystem_checkin`'s own binary (which never loads the run's spec at all).
+  iteration, a new service proposal with no `price_ceiling`, and a `succeeded: true` iteration whose
+  own feedback admits a known defect. These only need a run's `RunState` — its iteration history —
+  so they're usable everywhere a run's history is available, including `devsystem_checkin`'s own
+  binary (which never loads the run's spec at all).
 
   **"Substantive" is load-bearing, not decorative** — found live by this project's own
   incompetent-agent stress test, 2026-08-05: the test-before-implement check originally only asked
@@ -30,6 +31,17 @@ LLM-judgment-in-disguise.
   25+ characters and 8+ distinct words. A `devsystem.test` record that doesn't clear both doesn't
   count as real evidence testing happened, and the check falls through to flagging the risk as if
   no test iteration existed at all.
+
+  **Contradicting yourself doesn't go unnoticed either** — a different flavor of the same
+  discipline, this one going after a gap [the goal document's §5 quality-bar table](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)
+  already named directly rather than one found by simulating a lazy agent: nothing stopped an
+  iteration from claiming `succeeded: true` while its own feedback admitted a real, open defect.
+  `DEFECT_ADMISSION_PHRASES` -- six specific multi-word phrases ("known issue", "known bug", "not
+  fixed", "not implemented", "workaround needed", "still broken") -- flags exactly that
+  contradiction. Deliberately narrow: single common words like "broken" alone would false-positive
+  on something like "fixes the previously broken X", so the phrases are specific enough to mean what
+  they say. Only fires on `succeeded: true` — a FAILED iteration honestly admitting it's broken is
+  the behavior this check wants to encourage, not flag.
 - **Process-level checks** (`process_annotations`, added 2026-08-05) — need the run's own live
   `PipelineSpec` too, since they're about *which roles are declared*, not just what already
   happened. The first one: a run with 3+ real successful iterations that has never declared a
@@ -37,12 +49,15 @@ LLM-judgment-in-disguise.
   `preflight_annotations` — extending that one's signature would have broken every existing caller
   that only ever has a bare `RunState`.
 
-## Real, live example — both dimensions firing on the same run
+## Real, live example — two findings, one run
 
-A real test run, three successful `devsystem.implement` iterations, no `devsystem.test` iteration
-ever run, and no `devsystem.review` role ever declared:
+A real test run: a single `devsystem.implement` iteration, marked `succeeded: true`, whose own
+feedback admits an unfixed defect, with no `devsystem.test` iteration ever run and no
+`devsystem.review` role ever declared:
 
 ```
+$ curl .../api/runs/{id}/iterate -d '{"stage":"devsystem.implement","feedback":"Shipped the retry-on-failure feature. Known issue: it crashes on a null message id, not fixed yet, workaround needed before real use.","succeeded":true}'
+
 $ curl .../api/runs/{id}
 {
   "risks": [
@@ -51,12 +66,17 @@ $ curl .../api/runs/{id}
       "evidence": "devsystem.implement first ran at iteration 1, with no devsystem.test iteration before it that's substantive enough to count as real evidence testing happened (25+ characters and 8+ distinct words of feedback, not a rubber-stamp)"
     },
     {
-      "label": "no review role declared despite real progress",
-      "evidence": "3 successful iteration(s) so far, but this run has never declared a devsystem.review role -- gap #2's mandatory review gate (requirements can't be marked verified without a real review) has no teeth here at all, since it only applies once review is declared."
+      "label": "succeeded iteration admits a known defect",
+      "evidence": "iteration 1's own feedback contains \"known issue\" while marked succeeded:true -- goal doc §5's Vertragsgemäße/Sachmangelfreie row names this exact gap: nothing else blocks marking work \"done\" with open, known defects"
     }
   ]
 }
 ```
+
+(The process-level dimension -- `"no review role declared despite real progress"` -- needs 3+ real
+successful iterations to fire, so a single-iteration example like this one never triggers it; see
+the comparison right below for what its *absence* looks like on a run that has since declared
+`review`.)
 
 Compare against the real `webconference-android` run: it declared `devsystem.review` back at
 iteration 8 (see [the goal document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)'s
