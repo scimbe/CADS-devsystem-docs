@@ -70,8 +70,8 @@ run_id=webconference-android-tutorial iteration_outcome=Continue roles_now=1 add
 `devsystem_iterate` (no `--remote`) runs **locally** — it operates directly on `runs/<run_id>/` on
 the same host the pipeline data lives on, the same way this project's own real development loop has
 run all along. There's also a `--remote <api-base-url>` mode for a bidder with no host access,
-calling `POST /api/runs/{id}/iterate` over HTTP instead — real and tested, but see the honest
-caveat below before relying on it against this deployment specifically.
+calling `POST /api/runs/{id}/iterate` over HTTP instead — see the M2M section below for what it
+takes to actually reach this deployment with it.
 
 The result shows up immediately in the History panel, including the real traceability link back to
 the requirement it claims to address:
@@ -85,13 +85,34 @@ the requirement it claims to address:
 <figcaption>Addressing a requirement and verifying it are separate, explicit signals — this iteration claims to address the requirement, but its acceptance criteria stay unchecked until a human (or, opted in per-requirement, the assistant) actually confirms them. See <a href="{{ '/explanation/requirements-and-automode/' | relative_url }}">Requirements, verification, and automode</a>.</figcaption>
 </figure>
 
-## A real, honest caveat: `--remote` against this deployment
+## `--remote` against this deployment: M2M bearer-token auth
 
-`devsystem-demo.bunsenbrenner.org` currently gates every route — including the API — behind a
-browser-based Keycloak login (`require_login` is on for this tunnel). `devsystem_iterate --remote`
-is a real, tested, headless HTTP client with no browser session, so as of this writing it cannot
-successfully reach this specific public deployment; it gets redirected to the login page instead of
-reaching the API. This is a genuinely known, tracked gap
-([CADS-devsystem#7](https://github.com/scimbe/CADS-devsystem/issues/7)) — a real machine-credential
-path (Keycloak service-account bearer tokens) is scoped but not yet built. Until then, submitting a
-real iteration against this deployment needs local (host) access, as shown above.
+`devsystem-demo.bunsenbrenner.org` gates every route — including the API — behind a browser-based
+Keycloak login (`require_login` is on for this tunnel). `devsystem_iterate --remote` is a headless
+HTTP client with no browser session, so it can't complete that login flow on its own. **This used
+to be a real, tracked gap** ([CADS-devsystem#7](https://github.com/scimbe/CADS-devsystem/issues/7))
+— as of [CADS-Tunnel PR #390](https://github.com/scimbe/CADS-Tunnel/pull/390), it's fixed: the
+gate now accepts a real Keycloak `client_credentials` bearer token as an alternative to the cookie
+session, checked against the same tunnel-owner-controlled allow-list a browser login uses.
+
+To use it, three environment variables together (all three, or none — a partial set is a real
+misconfiguration error, not silently ignored):
+
+```
+$ export DEVSYSTEM_OIDC_TOKEN_URL="https://auth.bunsenbrenner.org/realms/ct-demo/protocol/openid-connect/token"
+$ export DEVSYSTEM_OIDC_CLIENT_ID="<your service account's client id>"
+$ export DEVSYSTEM_OIDC_CLIENT_SECRET="<your service account's client secret>"
+$ devsystem_iterate --remote https://devsystem-demo.bunsenbrenner.org webconference-android record.json
+run_id=webconference-android iteration=1 iteration_outcome=Continue roles_now=3 added_stages=["devsystem.android_native_bridge", "devsystem.document_extraction"]
+```
+
+`devsystem_iterate` fetches a fresh token from `DEVSYSTEM_OIDC_TOKEN_URL` before each submission and
+sends it as a real `Authorization: Bearer` header — the exact same real, live round trip used to
+submit the `devsystem.document_extraction` StageProposal on the `webconference-android` run (see
+[Requirements, verification, and automode]({{ '/explanation/requirements-and-automode/' | relative_url }})
+for what a StageProposal actually does once it lands).
+
+**Getting a service account**: the tunnel owner provisions a Keycloak confidential client with
+`client_credentials` enabled (the same mechanism the account page's self-service M2M credentials
+feature uses) and adds its subject to the target hostname's login-allowlist — ask the operator for
+one scoped to your identity rather than sharing someone else's.
