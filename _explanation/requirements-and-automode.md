@@ -12,11 +12,19 @@ a real trigger, a real system behavior, and a list of concrete `acceptance_crite
 a `Milestone` (a checkpoint) or a `BacklogItem` (a task). It gives both a human reviewer and any
 role-filler agent something checkable to verify against, instead of a vague wish.
 
-## What actually counts as a real acceptance criterion
+## What actually counts as a real requirement -- and a real acceptance criterion
 
-`POST /api/runs/{id}/requirements` doesn't just check that a criterion is non-empty. That alone
-turned out to be a real gap: a live test of this exact endpoint (simulating the least competent
-realistic role-filler on purpose — see [the goal document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)'s
+**The `statement` field itself, first.** Until 2026-08-05 this endpoint accepted literally any
+non-empty string as a "requirement" — a live test proved `{"statement":"asdf",...}` got a real
+`200`, despite this whole feature being built around EARS notation. Fixed as a hard gate: a
+statement must contain **"SHALL"** (case-insensitive) — the one universal, defining keyword across
+every real EARS requirement type. Deliberately doesn't also require `"WHEN"`: a real *ubiquitous*
+EARS requirement (no trigger clause at all, e.g. "THE SYSTEM SHALL always encrypt messages at
+rest") is legitimate and would be wrongly rejected by a stricter check.
+
+`POST /api/runs/{id}/requirements` doesn't just check that a criterion is non-empty, either. That
+alone turned out to be a real gap: a live test of this exact endpoint (simulating the least
+competent realistic role-filler on purpose — see [the goal document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)'s
 incompetent-agent stress test) proved `"ok"`, `"."`, `"done"`, and — found along the way, not
 planned — a criterion that was **only a zero-width space** (U+200B) all sailed through as real,
 checkable criteria. The zero-width case is the more interesting one: `.trim()` only strips Unicode
@@ -28,7 +36,7 @@ non-empty content — one rule that catches both problems, since an invisible-ch
 has zero alphanumeric characters under this count:
 
 ```
-$ curl -X POST .../api/runs/{id}/requirements -d '{"statement": "x", "acceptance_criteria": ["ok"]}'
+$ curl -X POST .../api/runs/{id}/requirements -d '{"statement": "WHEN a user submits an empty message, THE SYSTEM SHALL reject it", "acceptance_criteria": ["ok"]}'
 acceptance criterion "ok" doesn't have enough real content to be checkable (minimum 5
 letters/digits) -- "ok", ".", or an invisible character aren't real acceptance criteria.
 HTTP 400
@@ -141,12 +149,12 @@ each and reading them straight back:
 
 ```
 $ curl -X POST https://devsystem-demo.bunsenbrenner.org/api/runs/{id}/requirements \
-    -d '{"statement": "a human-authored requirement", "acceptance_criteria": ["checkable"]}'
-{"requirements":[{"...","proposed_by":null,"statement":"a human-authored requirement",...}]}
+    -d '{"statement": "WHEN a human writes a requirement directly, THE SYSTEM SHALL record it with no proposed_by", "acceptance_criteria": ["checkable"]}'
+{"requirements":[{"...","proposed_by":null,"statement":"WHEN a human writes a requirement directly, THE SYSTEM SHALL record it with no proposed_by",...}]}
 
 $ curl -X POST https://devsystem-demo.bunsenbrenner.org/api/runs/{id}/requirements \
-    -d '{"statement": "an assistant-proposed requirement", "acceptance_criteria": ["checkable"], "proposed_by": "devsystem.assistant"}'
-{"requirements":[{...},{"...","proposed_by":"devsystem.assistant","statement":"an assistant-proposed requirement",...}]}
+    -d '{"statement": "WHEN devsystem.assistant proposes a requirement, THE SYSTEM SHALL record it with proposed_by set", "acceptance_criteria": ["checkable"], "proposed_by": "devsystem.assistant"}'
+{"requirements":[{...},{"...","proposed_by":"devsystem.assistant","statement":"WHEN devsystem.assistant proposes a requirement, THE SYSTEM SHALL record it with proposed_by set",...}]}
 ```
 
 The GUI's Requirements panel renders the second kind with a real **LLM-proposed** badge next to its
