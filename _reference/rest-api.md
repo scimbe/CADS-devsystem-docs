@@ -29,7 +29,7 @@ The real route table `web/src/main.rs` mounts, as of this writing -- not a desig
 |---|---|
 | `GET /api/runs` | List every run with a real summary (iterations, roles, stalled stages, risk count). |
 | `POST /api/runs` | Create a new, empty run (`{"run_id": "..."}`). |
-| `GET /api/runs/{id}` | A run's full real state: spec, health, risks, backlog, milestones, requirements, history. |
+| `GET /api/runs/{id}` | A run's full real state: spec, health, risks, backlog, milestones, requirements, history. `risks` are real mechanical checks, not an LLM guess -- see [How real risk annotations work]({{ '/explanation/risk-annotations/' | relative_url }}). |
 | `POST /api/runs/{id}/iterate` | Submit a real `IterationRecord` -- see the how-to guide above. A submission byte-identical to the run's own immediately-preceding entry is rejected with a real `409` -- see [Why /iterate rejects exact duplicates]({{ '/explanation/duplicate-iteration-guard/' | relative_url }}). |
 | `GET /api/runs/{id}/checkin` | Renders the latest iteration as real check-in markdown (run summary, risk annotations, decision prompt) -- callable any time, not gated on whether one is actually due. See [Review a mandatory check-in]({{ '/how-to/review-a-checkin/' | relative_url }}). |
 | `POST /api/runs/{id}/criteria` | Update a run's `AbortCriteria` (`max_iterations`, `max_consecutive_failures`, `checkin_every`). |
