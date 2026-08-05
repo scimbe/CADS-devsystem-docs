@@ -100,8 +100,9 @@ governs them, and (via the Roles panel) the real bidding state for each:
 ## What's next
 
 From here, a real role-filler (human or agent) wins the `plan` role's auction and submits a real
-iteration via `devsystem_iterate`. See [the how-to section]({{ '/how-to/' | relative_url }}) for
-that next step once it's written up.
+iteration via `devsystem_iterate`. See
+[Bid for a role and submit a real iteration]({{ '/how-to/submit-an-iteration/' | relative_url }})
+for exactly that, continuing this same run.
 
 ---
 
