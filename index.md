@@ -10,8 +10,9 @@ description: Documentation for CADS-devsystem, a self-optimizing, agent-driven d
 development pipeline: each stage (plan, implement, test, verify, review, improve, remember) is a
 `ServiceType::Custom` role that gets filled through CADS-Tunnel's real crew-auction primitives
 (`convene()`) — not a fixed, pre-declared n8n-style workflow. A role-filler's real experience can
-propose new stages the project actually needs; those proposals get built into the live
-`PipelineSpec` once a human approves them.
+propose new stages the project actually needs; those proposals apply to the live `PipelineSpec`
+immediately, by explicit design — see
+[How the pipeline proposes and grows its own stages]({{ '/explanation/self-optimizing-pipeline/' | relative_url }}).
 
 The live control panel is at **[devsystem-demo.bunsenbrenner.org](https://devsystem-demo.bunsenbrenner.org/)**
 — a real, interactive GUI, not a static status page.
