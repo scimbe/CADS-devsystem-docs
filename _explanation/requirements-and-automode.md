@@ -81,6 +81,20 @@ allowed unconditionally — loosening a claim never needs a review to justify it
 to a role it never opted into; the gate only bites once a run's own spec says review is part of its
 process.
 
+**A qualifying review has to clear two real, mechanical bars, not just exist.** Found live, via this
+project's own incompetent-agent stress test, not designed in up front: an early version of this gate
+checked only that *a* successful `devsystem.review` iteration named the requirement, and a
+one-line rubber-stamp (`"looks fine to me"`) satisfied it just as well as real scrutiny would have.
+Fixed with a minimum feedback length (25 characters) -- then, once that shipped, the *next*
+realistic lazy move (padded filler well past the length bar: `"looks good looks good looks good
+looks good"`) satisfied that too. Both real gaps are closed the same honest way: simple, explainable,
+mechanical proxies, not fake LLM-judgment-in-disguise -- **25 characters AND 8 distinct words**
+(case-insensitive, punctuation-collapsing, so `"Good! good? GOOD."` still counts as one distinct
+word). Neither bar claims to verify the review is actually *good* -- only that it isn't trivially
+empty or trivially repetitive. A generic-but-varied review ("looks good, works fine, nothing to
+flag, all clear here") would still clear both bars without being real scrutiny either -- a known,
+honestly-named, still-open gap, not claimed solved.
+
 Real, live proof against the actual deployment:
 
 ```
@@ -93,7 +107,17 @@ HTTP 409
 $ curl -X POST .../api/runs/{id}/iterate -d '{"stage":"devsystem.review","feedback":"reviewed, approved","succeeded":true,"requirement_indices":[0]}'
 HTTP 200
 
-$ curl -X POST .../api/runs/{id}/requirements/0/toggle   # now a real review exists
+$ curl -X POST .../api/runs/{id}/requirements/0/toggle   # a review exists, but it's too short/repetitive
+requirement 0 cannot be marked verified yet -- every devsystem.review iteration addressing
+it is too short or too repetitive to plausibly be real scrutiny (best is iteration 1, 18
+character(s) and 2 distinct word(s); minimum 25 characters AND 8 distinct words). A
+rubber-stamp or padded filler review doesn't satisfy this gate.
+HTTP 409
+
+$ curl -X POST .../api/runs/{id}/iterate -d '{"stage":"devsystem.review","feedback":"Checked the actual EditText handling directly against the acceptance criteria, confirmed the real behavior matches.","succeeded":true,"requirement_indices":[0]}'
+HTTP 200
+
+$ curl -X POST .../api/runs/{id}/requirements/0/toggle   # now a real, substantive review exists
 {"requirements":[{...,"verified":true,...}]}
 HTTP 200
 ```
