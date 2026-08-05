@@ -12,6 +12,31 @@ a real trigger, a real system behavior, and a list of concrete `acceptance_crite
 a `Milestone` (a checkpoint) or a `BacklogItem` (a task). It gives both a human reviewer and any
 role-filler agent something checkable to verify against, instead of a vague wish.
 
+## What actually counts as a real acceptance criterion
+
+`POST /api/runs/{id}/requirements` doesn't just check that a criterion is non-empty. That alone
+turned out to be a real gap: a live test of this exact endpoint (simulating the least competent
+realistic role-filler on purpose — see [the goal document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)'s
+incompetent-agent stress test) proved `"ok"`, `"."`, `"done"`, and — found along the way, not
+planned — a criterion that was **only a zero-width space** (U+200B) all sailed through as real,
+checkable criteria. The zero-width case is the more interesting one: `.trim()` only strips Unicode
+`White_Space` characters, and U+200B's Unicode category is *Format* (Cf), not *White_Space* — so it
+rendered as an apparently blank checkbox line in the GUI while technically passing "not empty".
+
+Every acceptance criterion now needs a minimum count of **alphanumeric** characters, not just
+non-empty content — one rule that catches both problems, since an invisible-character-only string
+has zero alphanumeric characters under this count:
+
+```
+$ curl -X POST .../api/runs/{id}/requirements -d '{"statement": "x", "acceptance_criteria": ["ok"]}'
+acceptance criterion "ok" doesn't have enough real content to be checkable (minimum 5
+letters/digits) -- "ok", ".", or an invisible character aren't real acceptance criteria.
+HTTP 400
+```
+
+The bar is deliberately low (5 alphanumeric characters) — this filters non-answers, not real short
+criteria. `"no crash"` (7 alphanumeric characters) is accepted without issue.
+
 ## Two independent, explicit signals
 
 `verified` (the whole requirement) and `verified_criteria` (each individual criterion) are
