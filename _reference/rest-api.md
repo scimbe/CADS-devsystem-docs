@@ -49,6 +49,7 @@ The real route table `web/src/main.rs` mounts, as of this writing -- not a desig
 | `POST /api/runs/{id}/requirements/{index}/toggle` | Toggle a requirement's overall `verified` flag. Marking it verified is a real, hard-blocked `409` if this run declares a `review` role and no successful `devsystem.review` iteration has addressed this requirement yet -- see [Requirements, verification, and automode]({{ '/explanation/requirements-and-automode/' | relative_url }})'s "real, mandatory review gate" section. Un-verifying is always unconditional. |
 | `POST /api/runs/{id}/requirements/{index}/auto-judge/toggle` | Opt a requirement into/out of assistant automode -- see [Requirements, verification, and automode]({{ '/explanation/requirements-and-automode/' | relative_url }}). |
 | `POST /api/runs/{id}/requirements/{index}/criteria/{criterion_index}/toggle` | Toggle one acceptance criterion. |
+| `GET /api/runs/{id}/requirements/export` | A real, downloadable Markdown document of every requirement -- statement, a real checklist per acceptance criterion, and provenance (human vs. LLM-proposed, per `proposed_by`). Real `Content-Disposition: attachment`. |
 
 ## Auction and roles
 

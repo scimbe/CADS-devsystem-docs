@@ -110,6 +110,39 @@ be able to tell, per detail, which parts are still that first draft waiting on t
 already theirs to trust. Before `proposed_by` existed, that distinction only lived in whoever's
 memory happened to remember which requirement came from which conversation.
 
+## Taking it with you: a real Markdown export
+
+Every requirement shown in the GUI is also a real, downloadable document —
+`GET /api/runs/{id}/requirements/export`, or the **⬇ Download as Markdown** link in the
+Requirements panel itself. Real, live output from a run with one requirement already reviewed and
+verified:
+
+```
+$ curl .../api/runs/{id}/requirements/export
+# Requirements: `{id}`
+
+1/1 verified.
+
+## 1. ✅
+
+WHEN a user taps send with an empty message, THE SYSTEM SHALL not attempt to send anything and SHALL leave the input focused for retry
+
+*Human-authored.*
+
+Acceptance criteria:
+
+- [ ] empty/whitespace-only input never calls sendText
+- [ ] the input field keeps focus after a no-op tap
+- [ ] no crash or exception is thrown
+```
+
+Notice the whole requirement shows `✅` verified while its individual acceptance criteria still
+show unchecked — that's not a bug in the export, it's the same real, deliberate separation §2 above
+describes: `verified` (the whole requirement) and `verified_criteria` (each individual criterion)
+are two independent signals, and this run's owner confirmed the requirement as a whole without
+separately ticking off each criterion. The export renders reality exactly as it is, not a cleaned-up
+version of it.
+
 ## Why this matters for reproducibility
 
 Fine-grained requirements are, honestly, hard to make perfectly reproducible run to run — the exact
