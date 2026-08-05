@@ -29,5 +29,5 @@ This site follows the [Diátaxis](https://diataxis.fr) framework:
 
 - **Tutorials** — learn by doing, start to finish.
 - **How-to guides** — accomplish one specific task.
-- **Reference** — look up a fact (API routes, data model fields).
+- **Reference** — look up a fact, e.g. the [REST API]({{ '/reference/rest-api/' | relative_url }}).
 - **Explanation** — understand why something works the way it does.
