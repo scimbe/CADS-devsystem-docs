@@ -41,6 +41,29 @@ GitHub issue, both of which land in a real pending queue for you to approve or r
 pipeline proposes and grows its own stages]({{ '/explanation/self-optimizing-pipeline/' | relative_url }})
 for exactly which of its actions apply immediately versus wait for you.
 
+## Your run's real cumulative cost: the Assistant Usage panel
+
+Each reply already shows its own real token usage (visible in the screenshot above), but until
+2026-08-05 that number vanished once you scrolled past it -- nothing tracked what a run had *cost
+so far* across every question ever asked. `devsystem-web` now persists a real running total on
+every `/ask` call, shown in a dedicated **Assistant Usage** panel.
+
+Real, live data — one real question asked against the actual `webconference-android` run for this
+page:
+
+```
+$ curl -X POST .../api/runs/webconference-android/assistant \
+    -d '{"instruction": "In one sentence, what is this run currently working toward?"}'
+{"response": "This run is building 1:1 text messaging end-to-end ...",
+ "usage": {"input_tokens": 2, "output_tokens": 107,
+           "cache_creation_input_tokens": 22040, "cache_read_input_tokens": 14184,
+           "total_cost_usd": 0.2308}}
+```
+
+`GET /api/runs/webconference-android` immediately reflects it, and the panel renders exactly that:
+one real call, **$0.2308** cumulative so far, with the full input/output/cache token breakdown --
+not an estimate, the actual number `devsystem_assistant`'s own LLM CLI call reported.
+
 ## A real, honest gap this walkthrough found (2026-08-05)
 
 Writing this page caught a real production regression: the first real question sent to the
