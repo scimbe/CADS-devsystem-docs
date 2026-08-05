@@ -15,10 +15,21 @@ LLM-judgment-in-disguise.
 ## Two dimensions, for a real reason
 
 - **History-only checks** (`preflight_annotations`) — a security-relevant keyword in the latest
-  iteration's feedback, `devsystem.implement` running before any `devsystem.test` iteration, a new
-  service proposal with no `price_ceiling`. These only need a run's `RunState` — its iteration
-  history — so they're usable everywhere a run's history is available, including
+  iteration's feedback, `devsystem.implement` running before any *substantive* `devsystem.test`
+  iteration, a new service proposal with no `price_ceiling`. These only need a run's `RunState` —
+  its iteration history — so they're usable everywhere a run's history is available, including
   `devsystem_checkin`'s own binary (which never loads the run's spec at all).
+
+  **"Substantive" is load-bearing, not decorative** — found live by this project's own
+  incompetent-agent stress test, 2026-08-05: the test-before-implement check originally only asked
+  *whether* a `devsystem.test` record existed, not whether it had any real content. A rubber-stamp
+  `feedback: "tests pass"` iteration silently satisfied it exactly as well as real testing would
+  have, making the risk annotation vanish even though nothing real had actually been tested. Fixed
+  with the same two mechanical bars the review gate uses (see
+  [Requirements, verification, and automode]({{ '/explanation/requirements-and-automode/' | relative_url }})) —
+  25+ characters and 8+ distinct words. A `devsystem.test` record that doesn't clear both doesn't
+  count as real evidence testing happened, and the check falls through to flagging the risk as if
+  no test iteration existed at all.
 - **Process-level checks** (`process_annotations`, added 2026-08-05) — need the run's own live
   `PipelineSpec` too, since they're about *which roles are declared*, not just what already
   happened. The first one: a run with 3+ real successful iterations that has never declared a
@@ -37,7 +48,7 @@ $ curl .../api/runs/{id}
   "risks": [
     {
       "label": "no test stage before implement",
-      "evidence": "devsystem.implement first ran at iteration 1, with no devsystem.test iteration before it"
+      "evidence": "devsystem.implement first ran at iteration 1, with no devsystem.test iteration before it that's substantive enough to count as real evidence testing happened (25+ characters and 8+ distinct words of feedback, not a rubber-stamp)"
     },
     {
       "label": "no review role declared despite real progress",
