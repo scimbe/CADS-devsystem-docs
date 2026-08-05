@@ -31,7 +31,7 @@ The real route table `web/src/main.rs` mounts, as of this writing -- not a desig
 | `POST /api/runs` | Create a new, empty run (`{"run_id": "..."}`). |
 | `GET /api/runs/{id}` | A run's full real state: spec, health, risks, backlog, milestones, requirements, history. |
 | `POST /api/runs/{id}/iterate` | Submit a real `IterationRecord` -- see the how-to guide above. |
-| `GET /api/runs/{id}/checkin` | Whether a mandatory human check-in is currently due. |
+| `GET /api/runs/{id}/checkin` | Renders the latest iteration as real check-in markdown (run summary, risk annotations, decision prompt) -- callable any time, not gated on whether one is actually due. See [Review a mandatory check-in]({{ '/how-to/review-a-checkin/' | relative_url }}). |
 | `POST /api/runs/{id}/criteria` | Update a run's `AbortCriteria` (`max_iterations`, `max_consecutive_failures`, `checkin_every`). |
 | `POST /api/runs/{id}/pause` / `/resume` | Pause/resume a run. |
 | `POST /api/runs/{id}/repo` | Set the run's target `repo_url`. |
