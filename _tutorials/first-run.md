@@ -50,6 +50,15 @@ actually needed — not pre-declared up front.
 <img src="{{ '/assets/img/tutorial-first-run/04-run-created.png' | relative_url }}" alt="The newly created run selected, showing an empty pipeline state">
 </figure>
 
+The Requirements panel itself doesn't leave you guessing what to do next, either — a genuinely
+empty run gets an explicit nudge instead of a plain, easy-to-miss "no requirements yet" line, and
+the statement field is already focused so you can start typing immediately:
+
+<figure>
+<img src="{{ '/assets/img/tutorial-first-run/04b-start-here-nudge.png' | relative_url }}" alt="The Requirements panel on a fresh run, showing a 'Start here' callout above the empty requirement form">
+<figcaption>This banner is real, live GUI behavior — not tutorial-only hand-holding. It disappears the moment the run has its first requirement, and never reappears.</figcaption>
+</figure>
+
 ## 3. Write a real, fine-grained requirement
 
 CADS-devsystem's requirements use [EARS notation](https://en.wikipedia.org/wiki/Easy_Approach_to_Requirements_Syntax)
