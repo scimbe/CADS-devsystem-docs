@@ -35,6 +35,48 @@ the actual logic (grounding the assistant in a run's real iteration history/evid
 touches a checkbox, and being honest when the evidence doesn't support a clean yes/no) is real,
 separate, still-open work.
 
+## The real, mandatory review gate
+
+Every signal above (`verified`, `verified_criteria`, `auto_judge`, `proposed_by`) was, until
+2026-08-05, purely advisory: nothing actually stopped anyone (human or role-filler) from marking a
+requirement `verified` with zero real review behind it. This project's own
+[goal document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)
+states the governing principle directly: *"it is the fault of the pipeline, not the user of the
+pipeline, if the process leads him not to the perfect result."* A soft annotation a role-filler can
+freely ignore doesn't satisfy that — so this is now a real, hard block, not another advisory signal.
+
+**The rule**: if a run's own `PipelineSpec` declares a `review` role (tag `"review"`, service
+`Custom("devsystem.review")`), marking one of its requirements verified is rejected with a real
+`409 Conflict` unless a `devsystem.review` iteration that `succeeded` and named that exact
+requirement (via `requirement_indices`) already exists in the run's history. Un-verifying is always
+allowed unconditionally — loosening a claim never needs a review to justify it.
+
+**Scoping, deliberately**: a run that never declares `review` (every new run's default —
+`plan_only_spec` has no such role) is never gated at all. There's nothing to hold a run accountable
+to a role it never opted into; the gate only bites once a run's own spec says review is part of its
+process.
+
+Real, live proof against the actual deployment:
+
+```
+$ curl -X POST .../api/runs/{id}/requirements/0/toggle   # no review iteration exists yet
+requirement 0 cannot be marked verified yet -- this run declares a devsystem.review
+role, but no successful devsystem.review iteration addressing requirement 0 (via its
+requirement_indices) exists yet. Submit one first.
+HTTP 409
+
+$ curl -X POST .../api/runs/{id}/iterate -d '{"stage":"devsystem.review","feedback":"reviewed, approved","succeeded":true,"requirement_indices":[0]}'
+HTTP 200
+
+$ curl -X POST .../api/runs/{id}/requirements/0/toggle   # now a real review exists
+{"requirements":[{...,"verified":true,...}]}
+HTTP 200
+```
+
+The GUI surfaces the block as a real error message next to the Requirements panel, and — a related
+gap found and fixed alongside the gate itself — reverts the checkbox's own visual state rather than
+leaving it looking checked when the toggle was actually rejected.
+
 ## Who wrote this requirement: `proposed_by`
 
 A requirement can come from two real places: a human typing directly into the GUI's Requirements
