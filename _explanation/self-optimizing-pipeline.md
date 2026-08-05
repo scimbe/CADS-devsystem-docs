@@ -48,7 +48,7 @@ accountability differs.
 
 ## What that looks like on a real run
 
-The `webconference-android` run started with one role (`plan`). Three real StageProposals landed on
+The `webconference-android` run started with one role (`plan`). Four real StageProposals landed on
 it since, each from a real `devsystem_iterate --remote` submission:
 
 1. `devsystem.android_native_bridge` -- the Android/Rust FFI work needed a real role to auction.
@@ -57,21 +57,40 @@ it since, each from a real `devsystem_iterate --remote` submission:
 3. `devsystem.android_emulator_test` -- a real gap found while verifying the Android work (nobody
    had actually watched the app run on a device), proposed as its own scoped role rather than
    silently worked around.
+4. `devsystem.review` -- forward-looking groundwork so the mandatory review gate (see
+   [Requirements, verification, and automode]({{ '/explanation/requirements-and-automode/' | relative_url }}))
+   has a real role to actually check requirements against on this run, not just in hermetic tests.
 
-Logged in as a real account, the Pipeline panel shows exactly this -- four real roles, not a mockup:
+Logged in as a real account, the Pipeline panel shows exactly this -- five real roles, not a mockup:
 
 <figure>
-<img src="{{ '/assets/img/explanation-self-optimizing/01-pipeline-panel-with-proposed-stages.png' | relative_url }}" alt="The Pipeline panel for the webconference-android run, showing four roles: plan, android_native_bridge, document_extraction, and android_emulator_test">
-<figcaption>Three of these four roles didn't exist when the run started -- each was proposed by a real iteration, not configured up front.</figcaption>
+<img src="{{ '/assets/img/explanation-self-optimizing/01-pipeline-panel-with-proposed-stages.png' | relative_url }}" alt="The Pipeline panel for the webconference-android run, showing five roles: plan, android_native_bridge, document_extraction, android_emulator_test, and review">
+<figcaption>Four of these five roles didn't exist when the run started -- each was proposed by a real iteration, not configured up front.</figcaption>
 </figure>
+
+A pending proposal from `devsystem.assistant`'s own gated path (rather than a role-filler's
+immediate one) shows up one level up, too -- the panel toggle bar's Pipeline chip carries a real
+badge with the pending count, so it doesn't take opening this panel on spec to notice something is
+waiting on a decision.
 
 ## Declared is not filled
 
 A proposal adding a role to `PipelineSpec` is a real, structural change -- but it doesn't mean
-anyone is actually doing that work yet. `document_extraction` and `android_emulator_test` above are
-both real, open, un-won auctions as of this writing: declared, biddable, and waiting for a real
-bidder to `devsystem_offer` on them and start submitting real iterations. A role showing up here is
-the pipeline saying "this is now a real thing you can bid on," not "this is done."
+anyone is actually doing that work yet. When this page was first written, `document_extraction` and
+`android_emulator_test` above were both real, open, un-won auctions: declared, biddable, and waiting
+for a real bidder to `devsystem_offer` on them and start submitting real iterations. A role showing
+up here is the pipeline saying "this is now a real thing you can bid on," not "this is done."
+
+**Update, since then**: both roles found a real bidder and did real, verified work --
+`android_emulator_test` actually ran two emulator instances and confirmed the run's own M1 milestone
+(closed as [issue #13](https://github.com/scimbe/CADS-devsystem/issues/13)); `document_extraction`
+shipped a real PDF-extraction handler, merged after independent re-verification (a genuine
+end-to-end run against a hand-built PDF, not just trusting the PR). Neither currently shows a live
+offer in `stalled_stages` as of this writing -- and that's the real, important distinction this
+section exists to make: **auction liveness and "the work got done" are two separate signals.** A
+role can have already delivered real, shipped work and still show as stalled once its bidder's
+process isn't actively running `--serve` any more -- stalled means "nobody is bidding on this role
+*right now*," not "this was never done."
 
 ## Why role-filler proposals skip the queue
 
