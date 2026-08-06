@@ -46,7 +46,10 @@ in on it: a plain alert, *"This run ("&lt;run_id&gt;") no longer exists -- it ma
 Returning to the runs list,"* and the dashboard falls back to another real run rather than silently
 continuing to show that run's now-dead, stale content forever.
 
-That check only actually happens on a panel with auto-refresh turned on (the small ⚙ gear on any
-data-driven panel's title bar) -- with every panel's auto-refresh off, nothing here proactively polls
-a deleted run's data, so you'd first notice on the next action you take against it (any real write
-returns a `404` too, surfaced the same honest way every other API error is).
+That background check only actually happens on a panel with auto-refresh turned on (the small ⚙
+gear on any data-driven panel's title bar). Sending the assistant a chat message gets the identical
+real recovery unconditionally, whether or not auto-refresh is on -- clear the run, the same plain
+alert, fall back to the runs list -- since asking about the run is itself a real request that hits
+the exact same now-404ing endpoint. Any other write against a genuinely gone run (toggling a
+milestone, adding a backlog item, and so on) still surfaces as a plain `404` the same honest way
+every other API error is, without that same automatic fallback.

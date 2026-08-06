@@ -40,8 +40,8 @@ for what these checks look like in the code.
 
 ## The real track record
 
-As of this writing, the stress test has run **thirty-two** real rounds against the actual
-deployment, finding and closing thirty-two real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **thirty-four** real rounds against the actual
+deployment, finding and closing thirty-four real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
@@ -88,6 +88,17 @@ representative sample, each with its own real live before/after proof:
   open elsewhere used to keep silently showing dead, stale content forever, since a background
   refresh treated a genuine 404 the same as a transient network blip. Fixed to tell you plainly and
   fall back to the runs list instead.
+- **Two more real entry points, the same "gone run" bug class**: achieving a milestone through chat
+  hits the identical endpoint the GUI checkbox does, but the assistant had zero awareness in its own
+  system prompt that doing so pauses the whole run -- it would toggle it and say nothing, the same
+  silent surprise run 30 closed for the checkbox. Fixed by telling the model to always disclose the
+  consequence in its one-line confirmation (there's no `confirm()` equivalent for a chat action, so
+  that's the only real lever). Separately, asking the assistant about a run that no longer exists at
+  all used to fall through to a wasted round-trip ending in a confusing wrapped `502`, and unlike the
+  background-refresh case, the chat panel never recovered -- fixed to 404 immediately and get the
+  same clear alert-and-fall-back recovery. See [Ask devsystem.assistant about your
+  run]({{ '/how-to/ask-the-assistant/' | relative_url }}) and [Delete a
+  run]({{ '/how-to/delete-a-run/' | relative_url }}).
 - `update_criteria` had no upper bound on any `AbortCriteria` field -- a real `u32::MAX` submission
   got a real `200`, turning a run's "bounded super loop" (this project's own central architectural
   claim) unbounded for any practical purpose. A DAU-lens gap, not a role-filler one: a human

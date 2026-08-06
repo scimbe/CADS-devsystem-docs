@@ -55,6 +55,24 @@ $ curl -X POST .../api/runs/docs-manage-custom-panels/assistant \
  your approval."}
 ```
 
+## Marking a milestone achieved through chat pauses the run -- and it says so
+
+Toggling a milestone to achieved has a real, run-wide consequence regardless of how you do it: see
+[Why did my run pause itself?]({{ '/how-to/why-did-my-run-pause/' | relative_url }}). The GUI's own
+Milestones checkbox confirms this before acting, but chat is a different entry point to the exact
+same real endpoint -- until 2026-08-06 the assistant would just toggle it and say so with zero
+mention of the pause. Real, live exchange, current behavior:
+
+```
+$ curl -X POST .../api/runs/docs-run/assistant \
+    -d '{"instruction": "mark milestone 0 achieved, we just confirmed it works"}'
+{"response": "Milestone 0 \"1:1 messaging works end to end\" marked achieved — this pauses the
+ entire run until you explicitly resume it (no new iterations accepted meanwhile)."}
+```
+
+Un-marking an already-achieved milestone gets no such warning -- it never auto-resumes the run, so
+there's nothing surprising about it either way, same asymmetry as the GUI checkbox.
+
 ## Your run's real cumulative cost: the Assistant Usage panel
 
 Each reply already shows its own real token usage (visible in the screenshot above), but until
