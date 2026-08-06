@@ -169,6 +169,27 @@ same as the role actually being dialed in production traffic yet -- another inst
 "declared/won is not the same as live-serving" distinction this section already makes for auction
 liveness.
 
+**Update, 2026-08-06**: a third real increment on the handler side, reviewed and merged the same
+way as the DOCX increment above -- real hands-on verification, not a rubber stamp (isolated
+worktree, the hermetic suite run independently, and the freshly-built binary actually executed
+against real crafted requests, not just trusted from the PR's own description). Added real plain
+`text/plain`/`text/markdown` support (pure UTF-8 decode, no subprocess at all -- there's nothing to
+convert) and legacy **`.doc`** support, reusing the exact same `libreoffice` conversion path DOCX
+already uses. See [Add, remove, and manage RAG documents]({{ '/how-to/manage-rag-documents/' |
+relative_url }}) for the current, full list of what an upload actually accepts.
+
+**A real gap found stress-testing that increment end to end, not just at the handler**: the handler
+side gained `.doc` support, but `devsystem_document_extraction_client` -- the caller that actually
+determines the `mime_type` sent over the wire from a file's extension -- was never updated to
+recognize `.doc` at all. A real `.doc` file would have fallen through to
+`application/octet-stream` and been rejected by the handler as unsupported, even though the handler
+genuinely now supports it -- the exact "fixed at one end, not the whole real path" pattern this
+project's own stress-test methodology keeps finding elsewhere in this codebase. Fixed the same day.
+
+**Still genuinely open**: the same OIDC bearer-token blocker above -- none of this format work
+changes that a live upload through this channel still needs the operator's own Keycloak action
+first.
+
 ## Why role-filler proposals skip the queue
 
 The operator's own reasoning (stated directly, not inferred): the pipeline is meant to *inform
