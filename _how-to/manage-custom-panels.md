@@ -25,6 +25,22 @@ session, whatever the panel's own markup does.
 **Add panel** takes effect immediately -- no approval step, because a human directly filling this
 form in is already the accountable decision.
 
+**A title and some real HTML content are both required.** A blank or whitespace-only title was
+already rejected; a genuinely blank HTML body wasn't, until a real gap closed 2026-08-06: every
+other real free-text field in this pipeline (milestones, backlog, requirement statements, stage
+proposals) already rejects whitespace-only content, but a custom panel's own HTML was the one
+exception -- live-confirmed, a panel with `html: ""` got a real `200` and sat there as a genuinely
+blank, useless panel with nothing telling you it was empty:
+
+```
+$ curl -X POST .../api/runs/{id}/panels -d '{"title": "T", "html": "   "}'
+html must not be empty
+HTTP 400
+```
+
+Enforced identically at all four real entry points that accept panel HTML -- adding, editing, and
+both of the assistant's proposal paths below.
+
 ## Editing one directly
 
 Every live panel now has its own **Edit** button next to **Open** -- click it and that panel's

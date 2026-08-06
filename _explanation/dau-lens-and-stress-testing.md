@@ -43,7 +43,7 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces twenty-eight of the concrete lazy shortcuts below
+is a real, live-HTTP script that reproduces twenty-nine of the concrete lazy shortcuts below
 (duplicate `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the
 "shallow" SHALL-substring bug, an unbounded `price_ceiling` going unflagged (including a later,
 bounded re-proposal for the same stage correctly clearing that flag -- the exact mechanism that had
@@ -59,13 +59,14 @@ empty/oversized text or an unknown draft id at any of the three real next-step-d
 draft next-step option becoming invisible/orphaned the moment its run is resumed, a requirement
 with several simultaneously-bad acceptance criteria only ever reporting the first one instead of
 all of them in one response, an iteration's own embedded `proposals` batch only ever naming the
-first bad proposal instead of every one of them, and an iteration's own `requirement_indices` batch
-only ever naming the first out-of-range index instead of every one of them)
+first bad proposal instead of every one of them, an iteration's own `requirement_indices` batch
+only ever naming the first out-of-range index instead of every one of them, and a custom panel
+accepting genuinely empty/whitespace-only HTML at all four real entry points that write it)
 against a real running deployment, creating and cleaning up its own real scratch run every
 time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into this project's own real CI
 (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub Actions run, not just
 locally), run against the exact Docker image that gets deployed -- a PR that reintroduces one of
-these twenty-eight fails CI instead of waiting for the next manual stress-test firing to notice.
+these twenty-nine fails CI instead of waiting for the next manual stress-test firing to notice.
 Honestly scoped, and
 self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
 needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
@@ -148,8 +149,8 @@ day -- the paused banner now shows the actual real reason for all three, not a g
 
 ## The real track record
 
-As of this writing, the stress test has run **sixty-one** real rounds against the actual
-deployment, finding and closing forty-eight real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **sixty-two** real rounds against the actual
+deployment, finding and closing forty-nine real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
@@ -304,6 +305,15 @@ representative sample, each with its own real live before/after proof:
   plausible one, is worse than an honest "we don't know." Pure frontend fix with no automated test
   harness for it in this repo; verified with a real headless-browser screenshot before and after
   against the actual flagship run instead.
+- **Found by auditing a feature not yet individually checked, not another `.find()` sweep**: Custom
+  Panels -- a real, mutable-content feature -- had the same "every other real free-text field already
+  rejects whitespace-only content" gap already found and closed elsewhere in this project, this time
+  in its own `html` field. Live-confirmed: `{"title":"x","html":""}` got a real `200`, creating a
+  genuinely blank, useless panel with nothing telling you it was empty. The same gap existed at all
+  four real entry points that write panel HTML (add, edit, and both of `devsystem.assistant`'s
+  gated proposal paths) -- one of those four's own doc comment already claimed its validation
+  "mirrors `add_custom_panel` exactly," confirming this was an unintentional gap, not a deliberate
+  omission. Fixed at all four with the identical check every other field already uses.
 
 Real, live, currently-true data as of this writing -- the actual `webconference-android` run's own
 risks, fetched fresh:
