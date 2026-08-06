@@ -17,10 +17,10 @@ time.
 
 Deliberately narrow: only things nothing else can proceed without a real decision on. As of this
 writing that's the same five real pending-proposal queues the Pipeline chip's own badge already
-counts (a new stage, a new/edited/removed custom panel, a proposed GitHub issue), plus a paused
-run's own checkpoint. An unverified requirement or a stalled stage is a normal, common run state on
-its own, not a stuck decision -- both are deliberately left out so the queue stays a real signal,
-not noise.
+counts (a new stage, a new/edited/removed custom panel, a proposed GitHub issue), a paused run's own
+checkpoint, and any leftover draft next-step option once the run isn't paused anymore (see below).
+An unverified requirement or a stalled stage is a normal, common run state on its own, not a stuck
+decision -- both are deliberately left out so the queue stays a real signal, not noise.
 
 ## Stepping through the queue
 
@@ -78,6 +78,28 @@ for good (a real confirmation first, same as every other permanent action in thi
 
 If nothing's been drafted yet, the panel says so plainly rather than showing an empty gap where the
 drafts would go.
+
+## A draft that outlives its checkpoint
+
+**A real gap, live-found and fixed the same day slice 3 shipped, 2026-08-06**: a draft used to only
+ever render nested under the paused-checkpoint card above -- resuming the run made that whole entry
+disappear from the queue, and the draft went with it. Not deleted, just genuinely invisible: still
+real in the run's own state, with no remaining way to see, edit, or delete it.
+
+<figure>
+<img src="{{ '/assets/img/howto-open-points/05-draft-survives-resume.png' | relative_url }}" alt="The Open Points panel after resuming a run, showing 'open point 1 of 1' with the draft next-step option now rendered as its own standalone editable card, no longer nested under a paused checkpoint" >
+<figcaption>The same real draft, after the run has been resumed -- now its own real open point instead of vanishing, still editable and deletable exactly as before.</figcaption>
+</figure>
+
+Fixed: a leftover draft now surfaces as its own real open point the moment the run isn't paused
+anymore, so nothing you drafted (or the assistant drafted) is ever silently lost to a resume click.
+Editing and deleting work identically to the nested view -- same textarea, same **Save edit**/
+**Delete** buttons, same endpoints:
+
+<figure>
+<img src="{{ '/assets/img/howto-open-points/06-draft-deleted-after-resume.png' | relative_url }}" alt="The Open Points panel showing 'Nothing open right now' after deleting the standalone draft that survived the run's resume">
+<figcaption>Deleting it from this standalone view works exactly like deleting a nested one -- real, permanent, confirmed first.</figcaption>
+</figure>
 
 ## What this is
 
