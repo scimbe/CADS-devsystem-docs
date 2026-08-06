@@ -39,6 +39,12 @@ The real route table `web/src/main.rs` mounts, as of this writing -- not a desig
 
 ## Backlog, milestones, requirements
 
+Every list below is capped at 500 real items -- adding a 501st gets a real `400` naming the reason.
+A defensive cap, not a design limit: nothing else stops a client from adding items in a tight loop,
+and a run's `state.json` has to fit this host's own real, limited disk headroom. See
+[The DAU lens and the incompetent-agent stress test]({{ '/explanation/dau-lens-and-stress-testing/' | relative_url }})
+for how this was found and where else it applies.
+
 | Route | What it does |
 |---|---|
 | `POST /api/runs/{id}/backlog` | Add a backlog item (`{"text": "..."}`). |
@@ -66,6 +72,12 @@ Each of the three proposal kinds follows the same real shape: `propose` lands in
 `approve`/`reject` resolves it. See [How the pipeline proposes and grows its own stages]({{ '/explanation/self-optimizing-pipeline/' | relative_url }})
 for why this queue exists for `devsystem.assistant`'s own proposals but not a role-filler's
 iteration-embedded ones.
+
+`custom_panels` and every pending-proposal queue here (stage, panel-add, panel-removal, panel-edit,
+issue) share the same 500-item defensive cap the backlog/milestones/requirements lists above have --
+a real gap for a while: only the latter three ever had it. Live-confirmed before the fix: 510 custom
+panels added in a row with zero rejections. Now every list here rejects its own 501st item with a
+real `400` too. See [The DAU lens and the incompetent-agent stress test]({{ '/explanation/dau-lens-and-stress-testing/' | relative_url }}).
 
 | Route | What it does |
 |---|---|

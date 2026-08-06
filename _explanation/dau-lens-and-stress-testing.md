@@ -40,8 +40,8 @@ for what these checks look like in the code.
 
 ## The real track record
 
-As of this writing, the stress test has run **twenty-one** real rounds against the actual
-deployment, finding and closing twenty-one real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **twenty-two** real rounds against the actual
+deployment, finding and closing twenty-two real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
@@ -83,6 +83,12 @@ representative sample, each with its own real live before/after proof:
   got a real `200`, turning a run's "bounded super loop" (this project's own central architectural
   claim) unbounded for any practical purpose. A DAU-lens gap, not a role-filler one: a human
   mistyping a value would silently lose their own safety net.
+- The 500-item defensive cap on backlog/milestones/requirements was never actually a cap on every
+  list that needed one -- `custom_panels` and all four pending-proposal queues (stage, panel-add,
+  panel-removal, panel-edit, issue) had no cap at all. Live-confirmed: 510 real custom panels added
+  in a row against the actual deployment, zero rejections. Closed by adding the identical check to
+  all six remaining entry points; re-verified live by seeding a run to exactly 500 panels and
+  confirming the 501st gets a real `400`.
 
 Real, live, currently-true data as of this writing -- the actual `webconference-android` run's own
 risks, fetched fresh:
