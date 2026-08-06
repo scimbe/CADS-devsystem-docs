@@ -19,12 +19,12 @@ The example project here targets a real repo, [`CADS-webconference-android`](htt
 ## 1. Sign in and land on a clean layout
 
 Every panel in the GUI (Runs, Requirements, Pipeline, Backlog, and sixteen more as of this writing)
-is its own independently movable/resizable window, toggled from the chip bar at the top. On your
-very first visit, only four are open by default — enough to get oriented without being overwhelmed:
+is its own independently movable/resizable window. On your very first visit, only four are open by
+default — enough to get oriented without being overwhelmed:
 
 <figure>
-<img src="{{ '/assets/img/tutorial-first-run/01-landing.png' | relative_url }}" alt="The GUI landing page with a small default set of panels open: Runs, Process, Pipeline, Requirements">
-<figcaption>Runs, Process, Pipeline, and Requirements are open by default. Every other panel — Backlog, Milestones, Roles, Check-in, and so on — is one click away on the chip bar above.</figcaption>
+<img src="{{ '/assets/img/tutorial-first-run/01-landing.png' | relative_url }}" alt="The GUI landing page with a small default set of panels open: Runs, Process, Pipeline, Requirements, and a small green dot fixed in the bottom-left corner">
+<figcaption>Runs, Process, Pipeline, and Requirements are open by default. Every other panel — Backlog, Milestones, Roles, Check-in, and so on — is one click away on the green dot in the bottom-left corner. See <a href="{{ '/how-to/navigate-with-the-panel-launcher/' | relative_url }}">Open panels with the launcher</a> for what it does and why panels aren't all the same size.</figcaption>
 </figure>
 
 ## 2. Create a new project

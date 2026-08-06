@@ -10,8 +10,8 @@ A run can accumulate several real, separate things waiting on a human decision a
 role-filler's proposed pipeline stage, an assistant-drafted custom panel, a paused checkpoint. Each
 already has its own panel (Pipeline, Custom Panels, Health & Criteria), but noticing all of them
 means checking every one of those panels yourself. The **Open Points** panel is a single guided
-queue instead -- open it from the panel chip bar and step through everything real, one item at a
-time.
+queue instead -- open it from the [panel launcher]({{ '/how-to/navigate-with-the-panel-launcher/' | relative_url }})
+(the green dot, bottom-left) and step through everything real, one item at a time.
 
 ## What counts as an open point
 
