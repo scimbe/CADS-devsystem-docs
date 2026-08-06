@@ -55,17 +55,23 @@ canvas) always has the same shape:
 - **Decision needed** -- the literal prompt: reply `approve` to accept this iteration's proposals
   and let the next iteration proceed, or `request-changes` with direction.
 
-## The three real pre-flight checks
+## The real pre-flight checks
 
-`preflight_annotations` (`pipeline/src/preflight.rs`) runs three mechanical checks over a run's
+`preflight_annotations` (`pipeline/src/preflight.rs`) runs five mechanical checks over a run's
 history -- not an LLM judgment call, just patterns a human reviewer would otherwise have to notice
-by hand:
+by hand. (A sixth, process-level check needs the run's own live spec too, not just history -- see
+[How real risk annotations work]({{ '/explanation/risk-annotations/' | relative_url }}) for that
+one.) Two of these five were added after this page was first written, each one found live by this
+project's own incompetent-agent stress test -- the table below is kept current, not the original
+three:
 
 | Check | Fires when |
 |---|---|
 | **touches auth/security** | The latest iteration's feedback, or a proposal's rationale, mentions a security-relevant keyword (e.g. "session", "auth", "credential"). |
-| **no test stage before implement** | `devsystem.implement` ran before any `devsystem.test` iteration ever ran on this run. |
+| **no test stage before implement** | `devsystem.implement` ran before any *substantive* `devsystem.test` iteration -- a rubber-stamp `"tests pass"` no longer counts as real evidence testing happened. |
 | **no price ceiling set** | A proposal declares a brand-new service (no `use_existing_service`) with no `price_ceiling` -- nothing bounds what filling it could actually cost. |
+| **succeeded iteration admits a known defect** | A `succeeded: true` iteration's own feedback contains a real defect-admission phrase ("known issue", "not fixed", "workaround needed", ...) -- catches an iteration contradicting itself. |
+| **mandatory check-in cadence effectively disabled** | `checkin_every` is `0`, or at/past `max_iterations` -- either way, the "check in at least this often" cadence this whole page is about can never actually fire on its own before the run's hard iteration ceiling does. |
 
 Each one that fires gets seeded into the canvas conversation as a real chat message (the
 `seeded pre-flight annotation: ...` lines in `devsystem_checkin`'s own output above) *before* a
