@@ -69,6 +69,25 @@ now shows the actual real reason, live-confirmed for all three real triggers:
 A consecutive-failure abort says so specifically too (*"3 consecutive failed iterations (limit
 3)"*), distinct from an iteration-count abort -- not just "the run aborted."
 
+**What if the reason itself is missing?** Every real code path that pauses a run today sets a real
+reason alongside it, but `pause_reason` predates the other pieces of `RunState` by a while, so a run
+whose own `state.json` was written before this field existed can genuinely have `paused: true` with
+no recorded reason -- confirmed live on `webconference-android` itself, whose paused checkpoint
+predates the field. Until 2026-08-06 this rendered as a bare `"paused"` with zero indication anything
+was missing, which is exactly the kind of silent gap this whole project's documentation exists to
+call out rather than paper over. Fixed to say so honestly instead:
+
+```
+⏸ paused -- no reason recorded -- no new iterations are accepted until resumed
+```
+
+Deliberately not backfilled with a guess (it's very likely the M1 milestone pause, given the run's
+own history, but that's an inference, not something the data actually proves) -- an honest "we don't
+know" beats a plausible-sounding but unverified claim. Real capture of `webconference-android`'s own
+Health & Criteria panel showing exactly this:
+
+![Paused banner honestly showing "no reason recorded" for a pause that predates reason-tracking]({{ '/assets/img/howto-milestone-pause/02-paused-banner-no-reason.png' | relative_url }})
+
 ## Getting going again
 
 Click **Resume run** in the Health & Criteria panel, or call `POST /api/runs/{id}/resume`

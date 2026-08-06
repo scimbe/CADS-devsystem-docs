@@ -148,8 +148,8 @@ day -- the paused banner now shows the actual real reason for all three, not a g
 
 ## The real track record
 
-As of this writing, the stress test has run **sixty** real rounds against the actual
-deployment, finding and closing forty-seven real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **sixty-one** real rounds against the actual
+deployment, finding and closing forty-eight real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
@@ -293,6 +293,17 @@ representative sample, each with its own real live before/after proof:
   iteration claims to address) is also a real batch, and its bounds check had the identical
   first-only bug -- live-confirmed `[99, 150]` against a run with zero requirements only ever named
   99. Both fixed and re-verified live the same way as the acceptance-criteria fix above.
+- **A real gap found by simply reading the flagship run's own current state, not another sweep**:
+  `webconference-android` itself, right now, has `paused: true` with `pause_reason: null` --
+  genuinely old data (every real code path that sets `paused = true` today correctly sets a reason
+  too, confirmed by reading each), but the GUI's three real renderings of that field all silently
+  omitted the reason clause entirely when it's missing, giving zero indication anything was
+  missing at all. Fixed to say so honestly ("no reason recorded") instead of quietly showing
+  nothing, matching a fallback `open_points()` already had server-side for the identical case.
+  Deliberately not backfilled with a guessed historical reason -- an unverified claim, even a
+  plausible one, is worse than an honest "we don't know." Pure frontend fix with no automated test
+  harness for it in this repo; verified with a real headless-browser screenshot before and after
+  against the actual flagship run instead.
 
 Real, live, currently-true data as of this writing -- the actual `webconference-android` run's own
 risks, fetched fresh:
