@@ -43,7 +43,7 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces twenty-two of the concrete lazy shortcuts below
+is a real, live-HTTP script that reproduces twenty-three of the concrete lazy shortcuts below
 (duplicate `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the
 "shallow" SHALL-substring bug, an unbounded `price_ceiling` going unflagged (including a later,
 bounded re-proposal for the same stage correctly clearing that flag -- the exact mechanism that had
@@ -53,12 +53,13 @@ forging fake markdown structure in the real requirements export, a proposed GitH
 an arbitrary repo outside the real allowlist, a succeeded iteration whose own feedback admits a
 known defect, empty/whitespace-only iteration feedback, a run genuinely refusing further iterations
 once it hits its own configured bound, the Runs list's own `pending_reviews` count missing two of
-five real proposal queues, and an empty/whitespace-only `holder_label` when directly accepting a
-bid) against a real running deployment, creating and cleaning up its own real scratch run every
+five real proposal queues, an empty/whitespace-only `holder_label` when directly accepting a
+bid, and an absurdly large or zero `units` value at all three real `StageProposal` entry points)
+against a real running deployment, creating and cleaning up its own real scratch run every
 time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into this project's own real CI
 (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub Actions run, not just
 locally), run against the exact Docker image that gets deployed -- a PR that reintroduces one of
-these twenty-two fails CI instead of waiting for the next manual stress-test firing to notice.
+these twenty-three fails CI instead of waiting for the next manual stress-test firing to notice.
 Honestly scoped, and
 self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
 needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
@@ -137,8 +138,8 @@ day -- the paused banner now shows the actual real reason for all three, not a g
 
 ## The real track record
 
-As of this writing, the stress test has run **fifty-four** real rounds against the actual
-deployment, finding and closing forty-two real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **fifty-six** real rounds against the actual
+deployment, finding and closing forty-three real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
@@ -243,6 +244,16 @@ representative sample, each with its own real live before/after proof:
   have been `append`, three sorts that should have used `sort_by_key`) -- all fixed in the same commit
   that added the gate, watched green in the project's real GitHub Actions run for that exact push, not
   just a local Docker run standing in for it.
+- **The "two/three real entry points" pattern, at its most consequential yet**: a `StageProposal`'s
+  `units` field was checked for zero at two of its three real entry points (`propose_stage`,
+  `quick_submit_offer`), but not for an absurdly large value at either -- live-confirmed:
+  `units: 18446744073709551615` (`u64::MAX`) got a real `200`. Investigating whether the third real
+  entry point, `validate_proposals` (reached by a role-filler's own embedded stage proposal, which
+  applies to the live `PipelineSpec` immediately, with **no human review gate at all**), had even the
+  existing zero-check found it had neither check -- the most consequential of the three, since it's
+  the one path with no person in the loop to catch it. Fixed at the root: a single `MAX_ROLE_UNITS`
+  constant now lives in the pipeline crate as the one source of truth, enforced at all three real
+  entry points from the same shared check, not three independently-duplicated ones.
 
 Real, live, currently-true data as of this writing -- the actual `webconference-android` run's own
 risks, fetched fresh:
