@@ -123,6 +123,24 @@ $ curl -X POST .../api/runs/docs-run/assistant \
  panels, stages, issues, next-step drafts) across fifteen action types."}
 ```
 
+**A third real instance of this same bug class, found live 2026-08-06**: the assistant gained a
+sixteenth action type (`toggle_requirement_auto_judge`, a real per-requirement checkbox toggle it
+couldn't act on before -- no new *kind* of data, just a new action on the existing "requirements"
+kind) -- and the system prompt's own hardcoded self-description sentence was, once again, never
+updated to match. Checked live rather than assumed correct this time, precisely because this exact
+sentence had already drifted stale twice before: asked the real, already-redeployed assistant the
+identical question above, and it answered *"across 15 total action types"* -- genuinely wrong, the
+real count was 16. Fixed
+([CADS-devsystem@bfe5cc5](https://github.com/scimbe/CADS-devsystem/commit/bfe5cc5)); the same
+question, re-asked live after this redeploy:
+
+```
+$ curl -X POST .../api/runs/docs-action-count-check/assistant \
+    -d '{"instruction": "In one sentence, how many kinds of data can you take action on, and how many total action types?"}'
+{"response": "Nine kinds of data (milestones, backlog items, requirements, repo_url, runs, custom
+ panels, stages, issues, next-step drafts) across sixteen action types."}
+```
+
 ## Marking a milestone achieved through chat pauses the run -- and it says so
 
 Toggling a milestone to achieved has a real, run-wide consequence regardless of how you do it: see
