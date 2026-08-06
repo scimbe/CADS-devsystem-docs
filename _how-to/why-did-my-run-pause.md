@@ -97,6 +97,28 @@ approval step beyond your own decision to resume. While paused, submitting a new
 submit button disables itself with a `resume the run first` tooltip -- so this can't be missed
 and silently worked around from the GUI.
 
+**Until 2026-08-06, this held only for the GUI and the HTTP API -- not for `devsystem_iterate`'s
+own local mode.** `devsystem_iterate` (no `--remote`, see [Bid for a role and submit a real
+iteration]({{ '/how-to/submit-an-iteration/' | relative_url }})) reads and writes `runs/<run_id>/`
+directly, with no HTTP layer in between at all -- and until this fix, nothing on that path checked
+`paused` before applying an iteration. Live-confirmed before fixing: a scratch run with
+`paused: true` accepted a real iteration through this binary, appended it to the run's history, and
+left `paused` untouched -- the resume-first gate was only ever a GUI/HTTP-level courtesy, never
+actually enforced for anyone submitting locally:
+
+```
+$ devsystem_iterate a-paused-run record.json
+rejected: run is paused -- resume it first (devsystem-web POST /api/runs/{id}/resume, or clear
+state.paused directly) before submitting another local iteration
+```
+
+Same real check, same message shape as the two `devsystem_iterate`-only gaps documented in
+[Bid for a role and submit a real iteration]({{ '/how-to/submit-an-iteration/' | relative_url }})
+(the `run_id` path-traversal guard and the `requirement_indices` bounds check) -- a validation that
+existed only in `devsystem-web`'s HTTP handler, with the local CLI path calling `run_iteration`
+directly and never going through it
+([CADS-devsystem@7f09ae3](https://github.com/scimbe/CADS-devsystem/commit/7f09ae3)).
+
 **If the run paused because it hit its own bound, resuming alone doesn't raise that bound** --
 live-confirmed: resuming a run that hit `max_iterations: 1` and submitting one more real iteration
 gets accepted (it's genuinely below the new, post-resume gate check), but immediately re-aborts and

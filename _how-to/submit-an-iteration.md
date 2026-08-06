@@ -87,6 +87,10 @@ local mode now call
 ([CADS-devsystem@eb7f146](https://github.com/scimbe/CADS-devsystem/commit/eb7f146)) -- the rejection
 shown above is now real and accurate for local mode too, not just `--remote`.
 
+**A third gap of the identical shape, closed 2026-08-06**: local mode also never checked whether the
+run was paused before applying an iteration -- see [Why did my run pause itself?]({{ '/how-to/why-did-my-run-pause/' | relative_url }})
+for the live reproduction and the fix.
+
 ## 4. Submit it
 
 ```
