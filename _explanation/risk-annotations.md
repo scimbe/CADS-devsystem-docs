@@ -100,6 +100,18 @@ LLM-judgment-in-disguise.
   entire "bounded super loop" this project's own architecture is built around unbounded for any
   practical purpose. Fixed with a real, generous ceiling (10,000) on all three fields -- real runs
   here use single- or low-double-digit values, nowhere close to it.
+
+  **A criterion clearing the add-time length gate isn't the same as being specific** — the [goal
+  document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)'s
+  own §1 commits to "acceptance criteria specific enough to leave no real decision to the LLM."
+  `add_requirement`'s own minimum-content gate (5 real alphanumeric characters) already rejects
+  the worst cases ("ok", ".", an invisible character) -- but a criterion like `"works"` or `"is
+  fast"` clears that bar while still leaving the actual behavior entirely up to the role-filler's
+  own judgment. `vague_acceptance_criteria` flags any requirement whose criterion has fewer than 3
+  distinct words -- the same crude-but-honestly-scoped proxy discipline as the defect-admission
+  phrases above: a genuinely specific-but-terse criterion (`"file exists"`) can still
+  false-positive, and a genuinely vague-but-wordy one can still slip through. Not claimed
+  comprehensive, same as everywhere else on this page.
 - **Process-level checks** (`process_annotations`, added 2026-08-05) — need the run's own live
   `PipelineSpec` too, since they're about *which roles are declared*, not just what already
   happened. The first one: a run with 3+ real successful iterations that has never declared a
