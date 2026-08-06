@@ -67,6 +67,22 @@ $ curl -X POST .../api/runs/docs-manage-custom-panels/assistant \
  in Open Points that you can edit or delete directly."}
 ```
 
+**A second self-description gap, same file, found live 2026-08-06**: when category 3
+(`propose_next_step`) shipped as the assistant's fifteenth action type, it also became a real ninth
+*kind* of data (next-step drafts) -- but the system prompt's own summary line was only ever updated
+for the action-type count, not the data-kind count, and stayed at the stale pre-`propose_next_step`
+value of eight. Asked live, the assistant's own reply contradicted itself: *"Eight kinds of data,
+fifteen action types"* followed immediately by a table that itself summed to nine. Fixed
+([CADS-devsystem@a261b61](https://github.com/scimbe/CADS-devsystem/commit/a261b61)); the same
+question, re-asked live after redeploy:
+
+```
+$ curl -X POST .../api/runs/docs-run/assistant \
+    -d '{"instruction": "In one sentence, how many kinds of data can you take action on, and how many total action types?"}'
+{"response": "Nine kinds of data (milestones, backlog items, requirements, repo_url, runs, custom
+ panels, stages, issues, next-step drafts) across fifteen action types."}
+```
+
 ## Marking a milestone achieved through chat pauses the run -- and it says so
 
 Toggling a milestone to achieved has a real, run-wide consequence regardless of how you do it: see
