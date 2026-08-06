@@ -124,6 +124,15 @@ actual deployment, not just described:
   implying a permission model that was never real. See
   [Requirements, verification, and automode]({{ '/explanation/requirements-and-automode/' | relative_url }})
   for the full live verification.
+- A genuinely empty run's Requirements panel used to say just "No requirements yet." -- easy to skim
+  past, no nudge toward the form sitting right below it. Now a real first-action callout, with the
+  statement field auto-focused (guarded so a hidden panel can never silently steal keystrokes).
+  Backlog and Milestones had the identical gap and got the identical fix. RAG's version is a banner
+  plus auto-expanding its uploads section rather than an auto-focus -- there's no one obvious field
+  to focus when the real next action (set a repo, or upload) lives in two different places. Custom
+  Panels stayed out of this pattern on purpose: it's an opt-in, power-user feature (writing raw
+  HTML), not a core per-run workflow item like the other four, so its existing lighter nudge may
+  already be the right amount rather than a real gap.
 
 ## The same lens, applied to the flagship app itself
 
