@@ -43,20 +43,21 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces twenty of the concrete lazy shortcuts below (duplicate
-`run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the "shallow"
-SHALL-substring bug, an unbounded `price_ceiling` going unflagged (including a later, bounded
-re-proposal for the same stage correctly clearing that flag -- the exact mechanism that had two
-real regressions earlier this session), cross-account access, a "deleted" run not actually being
-gone, `devsystem.assistant`'s own requirement-verification evidentiary gate, a role-filler forging
-fake markdown structure in the real requirements export, a proposed GitHub issue targeting an
-arbitrary repo outside the real allowlist, a succeeded iteration whose own feedback admits a known
-defect, empty/whitespace-only iteration feedback, and a run genuinely refusing further iterations
-once it hits its own configured bound) against a real running deployment, creating and cleaning up
-its own real scratch run every time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired
-into this project's own real CI (`pipeline-ci.yml`'s `web` job, confirmed green against a real
-GitHub Actions run, not just locally), run against the exact Docker image that gets deployed -- a PR
-that reintroduces one of these twenty fails CI instead of waiting for the next manual stress-test
+is a real, live-HTTP script that reproduces twenty-one of the concrete lazy shortcuts below
+(duplicate `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the
+"shallow" SHALL-substring bug, an unbounded `price_ceiling` going unflagged (including a later,
+bounded re-proposal for the same stage correctly clearing that flag -- the exact mechanism that had
+two real regressions earlier this session), cross-account access, a "deleted" run not actually
+being gone, `devsystem.assistant`'s own requirement-verification evidentiary gate, a role-filler
+forging fake markdown structure in the real requirements export, a proposed GitHub issue targeting
+an arbitrary repo outside the real allowlist, a succeeded iteration whose own feedback admits a
+known defect, empty/whitespace-only iteration feedback, a run genuinely refusing further iterations
+once it hits its own configured bound, and the Runs list's own `pending_reviews` count missing two
+of five real proposal queues) against a real running deployment, creating and cleaning up its own
+real scratch run every time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into
+this project's own real CI (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub
+Actions run, not just locally), run against the exact Docker image that gets deployed -- a PR that
+reintroduces one of these twenty-one fails CI instead of waiting for the next manual stress-test
 firing to notice. Honestly scoped, and
 self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
 needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
@@ -88,6 +89,15 @@ Every other real free-text field already rejected whitespace-only content -- an 
 `feedback` was the one exception, silently accepting a `succeeded: true` iteration with zero real
 account of what happened.
 
+Two more real gaps, both about the Runs list silently hiding something a human needs to see. The
+Pipeline panel's own pending-proposal chip badge was already fixed once for undercounting (missing
+panel-removal/edit proposals) -- the Runs list's own separate `pending_reviews` count had the exact
+same bug, never fixed at this call site: a real pending panel-removal proposal showed `0`. And
+`paused` was already in the Runs list's own real API response and never once checked by the GUI's
+badge logic -- a fully paused run could show zero badge at all, indistinguishable from a healthy
+one at a glance. Both fixed the same day; the paused badge now shows the real reason (see below),
+confirmed with a real Playwright screenshot of the actual rendered GUI, not just the API payload.
+
 ## The most significant finding this methodology has produced
 
 Every gate above assumes the pipeline's own "bounded super loop" -- the central architectural claim
@@ -111,8 +121,8 @@ day -- the paused banner now shows the actual real reason for all three, not a g
 
 ## The real track record
 
-As of this writing, the stress test has run **forty-nine** real rounds against the actual
-deployment, finding and closing thirty-eight real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **fifty-one** real rounds against the actual
+deployment, finding and closing forty real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
