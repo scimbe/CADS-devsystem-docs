@@ -56,10 +56,18 @@ $ curl -X POST .../api/runs/docs-run/iterate -d '{"stage":"devsystem.implement",
 mechanism the milestone case above uses: the next iteration attempt gets the identical real `409`
 a milestone-paused run already gives, not silently accepted past the bound.
 
-**Honest scope**: unlike the milestone case, hitting the run's own bound doesn't yet say *why* in
-the GUI -- the paused banner looks identical whether a milestone was achieved or the run simply ran
-out of iterations/failed too many times in a row. Telling those two apart at a glance is a real,
-separate refinement, not solved yet.
+**Update, 2026-08-06**: the paused banner used to look identical no matter which of these caused
+it -- a real, separate gap this page itself named as still open, closed the same day. The banner
+now shows the actual real reason, live-confirmed for all three real triggers:
+
+```
+⏸ paused -- reached the 1-iteration limit -- no new iterations are accepted until resumed
+⏸ paused -- milestone achieved: 1:1 messaging works end to end -- no new iterations are accepted until resumed
+⏸ paused -- paused manually -- no new iterations are accepted until resumed
+```
+
+A consecutive-failure abort says so specifically too (*"3 consecutive failed iterations (limit
+3)"*), distinct from an iteration-count abort -- not just "the run aborted."
 
 ## Getting going again
 
