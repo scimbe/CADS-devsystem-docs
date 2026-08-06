@@ -71,6 +71,27 @@ LLM-judgment-in-disguise.
   correctly never flagged either way -- this doesn't turn into permanent noise for something that was
   actually resolved or discarded.
 
+  **A real `0` isn't a real ceiling either** — `price_ceiling` is never actually enforced against a
+  real bid's price anywhere in this codebase (confirmed by reading every real call site, not
+  assumed) -- it's stored and shown, never compared against anything, which is exactly why this
+  risk exists at all. That makes `price_ceiling: 0` exactly as meaningless as leaving it unset, not
+  safer -- but until 2026-08-06 the check only matched `is_none()`, so a role proposed with a real
+  `0` ceiling silently produced zero risk findings, a false "this is bounded" signal for a role
+  that's exactly as unbounded as one with no ceiling at all. Fixed to treat a real `0` the same as
+  `None`.
+
+  **A structurally lost record, found investigating the `0` case** — the fix above still didn't
+  fire against a proposal approved through `devsystem.assistant`'s own pending-queue path
+  (`POST .../stages/proposals/{id}/approve`). Traced to something more significant than a check bug:
+  this risk only ever scanned `history.proposals`, which only a role-filler's own iteration-embedded
+  proposals land in — the assistant-relayed approval path never touches `history` at all, so an
+  approved proposal's real `price_ceiling` became permanently unrecoverable the moment it was
+  approved, not just invisible to this one check. The same two-real-entry-points shape this site's
+  own [self-optimizing pipeline]({{ '/explanation/self-optimizing-pipeline/' | relative_url }}) page
+  already documents for other checks. Fixed with a new, honest, complete record
+  (`RunState.approved_stage_proposals`) both real approval paths now write to, regardless of which
+  one a given proposal took.
+
   **Not every check could get the same fix, and that's stated plainly, not hidden**:
   `touches auth/security` has the identical "only checks the latest iteration" shape, but a keyword
   mention in some past feedback text has no equivalent checkable "is this still live" entity the way
