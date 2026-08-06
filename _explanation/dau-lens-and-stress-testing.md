@@ -43,31 +43,39 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces fourteen of the concrete lazy shortcuts below (duplicate
+is a real, live-HTTP script that reproduces sixteen of the concrete lazy shortcuts below (duplicate
 `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the "shallow"
 SHALL-substring bug, an unbounded `price_ceiling` going unflagged, cross-account access, a "deleted"
-run not actually being gone, and `devsystem.assistant`'s own requirement-verification evidentiary
-gate) against a real running deployment, creating and cleaning up its own real scratch run every
-time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into this project's own real
-CI (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub Actions run, not just
-locally), run against the exact Docker image that gets deployed -- a PR that reintroduces one of
-these fourteen fails CI instead of waiting for the next manual stress-test firing to notice.
-Honestly scoped, and self-correcting: the evidentiary-gate check above was originally left out on
-the wrong assumption it needed a real LLM call to test -- a later firing caught that it's actually
-pure header-based server logic (`X-Actor: devsystem.assistant`, no LLM involved) and added it for
-real. What's still genuinely excluded: prompt-injection resistance and the assistant's own
-milestone-pause disclosure, which need a real, non-deterministic LLM reply a human judges, not a
-fast boolean check.
+run not actually being gone, `devsystem.assistant`'s own requirement-verification evidentiary gate,
+a role-filler forging fake markdown structure in the real requirements export, and a proposed
+GitHub issue targeting an arbitrary repo outside the real allowlist) against a real running
+deployment, creating and cleaning up its own real scratch run every time via the actual
+`DELETE /api/runs/{id}` endpoint. It's now wired into this project's own real CI (`pipeline-ci.yml`'s
+`web` job, confirmed green against a real GitHub Actions run, not just locally), run against the
+exact Docker image that gets deployed -- a PR that reintroduces one of these sixteen fails CI
+instead of waiting for the next manual stress-test firing to notice. Honestly scoped, and
+self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
+needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
+logic (`X-Actor: devsystem.assistant`, no LLM involved) and added it for real. What's still
+genuinely excluded: prompt-injection resistance and the assistant's own milestone-pause disclosure,
+which need a real, non-deterministic LLM reply a human judges, not a fast boolean check.
 
 The same investigation that produced the harness also found a real gap in this project's own §5
 quality-bar table: it named `check-no-secrets.sh` as a real secrets-scanning gate, but that script
 had never actually existed in this repo at all -- a different project's convention, referenced in
 prose but never built here. A real, adapted version now exists and runs in its own CI job.
 
+Later still, observing the actual live GitHub Actions state (not simulating anything) found a real
+CI hygiene gap: this project's own frequent pushes had no `concurrency` group, so four separate CI
+runs were genuinely stacked in-progress at once, none of them cancelled, even though only the last
+push's result actually matters for `main`'s current health. Fixed with a standard concurrency group
+-- and live-verified it actually took effect, not just reasoned about: the very next push after the
+fix landed showed a real `cancelled` conclusion on the run it superseded.
+
 ## The real track record
 
-As of this writing, the stress test has run **thirty-eight** real rounds against the actual
-deployment, finding and closing thirty-four real gaps (rounds thirty-five through thirty-eight
+As of this writing, the stress test has run **forty-one** real rounds against the actual
+deployment, finding and closing thirty-four real gaps (rounds thirty-five through forty-one
 strengthened the stress test's own infrastructure rather than finding a new one) -- not simulated,
 not hypothetical. A
 representative sample, each with its own real live before/after proof:
