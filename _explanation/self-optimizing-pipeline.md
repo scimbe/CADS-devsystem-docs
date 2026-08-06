@@ -139,16 +139,33 @@ two genuinely separate ways for two channel members to actually connect:
   a real relay-only mode (`CT_CHANNEL_RELAY_ONLY=1`) for a member with no dialable address at all
   -- exactly the winning bidder's own real constraint (no port forwarding on their dev box).
 
-**Still genuinely open, and now more precisely scoped**: `devsystem_document_extraction_client`
-needs a real rewrite to speak the broker-mediated model instead of direct-address -- a different
-`ct-agent channel` invocation shape, not a config change. Investigating this further surfaced one
-more real prerequisite: `ct-agent channel register` (registering a channel authority with the
-control-plane, apparently required before the broker will accept a join for a given channel id)
-itself needs a real OIDC bearer token this deployment doesn't currently have provisioned for that
-specific purpose. Until both are real, every RAG upload still uses Unstructured or the honest
-`503`, same as before this investigation. Handler code being real and merged, a real authorization
-existing, and real caller-side wiring existing -- none of that is the same as the role actually
-being dialed in production traffic, using the *right protocol*, yet -- another instance of the same
+**Update, 2026-08-06**: `devsystem_document_extraction_client` is rewritten for real to speak the
+broker-mediated, relay-only model -- `CT_CHANNEL_BROKER`/`CT_CHANNEL_RELAY`/`CT_CHANNEL_GRANT`/
+`CT_CHANNEL_HOLDER_KEY`/`CT_CHANNEL_NOISE_KEY`, with `CT_CHANNEL_RELAY_ONLY=1` hardcoded rather
+than configurable -- this deployment's own caller identity has no dialable public address either,
+so relay-only isn't a choice, it's the only mode that was ever going to be correct here.
+
+**A second real gap found alongside the rewrite, before it ever reached production**: the client
+binary was never actually built into `web/Dockerfile` at all -- its sibling
+`github_issue_channel_client` was, this one wasn't. The wiring and hermetic tests were real, but a
+live deployment would have hit a real "No such file or directory" the moment every
+`DOCUMENT_EXTRACTION_*` env var was finally configured, since the binary genuinely didn't exist in
+the container. Fixed with the same build-and-copy shape already established for its sibling.
+Confirmed live in the actual running container, not assumed from the Dockerfile diff: the binary
+exists at `/app/devsystem_document_extraction_client` and runs.
+
+**Still genuinely open**: `ct-agent channel register`'s own OIDC bearer-token prerequisite --
+registering a channel authority with the control-plane, apparently required before the broker will
+accept a join for a given channel id. This needs a real Keycloak admin action this deployment
+doesn't have access to provision itself, and won't self-provision without the operator's own
+go-ahead regardless (new production auth credentials are a real, hard-to-reverse action on shared
+infrastructure, not a call to make alone). Raised directly with the operator on
+[CADS-Tunnel#382](https://github.com/scimbe/CADS-Tunnel/issues/382). Until it's resolved, every RAG
+upload still uses Unstructured or the honest `503`, same as before this investigation -- protocol,
+grant, and binary presence are all real and ready; only this one credential is missing. Handler
+code being real and merged, a real authorization existing, real caller-side wiring speaking the
+right protocol, and the binary now genuinely present in the deployed image -- none of that is the
+same as the role actually being dialed in production traffic yet -- another instance of the same
 "declared/won is not the same as live-serving" distinction this section already makes for auction
 liveness.
 
