@@ -96,12 +96,22 @@ added real DOCX support via headless `libreoffice --convert-to txt:Text` -- inde
 re-verified the same way: a hand-built, valid `.docx` through the actual compiled binary and a real
 `libreoffice` install, not just the PR's own claim. `image`/OCR stays honestly unbuilt (no
 `tesseract` CLI on the bidder's host, confirmed rather than assumed) -- an unsupported request gets
-a real `Error`, never a fabricated extraction. Neither role currently shows a live offer in
-`stalled_stages` as of this writing -- and that's the real, important distinction this section
-exists to make: **auction liveness and "the work got done" are two separate signals.** A role can
-have already delivered real, shipped work and still show as stalled once its bidder's process isn't
+a real `Error`, never a fabricated extraction. At the time this was first written, neither role
+showed up in `stalled_stages` -- and that's the real, important distinction this section exists to
+make: **auction liveness and "the work got done" are two separate signals.** A role can have
+already delivered real, shipped work and still show as stalled once its bidder's process isn't
 actively running `--serve` any more -- stalled means "nobody is bidding on this role *right now*,"
 not "this was never done."
+
+**Re-checked live, 2026-08-06**: exactly what that distinction predicts has since happened --
+`stalled_stages` on the real flagship run now reads
+`["devsystem.document_extraction", "devsystem.android_emulator_test", "devsystem.review"]`, both
+roles back in the list. Neither bidder's `--serve` process is running right now. That's not a
+regression or a sign the earlier work was undone -- the real APK build, the real PDF/DOCX
+extraction handler, and the real M1 milestone confirmation (two actual Android emulator instances
+exchanging a real message, see [issue #13](https://github.com/scimbe/CADS-devsystem/issues/13))
+all still genuinely happened and are still real. It's the exact case this section's own reasoning
+was written to cover, now observed rather than only described.
 
 **Update, 2026-08-06**: the two real `SignedChannelGrant`s are minted. The blocker really was the
 bidder's real full holder public key -- the auction view deliberately only ever shows a 4-byte
