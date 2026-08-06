@@ -17,7 +17,8 @@ LLM-judgment-in-disguise.
 - **History-only checks** (`preflight_annotations`) — a security-relevant keyword in the latest
   iteration's feedback, `devsystem.implement` running before any *substantive* `devsystem.test`
   iteration, a new service proposal with no `price_ceiling`, a `succeeded: true` iteration whose
-  own feedback admits a known defect, and a mandatory check-in cadence that's effectively disabled.
+  own feedback admits a known defect, real succeeded work with no substantive `devsystem.review`
+  iteration anywhere in history, and a mandatory check-in cadence that's effectively disabled.
   These only need a run's `RunState` — its iteration history — so they're usable everywhere a run's
   history is available, including `devsystem_checkin`'s own binary (which never loads the run's spec
   at all).
@@ -32,6 +33,20 @@ LLM-judgment-in-disguise.
   25+ characters and 8+ distinct words. A `devsystem.test` record that doesn't clear both doesn't
   count as real evidence testing happened, and the check falls through to flagging the risk as if
   no test iteration existed at all.
+
+  **Declaring `review` isn't the same as it ever actually happening** — [the goal document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)'s
+  own §5 names this gap directly: "a role-filler can mark an iteration `succeeded: true` without
+  passing through `review`... at all." `no review stage for real, succeeded work` flags a run with
+  at least one real `succeeded: true` iteration but no `devsystem.review` iteration anywhere in
+  history substantive enough to count (the identical 25+ character / 8+ distinct word bar as the
+  test-stage check above, same rubber-stamp-proofing). Deliberately advisory, not a block — a
+  separate, narrower hard `409` already exists for marking a *requirement* verified without real
+  review evidence (see [Requirements, verification, and automode]({{ '/explanation/requirements-and-automode/' | relative_url }})),
+  but nothing yet stops an *iteration* itself from counting as done the same way. Complementary to,
+  not the same as, the process-level "review role declared" check below: that one asks whether
+  `devsystem.review` exists in the run's own spec at all; this one asks whether real review
+  substance ever actually showed up in history, regardless of whether the role was ever declared —
+  a run can pass one and still fail the other.
 
   **Contradicting yourself doesn't go unnoticed either** — a different flavor of the same
   discipline, this one going after a gap [the goal document's §5 quality-bar table](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)
@@ -192,10 +207,30 @@ successful iterations to fire, so a single-iteration example like this one never
 the comparison right below for what its *absence* looks like on a run that has since declared
 `review`.)
 
-Compare against the real `webconference-android` run: it declared `devsystem.review` back at
-iteration 8 (see [the goal document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)'s
-own incident log for why), so today it shows `"risks": []` — the same check, correctly silent once
-the actual condition it flags no longer holds.
+**Compare against the real `webconference-android` run, re-checked live, 2026-08-06** — an earlier
+version of this page claimed it shows `"risks": []` today, on the reasoning that declaring
+`devsystem.review` back at iteration 8 (see [the goal document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)'s
+own incident log for why) silences the process-level check. That reasoning about the
+process-level check is still correct, but the conclusion was already stale before this page was
+re-checked -- the real run has carried two other real, live risks (`touches auth/security`,
+`no price ceiling set`) the whole time, and now shows a third, genuinely new one:
+
+```
+$ curl .../api/runs/webconference-android
+{
+  "risks": [
+    {"label": "touches auth/security", "evidence": "iteration 11's feedback mentions \"session\""},
+    {"label": "no review stage for real, succeeded work", "evidence": "this run has at least one succeeded:true iteration, but no devsystem.review iteration anywhere in its history that's substantive enough to count as real evidence review happened (25+ characters and 8+ distinct words of feedback, not a rubber-stamp) -- advisory today, not a block (goal doc §5)"},
+    {"label": "no price ceiling set", "evidence": "role `devsystem.document_extraction` is live in this run's own spec, was proposed needing a new service (no use_existing_service) with no real price_ceiling (none set), and nothing since has bounded what filling it could cost -- price_ceiling is never actually enforced against a real bid's price, so 0 is exactly as unbounded as unset"}
+  ]
+}
+```
+
+That middle risk is the cleanest real illustration of this page's own "declared isn't the same as
+happened" distinction: `devsystem.review` genuinely IS declared in this run's own spec (the
+process-level check stays correctly silent), but no substantive `devsystem.review` iteration has
+ever actually run in its history -- the history-level check fires anyway, on a completely different
+real signal. Two checks, two different real facts, both true about the same run at once.
 
 ## Why "3+ successful iterations", not a specific stage name
 
