@@ -130,6 +130,18 @@ LLM-judgment-in-disguise.
   later proposal that *drops* an existing ceiling correctly re-flags the risk too, matching the same
   "current, live state wins" discipline this check already used for staleness elsewhere on this page.
 
+  **A real gap found inside this very check, 2026-08-06**: `no_price_ceiling` used to return at most
+  *one* finding -- `Iterator::find` over every real unbounded role in `added_stages`, stopping at the
+  first match. Live-confirmed against the actual `webconference-android` run: `devsystem.review` had
+  the exact same unbounded shape as the already-flagged `devsystem.document_extraction` (`use_existing_service: null`,
+  no `price_ceiling`), but was never surfaced -- the check simply never looked past the first one it
+  found. Fixed to collect every real unbounded role, not just the first: re-checking the same real
+  run afterward found not two but **three** simultaneously unbounded roles --
+  `devsystem.document_extraction`, `devsystem.android_emulator_test`, and `devsystem.review` --
+  two of which had been silently invisible the entire time. The exact "a real risk exists but
+  nothing surfaces it" pattern this whole page documents, found this time inside one of the checks
+  meant to catch it.
+
   **Not every check could get the same fix, and that's stated plainly, not hidden**:
   `touches auth/security` has the identical "only checks the latest iteration" shape, but a keyword
   mention in some past feedback text has no equivalent checkable "is this still live" entity the way
@@ -207,13 +219,12 @@ successful iterations to fire, so a single-iteration example like this one never
 the comparison right below for what its *absence* looks like on a run that has since declared
 `review`.)
 
-**Compare against the real `webconference-android` run, re-checked live, 2026-08-06** — an earlier
-version of this page claimed it shows `"risks": []` today, on the reasoning that declaring
-`devsystem.review` back at iteration 8 (see [the goal document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)'s
-own incident log for why) silences the process-level check. That reasoning about the
-process-level check is still correct, but the conclusion was already stale before this page was
-re-checked -- the real run has carried two other real, live risks (`touches auth/security`,
-`no price ceiling set`) the whole time, and now shows a third, genuinely new one:
+**Compare against the real `webconference-android` run, re-checked live, 2026-08-06** — this
+example has already gone stale twice, both times corrected here rather than left wrong: first an
+earlier version claimed the run shows `"risks": []`; that was fixed once the real two long-standing
+risks (`touches auth/security`, `no price ceiling set`) and a genuinely new one were found live. Then
+the multi-unbounded-role fix above found the real `no price ceiling set` count itself had been
+undercounted the whole time -- the real run currently shows **five** risks, not three:
 
 ```
 $ curl .../api/runs/webconference-android
@@ -221,16 +232,21 @@ $ curl .../api/runs/webconference-android
   "risks": [
     {"label": "touches auth/security", "evidence": "iteration 11's feedback mentions \"session\""},
     {"label": "no review stage for real, succeeded work", "evidence": "this run has at least one succeeded:true iteration, but no devsystem.review iteration anywhere in its history that's substantive enough to count as real evidence review happened (25+ characters and 8+ distinct words of feedback, not a rubber-stamp) -- advisory today, not a block (goal doc §5)"},
-    {"label": "no price ceiling set", "evidence": "role `devsystem.document_extraction` is live in this run's own spec, was proposed needing a new service (no use_existing_service) with no real price_ceiling (none set), and nothing since has bounded what filling it could cost -- price_ceiling is never actually enforced against a real bid's price, so 0 is exactly as unbounded as unset"}
+    {"label": "no price ceiling set", "evidence": "role `devsystem.document_extraction` is live in this run's own spec, ..."},
+    {"label": "no price ceiling set", "evidence": "role `devsystem.android_emulator_test` is live in this run's own spec, ..."},
+    {"label": "no price ceiling set", "evidence": "role `devsystem.review` is live in this run's own spec, ..."}
   ]
 }
 ```
 
-That middle risk is the cleanest real illustration of this page's own "declared isn't the same as
-happened" distinction: `devsystem.review` genuinely IS declared in this run's own spec (the
+(Evidence text truncated above for length -- each real entry is the identical shape, naming its own
+real role.) The middle risk is the cleanest real illustration of this page's own "declared isn't the
+same as happened" distinction: `devsystem.review` genuinely IS declared in this run's own spec (the
 process-level check stays correctly silent), but no substantive `devsystem.review` iteration has
 ever actually run in its history -- the history-level check fires anyway, on a completely different
-real signal. Two checks, two different real facts, both true about the same run at once.
+real signal. And `devsystem.review` shows up a SECOND time too, in the last entry -- it's both
+declared-but-never-executed AND genuinely cost-unbounded, two different real facts about the same
+role, not a contradiction.
 
 ## Why "3+ successful iterations", not a specific stage name
 
