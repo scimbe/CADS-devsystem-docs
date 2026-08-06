@@ -43,7 +43,7 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces twenty-six of the concrete lazy shortcuts below
+is a real, live-HTTP script that reproduces twenty-eight of the concrete lazy shortcuts below
 (duplicate `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the
 "shallow" SHALL-substring bug, an unbounded `price_ceiling` going unflagged (including a later,
 bounded re-proposal for the same stage correctly clearing that flag -- the exact mechanism that had
@@ -56,14 +56,16 @@ once it hits its own configured bound, the Runs list's own `pending_reviews` cou
 five real proposal queues, an empty/whitespace-only `holder_label` when directly accepting a
 bid, an absurdly large or zero `units` value at all three real `StageProposal` entry points,
 empty/oversized text or an unknown draft id at any of the three real next-step-draft endpoints, a
-draft next-step option becoming invisible/orphaned the moment its run is resumed, and a requirement
+draft next-step option becoming invisible/orphaned the moment its run is resumed, a requirement
 with several simultaneously-bad acceptance criteria only ever reporting the first one instead of
-all of them in one response)
+all of them in one response, an iteration's own embedded `proposals` batch only ever naming the
+first bad proposal instead of every one of them, and an iteration's own `requirement_indices` batch
+only ever naming the first out-of-range index instead of every one of them)
 against a real running deployment, creating and cleaning up its own real scratch run every
 time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into this project's own real CI
 (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub Actions run, not just
 locally), run against the exact Docker image that gets deployed -- a PR that reintroduces one of
-these twenty-six fails CI instead of waiting for the next manual stress-test firing to notice.
+these twenty-eight fails CI instead of waiting for the next manual stress-test firing to notice.
 Honestly scoped, and
 self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
 needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
@@ -146,8 +148,8 @@ day -- the paused banner now shows the actual real reason for all three, not a g
 
 ## The real track record
 
-As of this writing, the stress test has run **fifty-eight** real rounds against the actual
-deployment, finding and closing forty-five real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **sixty** real rounds against the actual
+deployment, finding and closing forty-seven real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
@@ -281,6 +283,16 @@ representative sample, each with its own real live before/after proof:
   every bad criterion -- but a real, avoidable retry cost: submitting several simultaneously-bad
   criteria meant fixing and resubmitting once per additional mistake to discover them all. Fixed to
   collect and report every bad criterion from the one request that has them, in a single response.
+- **The same bug class, found twice more by continuing the sweep past the GUI into the pipeline
+  crate itself, then back into the GUI's own remaining batch fields**: `validate_proposals` (the
+  shared gate for a role-filler's own embedded stage proposals, applied immediately with no human
+  review) took a real batch but stopped at the first bad proposal in it -- live-confirmed: one
+  proposal missing its text fields AND a second with `units: 0` only ever named the first. Fixed
+  the identical way. Sweeping back through the GUI's own remaining batch-shaped fields for the
+  same shape found one more: `iterate_run`'s own `requirement_indices` (which requirements this
+  iteration claims to address) is also a real batch, and its bounds check had the identical
+  first-only bug -- live-confirmed `[99, 150]` against a run with zero requirements only ever named
+  99. Both fixed and re-verified live the same way as the acceptance-criteria fix above.
 
 Real, live, currently-true data as of this writing -- the actual `webconference-android` run's own
 risks, fetched fresh:

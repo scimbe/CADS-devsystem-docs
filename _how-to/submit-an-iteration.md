@@ -60,6 +60,20 @@ this iteration actually addresses:
 }
 ```
 
+Every index in `requirement_indices` must be real -- one that's out of range for this run's own
+`requirements` list is rejected, batch and all (nothing is applied if any real index is bad), and
+every out-of-range index gets named in the one rejection, not just the first one found:
+
+```
+$ devsystem_iterate webconference-android-tutorial record-with-two-bad-indices.json
+rejected: requirement_indices references out-of-range index(es) [99, 150], but state.requirements
+only has 3 entries
+```
+
+Real gap found and closed 2026-08-06: this used to only name the first out-of-range index, the same
+"stops at the first match" bug already found and fixed for `proposals` above
+([CADS-devsystem@609e170](https://github.com/scimbe/CADS-devsystem/commit/609e170)).
+
 ## 4. Submit it
 
 ```
@@ -148,6 +162,23 @@ This is enforced identically whichever way you submit -- the same real check run
 it missing from two of those three places in turn
 ([CADS-devsystem@78f4dab](https://github.com/scimbe/CADS-devsystem/commit/78f4dab),
 [CADS-devsystem@5b0dc34](https://github.com/scimbe/CADS-devsystem/commit/5b0dc34)).
+
+**`units` (how many real bidders this role needs) is also bounded** -- `0` is meaningless (a role
+needing zero fillers isn't a role) and this project has never had a real role need more than a
+handful of simultaneous bidders, so an absurdly large value (`u64::MAX` included) is rejected too.
+And `proposals` is a real batch -- if more than one proposal in the same iteration is bad, every one
+of them is named in the same rejection, not just the first:
+
+```
+$ devsystem_iterate docs-submit-iteration-proposal record-with-two-bad-proposals.json
+rejected: proposal for stage_id "" needs a non-empty stage_id, tag, and rationale; proposal for
+stage_id "devsystem.load_test" needs units between 1 and 100, got 0
+```
+
+Real gap found and closed 2026-08-06: this check used to `find` and reject on only the first bad
+proposal in the batch, so a submission with several simultaneously-bad proposals needed one resubmit
+per additional mistake to discover them all
+([CADS-devsystem@48812ad](https://github.com/scimbe/CADS-devsystem/commit/48812ad)).
 
 ## `--remote` against this deployment: M2M bearer-token auth
 
