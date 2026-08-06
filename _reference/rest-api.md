@@ -39,7 +39,7 @@ The real route table `web/src/main.rs` mounts, as of this writing -- not a desig
 | `GET /api/runs/{id}/checkin` | Renders the latest iteration as real check-in markdown (run summary, risk annotations, decision prompt) -- callable any time, not gated on whether one is actually due. See [Review a mandatory check-in]({{ '/how-to/review-a-checkin/' | relative_url }}). |
 | `POST /api/runs/{id}/criteria` | Update a run's `AbortCriteria` (`max_iterations`, `max_consecutive_failures`, `checkin_every`). `max_iterations`/`max_consecutive_failures` must be at least 1; all three fields must be at most 10,000 -- a bounded super loop needs a real, finite bound (a live test once got a real `200` for `u32::MAX`, before this cap existed). `checkin_every: 0` is still a legitimate value (flagged as an advisory risk, not rejected). |
 | `POST /api/runs/{id}/pause` / `/resume` | Pause/resume a run. |
-| `POST /api/runs/{id}/repo` | Set the run's target `repo_url`. |
+| `POST /api/runs/{id}/repo` | Set the run's target `repo_url`. Must start with `https://` (or be empty, to clear it) and be under 2,000 characters -- the same real length cap every other short free-text field in this API has, closed 2026-08-06 after a live test found this one had none (a genuine GitHub URL is nowhere near this length). |
 | `POST /api/runs/{id}/operator-pubkey` | Set the real ed25519 operator public key a role's `ChannelId` derives from. |
 
 ## Backlog, milestones, requirements

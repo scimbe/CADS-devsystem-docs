@@ -43,7 +43,7 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces thirty of the concrete lazy shortcuts below
+is a real, live-HTTP script that reproduces thirty-one of the concrete lazy shortcuts below
 (duplicate `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the
 "shallow" SHALL-substring bug, an unbounded `price_ceiling` going unflagged (including a later,
 bounded re-proposal for the same stage correctly clearing that flag -- the exact mechanism that had
@@ -61,14 +61,14 @@ with several simultaneously-bad acceptance criteria only ever reporting the firs
 all of them in one response, an iteration's own embedded `proposals` batch only ever naming the
 first bad proposal instead of every one of them, an iteration's own `requirement_indices` batch
 only ever naming the first out-of-range index instead of every one of them, a custom panel
-accepting genuinely empty/whitespace-only HTML at all four real entry points that write it, and
-backlog item text/milestone descriptions having no real length cap at all, unlike every sibling
-free-text field)
+accepting genuinely empty/whitespace-only HTML at all four real entry points that write it,
+backlog item text/milestone descriptions having no real length cap at all, and `repo_url` having
+the identical gap)
 against a real running deployment, creating and cleaning up its own real scratch run every
 time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into this project's own real CI
 (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub Actions run, not just
 locally), run against the exact Docker image that gets deployed -- a PR that reintroduces one of
-these thirty fails CI instead of waiting for the next manual stress-test firing to notice.
+these thirty-one fails CI instead of waiting for the next manual stress-test firing to notice.
 Honestly scoped, and
 self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
 needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
@@ -151,8 +151,8 @@ day -- the paused banner now shows the actual real reason for all three, not a g
 
 ## The real track record
 
-As of this writing, the stress test has run **sixty-three** real rounds against the actual
-deployment, finding and closing fifty real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **sixty-four** real rounds against the actual
+deployment, finding and closing fifty-one real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
@@ -323,6 +323,10 @@ representative sample, each with its own real live before/after proof:
   whole-request body limit. Live-confirmed: a real 500,000-character backlog item text got a real
   `200`; only a genuinely oversized (2MB+) request hit the generic limit. Fixed with the same real
   cap (2,000 characters) every sibling free-text field already uses, at both real entry points.
+  Continuing the same check found the identical gap in one more real field: `repo_url` also had no
+  length cap, live-confirmed with a real 500,000-character URL getting a real `200`. Fixed the same
+  way, reusing the same constant -- this appears to close out the "no length bound at all" class:
+  every real free-text field in this API now has one.
 
 Real, live, currently-true data as of this writing -- the actual `webconference-android` run's own
 risks, fetched fresh:
