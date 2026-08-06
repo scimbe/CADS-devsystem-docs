@@ -50,6 +50,31 @@ A genuinely different submission right after — even from the same stage, even 
 — is never blocked; this isn't "no two iterations in a row from the same stage," only "not the
 literal same one twice."
 
+## A second gap in the same guard, found and closed 2026-08-06
+
+The check above landed only in `devsystem-web`'s HTTP handler. `devsystem_iterate`'s own **local**
+mode (no `--remote` — see [Bid for a role and submit a real iteration]({{ '/how-to/submit-an-iteration/' | relative_url }})),
+which reads and writes `runs/<run_id>/` directly with no HTTP layer in between at all, had no
+equivalent whatsoever — the exact "two real entry points, one bug class" pattern this project kept
+finding all session (the `run_id` path-traversal guard and the `requirement_indices` bounds check
+both had the identical shape, and so — as of the same day — did the `paused`-run gate; see
+[Why did my run pause itself?]({{ '/how-to/why-did-my-run-pause/' | relative_url }})). A retried or
+accidentally re-run `record.json` would silently append a second, indistinguishable history entry
+through this path instead of being refused.
+
+Live-confirmed before fixing: a scratch run's first real iteration, resubmitted byte-identical
+through the local CLI, was accepted outright. Fixed by moving the comparison into a shared
+`duplicate_of_last_iteration` function both the HTTP handler and this CLI's local mode now call
+([CADS-devsystem@3afdbd2](https://github.com/scimbe/CADS-devsystem/commit/3afdbd2)):
+
+```
+$ devsystem_iterate a-run-with-one-real-iteration record.json
+rejected: this submission is byte-identical to iteration 1, the run's own immediately-preceding
+entry -- refusing to record it as a distinct, new iteration
+```
+
+Same rejection, same wording, whichever real entry point you submit through now.
+
 ## What happened to the real bad data
 
 The duplicate `"iteration": 8"` entry itself was **left in `webconference-android`'s real history**,

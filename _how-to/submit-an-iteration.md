@@ -91,6 +91,11 @@ shown above is now real and accurate for local mode too, not just `--remote`.
 run was paused before applying an iteration -- see [Why did my run pause itself?]({{ '/how-to/why-did-my-run-pause/' | relative_url }})
 for the live reproduction and the fix.
 
+**A fourth, closed the same day**: local mode never rejected a submission byte-identical to the
+run's own immediately-preceding entry either, the same real duplicate-submission guard `/iterate`
+enforces over HTTP -- see [Why /iterate rejects exact duplicates]({{ '/explanation/duplicate-iteration-guard/' | relative_url }})
+for the full story, live reproduction, and fix.
+
 ## 4. Submit it
 
 ```
