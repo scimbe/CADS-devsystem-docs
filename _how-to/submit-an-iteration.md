@@ -73,6 +73,21 @@ run all along. There's also a `--remote <api-base-url>` mode for a bidder with n
 calling `POST /api/runs/{id}/iterate` over HTTP instead — see the M2M section below for what it
 takes to actually reach this deployment with it.
 
+**`run_id` is validated before any file is touched, either way** — a real self-correction,
+2026-08-06: the local path builds `runs/<run_id>/` straight from this CLI argument, with no HTTP
+layer (and no path-traversal guard) anywhere in between. A live test proved
+`devsystem_iterate ../some-name record.json` used to write a real `spec.json`/`state.json` pair
+directly into `CADS-devsystem`'s own repo root, completely outside `runs/`. Fixed for real, not
+just noted:
+
+```
+$ devsystem_iterate ../some-name record.json
+rejected: run_id "../some-name" must be non-empty alphanumeric/-/_ only
+```
+
+Same real check `devsystem-web`'s own API already enforced, now shared by every real entry point --
+alphanumeric, `-`, and `_` only. A genuine `run_id` is completely unaffected.
+
 The result shows up immediately in the History panel, including the real traceability link back to
 the requirement it claims to address:
 

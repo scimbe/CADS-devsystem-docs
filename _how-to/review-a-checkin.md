@@ -22,6 +22,10 @@ live session captured while writing this page.
   root. It writes that same markdown to `.claude/plans/<run_id>.plan.md` and hands it to
   `ecc-plan-canvas open`, the actual human-review channel this project's whole "periodic check-ins
   via ecc-plan-canvas" design refers to -- not a GitHub comment, a real local review server.
+  `run_id` is validated the same way [`devsystem_iterate` is]({{ '/how-to/submit-an-iteration/' | relative_url }})
+  before either the `state.json` it reads or the `.plan.md` it writes is ever touched -- a real,
+  live-confirmed path-traversal gap in this exact binary, fixed for real
+  ([CADS-devsystem@ed035b4](https://github.com/scimbe/CADS-devsystem/commit/ed035b4)).
 
 ```
 $ devsystem_checkin webconference-android
