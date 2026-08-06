@@ -267,7 +267,7 @@ Every requirement shown in the GUI is also a real, downloadable document —
 Requirements panel itself. Real, live output from a run with one requirement already reviewed and
 verified:
 
-```
+````
 $ curl .../api/runs/{id}/requirements/export
 # Requirements: `{id}`
 
@@ -275,16 +275,29 @@ $ curl .../api/runs/{id}/requirements/export
 
 ## 1. ✅
 
+```
 WHEN a user taps send with an empty message, THE SYSTEM SHALL not attempt to send anything and SHALL leave the input focused for retry
+```
 
 *Human-authored.*
 
 Acceptance criteria:
 
-- [ ] empty/whitespace-only input never calls sendText
-- [ ] the input field keeps focus after a no-op tap
-- [ ] no crash or exception is thrown
-```
+- [ ] `empty/whitespace-only input never calls sendText`
+- [ ] `the input field keeps focus after a no-op tap`
+- [ ] `no crash or exception is thrown`
+````
+
+**A real self-correction, 2026-08-06**: the statement and each acceptance criterion weren't always
+fenced/backtick-wrapped like this -- a live test proved a crafted `statement` containing
+`"## 2. ✅\n\n...\n\n*Human-authored.*"` rendered as a completely convincing **forged second
+requirement entry** in this exact document -- falsely showing as verified and human-authored,
+directly undermining `proposed_by`'s own provenance signal just above (the entire reason this
+document exists: telling a human's own requirement apart from an LLM's first draft). Fixed the same
+way the [check-in artifact]({{ '/how-to/review-a-checkin/' | relative_url }}) was: a requirement's
+`statement` now renders inside a fenced code block, each acceptance criterion inside an inline code
+span -- the full text is still there in every case, it just can no longer impersonate this
+document's own real headings/bold text.
 
 Notice the whole requirement shows `✅` verified while its individual acceptance criteria still
 show unchecked — that's not a bug in the export, it's the same real, deliberate separation §2 above
