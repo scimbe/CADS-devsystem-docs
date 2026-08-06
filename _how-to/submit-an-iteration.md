@@ -85,6 +85,55 @@ the requirement it claims to address:
 <figcaption>Addressing a requirement and verifying it are separate, explicit signals — this iteration claims to address the requirement, but its acceptance criteria stay unchecked until a human (or, opted in per-requirement, the assistant) actually confirms them. See <a href="{{ '/explanation/requirements-and-automode/' | relative_url }}">Requirements, verification, and automode</a>.</figcaption>
 </figure>
 
+## Proposing a new stage in the same iteration
+
+`proposals` above was left empty, but this field is the actual mechanism behind "the pipeline
+builds itself" (see [How the pipeline proposes and grows its own stages]({{ '/explanation/self-optimizing-pipeline/' | relative_url }})
+for the full design). If your work surfaces a real need for a new role -- a load-test stage, a
+service you found you need -- name it here, and it applies **immediately**, no separate approval
+step, since a role-filler's own submission is already accountable real work:
+
+```json
+{
+  "stage": "devsystem.plan",
+  "feedback": "found we will need a dedicated load-test role once implement starts",
+  "succeeded": true,
+  "proposals": [{
+    "proposed_by": "devsystem.plan",
+    "stage_id": "devsystem.load_test",
+    "tag": "load_test",
+    "rationale": "implement will need real load numbers before review can sign off",
+    "use_existing_service": null,
+    "units": 1,
+    "price_ceiling": 2000
+  }]
+}
+```
+
+```
+$ devsystem_iterate docs-submit-iteration-proposal record.json
+run_id=docs-submit-iteration-proposal iteration_outcome=Continue roles_now=2 added_stages=["devsystem.load_test"]
+```
+
+`roles_now=2` and `added_stages` confirm it landed on the live `PipelineSpec` right away -- the new
+role is immediately biddable with `devsystem_offer`, same as any of the original seven stages.
+
+**`stage_id`, `tag`, and `rationale` must all be real** -- every one of the three needs non-empty
+content (trimmed; whitespace-only doesn't count) or the whole iteration is rejected outright, with
+nothing partially applied:
+
+```
+$ devsystem_iterate docs-submit-iteration-proposal record-with-empty-rationale.json
+rejected: proposal for stage_id "devsystem.x" needs a non-empty stage_id, tag, and rationale
+```
+
+This is enforced identically whichever way you submit -- the same real check runs whether you're on
+`devsystem_iterate` locally, `--remote` over HTTP, or `devsystem.assistant`'s own gated
+`propose_stage` path -- closed for real on 2026-08-06 after the incompetent-agent stress test found
+it missing from two of those three places in turn
+([CADS-devsystem@78f4dab](https://github.com/scimbe/CADS-devsystem/commit/78f4dab),
+[CADS-devsystem@5b0dc34](https://github.com/scimbe/CADS-devsystem/commit/5b0dc34)).
+
 ## `--remote` against this deployment: M2M bearer-token auth
 
 `devsystem-demo.bunsenbrenner.org` gates every route — including the API — behind a browser-based
