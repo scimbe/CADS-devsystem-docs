@@ -43,7 +43,7 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces twenty-one of the concrete lazy shortcuts below
+is a real, live-HTTP script that reproduces twenty-two of the concrete lazy shortcuts below
 (duplicate `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the
 "shallow" SHALL-substring bug, an unbounded `price_ceiling` going unflagged (including a later,
 bounded re-proposal for the same stage correctly clearing that flag -- the exact mechanism that had
@@ -52,13 +52,14 @@ being gone, `devsystem.assistant`'s own requirement-verification evidentiary gat
 forging fake markdown structure in the real requirements export, a proposed GitHub issue targeting
 an arbitrary repo outside the real allowlist, a succeeded iteration whose own feedback admits a
 known defect, empty/whitespace-only iteration feedback, a run genuinely refusing further iterations
-once it hits its own configured bound, and the Runs list's own `pending_reviews` count missing two
-of five real proposal queues) against a real running deployment, creating and cleaning up its own
-real scratch run every time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into
-this project's own real CI (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub
-Actions run, not just locally), run against the exact Docker image that gets deployed -- a PR that
-reintroduces one of these twenty-one fails CI instead of waiting for the next manual stress-test
-firing to notice. Honestly scoped, and
+once it hits its own configured bound, the Runs list's own `pending_reviews` count missing two of
+five real proposal queues, and an empty/whitespace-only `holder_label` when directly accepting a
+bid) against a real running deployment, creating and cleaning up its own real scratch run every
+time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into this project's own real CI
+(`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub Actions run, not just
+locally), run against the exact Docker image that gets deployed -- a PR that reintroduces one of
+these twenty-two fails CI instead of waiting for the next manual stress-test firing to notice.
+Honestly scoped, and
 self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
 needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
 logic (`X-Actor: devsystem.assistant`, no LLM involved) and added it for real. What's still
@@ -107,6 +108,12 @@ same real urgency order the badge already uses (paused first, then pending revie
 attention, then stalled, then risk, alphabetical only as the tie-break within a tier) -- confirmed
 live afterward that the real flagship run moved to position 0.
 
+One more instance of a pattern repeated all session: directly accepting a bid (skipping the
+auction) already validated its own `label` as non-empty, but the nested `accepted_bid.holder_label`
+-- a real identity record of who actually won the bid -- had zero validation. Live-confirmed before
+touching anything: both a byte-empty and a whitespace-only `holder_label` got a real `200`. Fixed
+the same way every other real free-text field in this codebase already is.
+
 ## The most significant finding this methodology has produced
 
 Every gate above assumes the pipeline's own "bounded super loop" -- the central architectural claim
@@ -130,8 +137,8 @@ day -- the paused banner now shows the actual real reason for all three, not a g
 
 ## The real track record
 
-As of this writing, the stress test has run **fifty-two** real rounds against the actual
-deployment, finding and closing forty-one real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **fifty-four** real rounds against the actual
+deployment, finding and closing forty-two real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
