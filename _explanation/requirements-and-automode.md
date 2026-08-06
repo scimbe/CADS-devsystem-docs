@@ -74,6 +74,41 @@ HTTP 400
 
 Both criteria are named in the one response body — no retry needed to learn about the second.
 
+**A much more consequential member of the same Unicode category, found live 2026-08-06**: the
+zero-width space above hides content by being invisible. A **bidi control character** (the
+[Trojan Source](https://trojansource.codes/), CVE-2021-42574 attack class) does something worse —
+it makes real, visible content *lie about its own order*. Live-confirmed with a real headless
+browser before fixing, not assumed: typing a criterion containing a single U+202E (RIGHT-TO-LEFT
+OVERRIDE) already displays scrambled in the plain textarea, before ever submitting anything —
+
+<figure>
+<img src="{{ '/assets/img/howto-requirements-bidi/01-typed-scrambled.png' | relative_url }}" alt="The Requirements panel's acceptance-criteria textarea showing the literal text 'approvedThis is not test noitcudorp rof' -- the real stored value is 'approved' followed by a right-to-left override character and reversed text">
+<figcaption>What's actually typed: "approved" + U+202E + " for production tset ton si sihT". What's displayed: "approvedThis is not test noitcudorp rof".</figcaption>
+</figure>
+
+— and the criterion has plenty of real alphanumeric content on both sides of the control
+character, so it cleared every other check above untouched. A human reviewer relies on reading a
+criterion correctly to decide whether to mark it verified; text whose on-screen order doesn't match
+its real content leads a good-faith reviewer to the wrong result through no fault of their own
+judgment. Fixed the same way as every other gate on this page — reject it outright, in both the
+statement and each criterion
+([CADS-devsystem@ed58299](https://github.com/scimbe/CADS-devsystem/commit/ed58299)), then a
+same-day follow-up added the matching immediate client-side warning
+([CADS-devsystem@9241642](https://github.com/scimbe/CADS-devsystem/commit/9241642)) so this, too,
+never needs a server round-trip to discover:
+
+<figure>
+<img src="{{ '/assets/img/howto-requirements-bidi/02-rejected-legible.png' | relative_url }}" alt="The same Requirements panel showing a real rejection message: 'approved[bidi-control-char] for production tset ton si sihT contains a Unicode bidi control character -- its displayed text may not match what would actually be stored.'" />
+<figcaption>Rejected immediately on submit -- and the control character itself is swapped for a visible placeholder in the message, so the explanation stays legible instead of getting scrambled by the very thing it's warning about.</figcaption>
+</figure>
+
+That last detail was itself a real, live find while capturing this exact screenshot: the first
+version of the client-side message echoed the offending criterion back verbatim, which meant the
+unterminated override character scrambled the rest of the sentence too. Deliberately scoped to just
+the two fields a human actually reads and trusts for a review decision (the statement, each
+criterion) — milestones, backlog items, and other free text are plausible candidates for the same
+class but weren't what this live test touched.
+
 ## Two independent, explicit signals
 
 `verified` (the whole requirement) and `verified_criteria` (each individual criterion) are
