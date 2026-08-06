@@ -1,10 +1,10 @@
 ---
-title: Add, propose, and remove custom panels
-description: A human can add or remove a panel directly; devsystem.assistant can only propose either, gated behind your approval.
+title: Add, edit, propose, and remove custom panels
+description: A human can add, edit, or remove a panel directly; devsystem.assistant can only propose any of the three, gated behind your approval.
 order: 8
 ---
 
-# Add, propose, and remove custom panels
+# Add, edit, propose, and remove custom panels
 
 The Custom Panels manager lets a run carry its own sandboxed HTML panels -- a burndown chart, a
 release note, anything project-specific the fixed panel set doesn't cover. This page walks through
@@ -23,37 +23,62 @@ session, whatever the panel's own markup does.
 </figure>
 
 **Add panel** takes effect immediately -- no approval step, because a human directly filling this
-form in is already the accountable decision. Removing one you added is just as direct: the
-existing **Remove** button next to a live panel asks for a real confirmation first (this is
-permanent -- there's no undo, the panel's HTML isn't kept anywhere once it's gone).
+form in is already the accountable decision.
+
+## Editing one directly
+
+Every live panel now has its own **Edit** button next to **Open** -- click it and that panel's
+card swaps into a real inline form, pre-filled with its current title and HTML:
+
+<figure>
+<img src="{{ '/assets/img/howto-manage-custom-panels/03-edit-form.png' | relative_url }}" alt="The Custom Panels manager showing a live panel's card swapped into an inline edit form, pre-filled with its real current title 'GUI Demo Panel' and HTML">
+<figcaption>Editing "GUI Demo Panel" in place -- the same panel, same real id, not a remove-and-re-add.</figcaption>
+</figure>
+
+**Save** applies immediately, same trust level as **Add panel** (it's your own content, your own
+call) -- but it's a real overwrite, so it asks for confirmation first, the same way the direct
+**Remove** button does: the panel's previous title/HTML isn't kept anywhere once you save over it.
+**Cancel** discards the in-progress edit with no request at all -- the panel is untouched either
+way until you actually click Save.
+
+Removing a panel is just as direct: the existing **Remove** button next to a live panel asks for a
+real confirmation first (this is permanent -- there's no undo, the panel's HTML isn't kept anywhere
+once it's gone).
 
 ## What devsystem.assistant can do instead
 
-The chat assistant can suggest a new panel or suggest removing an existing one -- but neither takes
-effect on its own. Both land in a real pending queue and need your explicit approval, the same
-gated shape as its pipeline-stage and GitHub-issue proposals (see
-[How the pipeline proposes and grows its own stages]({{ '/explanation/self-optimizing-pipeline/' | relative_url }})
+The chat assistant can suggest a new panel, suggest editing an existing one, or suggest removing
+one -- but none of the three takes effect on its own. All three land in a real pending queue and
+need your explicit approval, the same gated shape as its pipeline-stage and GitHub-issue proposals
+(see [How the pipeline proposes and grows its own stages]({{ '/explanation/self-optimizing-pipeline/' | relative_url }})
 for why a role-filler's own proposals skip this queue but the assistant's never do). Ask it
 something like *"can you propose removing the Release Burndown panel"* and it calls the real
 `propose_remove_custom_panel` action -- never the direct remove endpoint -- so nothing disappears
-without you seeing it first.
+without you seeing it first. Ask it to change an existing panel's content and it calls
+`propose_edit_custom_panel` instead, with the full replacement title/HTML (not a diff).
 
 <figure>
 <img src="{{ '/assets/img/howto-manage-custom-panels/02-pending-removal-proposal.png' | relative_url }}" alt="The Custom Panels manager showing a pending removal proposal for 'Release Burndown', with Approve and remove (orange) and Reject (keep it) buttons, above the still-live panel entry"><figcaption>The panel is still live below -- proposing removal doesn't touch it. Nothing is gone until Approve & remove is clicked.</figcaption>
 </figure>
 
-## The two proposal kinds are inverted on purpose
+<figure>
+<img src="{{ '/assets/img/howto-manage-custom-panels/04-pending-edit-proposal.png' | relative_url }}" alt="The Custom Panels manager showing a pending edit proposal, 'GUI Demo Panel -> GUI Demo Panel v2', with the proposed new HTML shown, Approve and overwrite (orange) and Reject (keep original) buttons, above the still-live unchanged panel entry">
+<figcaption>The real old title -&gt; new title and the proposed new HTML, so you're never approving a blind diff. The live panel below still shows its original content until you decide.</figcaption>
+</figure>
 
-Approving vs. rejecting a proposal isn't symmetric across the two directions, and the GUI's
-confirmation dialogs reflect that honestly rather than guarding both sides the same way:
+## The proposal kinds are inverted on purpose
+
+Approving vs. rejecting a proposal isn't symmetric across the three kinds, and the GUI's
+confirmation dialogs reflect that honestly rather than guarding all three the same way:
 
 | Proposal | The destructive click | Guarded with `confirm()` |
 |---|---|---|
 | **Add** a panel | **Reject** -- discards a drafted panel nobody saved elsewhere | Reject |
+| **Edit** a panel | **Approve** -- overwrites the real panel's real content | Approve |
 | **Remove** a panel | **Approve** -- actually deletes a real, live panel | Approve |
 
 For an add-proposal, rejecting is the one-way door (the drafted title/HTML only ever existed in
-that pending entry). For a removal proposal, it's the opposite -- approving is the one-way door (a
-real panel with real content disappears), while rejecting is completely safe and just clears the
-pending entry, leaving the panel exactly as it was. Same reasoning the direct **Remove** button
-already uses, applied consistently to the assistant's gated path too.
+that pending entry). For an edit or removal proposal, it's the opposite -- approving is the one-way
+door (real content is overwritten or a real panel disappears), while rejecting is completely safe
+and just clears the pending entry, leaving the panel exactly as it was. Same reasoning the direct
+**Remove**/**Edit** buttons already use, applied consistently to the assistant's gated path too.

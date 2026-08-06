@@ -75,8 +75,11 @@ iteration-embedded ones.
 | `POST /api/runs/{id}/panels/proposals/{proposal_id}/approve` \| `/reject` | Resolve a pending panel proposal. |
 | `POST /api/runs/{id}/panels` | Add a custom panel directly (no proposal step). |
 | `POST /api/runs/{id}/panels/{panel_id}/remove` | Remove a custom panel directly. |
-| `POST /api/runs/{id}/panels/{panel_id}/propose-remove` | Propose removing an existing custom panel (pending) -- see [Add, propose, and remove custom panels]({{ '/how-to/manage-custom-panels/' | relative_url }}). |
+| `POST /api/runs/{id}/panels/{panel_id}/update` | Edit an existing custom panel's title/html directly, in place -- see [Add, edit, propose, and remove custom panels]({{ '/how-to/manage-custom-panels/' | relative_url }}). |
+| `POST /api/runs/{id}/panels/{panel_id}/propose-remove` | Propose removing an existing custom panel (pending). |
 | `POST /api/runs/{id}/panels/removal-proposals/{proposal_id}/approve` \| `/reject` | Resolve a pending panel-removal proposal -- approving actually removes the real panel. |
+| `POST /api/runs/{id}/panels/{panel_id}/propose-edit` | Propose editing an existing custom panel's title/html (pending). |
+| `POST /api/runs/{id}/panels/edit-proposals/{proposal_id}/approve` \| `/reject` | Resolve a pending panel-edit proposal -- approving actually overwrites the real panel's content. |
 | `POST /api/runs/{id}/issues/propose` | Propose filing a real GitHub issue (pending). |
 | `POST /api/runs/{id}/issues/proposals/{proposal_id}/approve` \| `/reject` | Resolve a pending issue proposal -- approving actually files it. |
 

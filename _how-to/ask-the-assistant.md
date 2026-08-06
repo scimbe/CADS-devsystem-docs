@@ -37,21 +37,22 @@ calls out to GitHub, never touches the network beyond reading the run's own stat
 *can* do, per a real per-run rate limit (10 seconds, a spam-guard against a stuck retry loop, not a
 security control): write real narrow state changes on your behalf -- milestones, backlog items,
 requirements (including individual acceptance criteria), `repo_url`, and creating a whole new run --
-when you ask for them, and *propose* (not directly apply) a custom panel, removing an existing
-custom panel, a new pipeline stage, or a GitHub issue -- all four land in a real pending queue for
-you to approve or reject, never applied on the spot. See [How the pipeline proposes and grows its
-own stages]({{ '/explanation/self-optimizing-pipeline/' | relative_url }}) and [Add, propose, and
-remove custom panels]({{ '/how-to/manage-custom-panels/' | relative_url }}) for exactly which of its
-actions apply immediately versus wait for you.
+when you ask for them, and *propose* (not directly apply) a custom panel, editing or removing an
+existing custom panel, a new pipeline stage, or a GitHub issue -- all five land in a real pending
+queue for you to approve or reject, never applied on the spot. See [How the pipeline proposes and
+grows its own stages]({{ '/explanation/self-optimizing-pipeline/' | relative_url }}) and [Add,
+propose, and remove custom panels]({{ '/how-to/manage-custom-panels/' | relative_url }}) for exactly
+which of its actions apply immediately versus wait for you.
 
 Asked directly, against a real run, it describes its own real boundary the same way:
 
 ```
 $ curl -X POST .../api/runs/docs-manage-custom-panels/assistant \
     -d '{"instruction": "In one sentence, list the categories of actions you can take without further clarification."}'
-{"response": "I can add or toggle milestones, backlog items, and requirements (incl. acceptance
- criteria), set this run's repo_url, and create new runs directly; and I can only propose -- for
- your approval -- custom panels, panel removals, pipeline stages, and GitHub issues ..."}
+{"response": "I can add or toggle milestones, backlog items, and requirements (including
+ acceptance criteria), set this run's repo_url, and create new runs outright; everything else —
+ custom panels (add/edit/remove), pipeline stages, and GitHub issues — I can only propose for
+ your approval."}
 ```
 
 ## Your run's real cumulative cost: the Assistant Usage panel
