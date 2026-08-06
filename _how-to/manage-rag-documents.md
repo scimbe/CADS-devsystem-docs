@@ -10,6 +10,22 @@ The Docs Search panel indexes more than a run's synced repo -- you can add real 
 text, or an uploaded file (PDF/DOCX/image) directly, and search across everything together. This
 page walks through the real flow against a live run.
 
+## A genuinely empty run tells you what to do first
+
+Open the panel on a run with nothing indexed yet and it doesn't just sit there quietly -- a real
+first-action callout, plus the **Uploaded documents** section auto-expanded so the upload form is
+immediately visible instead of hidden behind a click:
+
+<figure>
+<img src="{{ '/assets/img/howto-manage-rag-documents/03-empty-state.png' | relative_url }}" alt="The Docs Search panel on a genuinely empty run, showing a start-here banner and the auto-expanded Uploaded documents section">
+<figcaption>A real, empty run -- no repo synced, no document added yet. Both the banner and the auto-expand go away the moment anything real is indexed.</figcaption>
+</figure>
+
+Unlike the Requirements/Backlog/Milestones panels' own equivalent nudge, this one doesn't
+auto-focus a field -- there's no single obvious one here (search is useless against an empty
+index, and the real next action lives in two different places: set a repo, or upload). The banner
+and the auto-expanded form are the honest substitute.
+
 ## Search is live as you type
 
 Type into the search box and results come back from the real index -- no separate "search"
