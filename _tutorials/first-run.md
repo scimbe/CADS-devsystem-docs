@@ -18,9 +18,9 @@ The example project here targets a real repo, [`CADS-webconference-android`](htt
 
 ## 1. Sign in and land on a clean layout
 
-Every panel in the GUI (Runs, Requirements, Pipeline, Backlog, and a dozen more) is its own
-independently movable/resizable window, toggled from the chip bar at the top. On your very first
-visit, only four are open by default — enough to get oriented without being overwhelmed:
+Every panel in the GUI (Runs, Requirements, Pipeline, Backlog, and sixteen more as of this writing)
+is its own independently movable/resizable window, toggled from the chip bar at the top. On your
+very first visit, only four are open by default — enough to get oriented without being overwhelmed:
 
 <figure>
 <img src="{{ '/assets/img/tutorial-first-run/01-landing.png' | relative_url }}" alt="The GUI landing page with a small default set of panels open: Runs, Process, Pipeline, Requirements">
@@ -80,21 +80,23 @@ isn't a judgment call.
 <figcaption>The requirement now lives on the run, each criterion independently checkable.</figcaption>
 </figure>
 
-## 4. Decide who judges "done" — human, or automode
+## 4. The "automode" flag -- a real placeholder, honestly labeled
 
-Every requirement's acceptance criteria are human-checked by default. If you'd rather let
-`devsystem.assistant` judge a *specific* requirement's criteria itself, opt it into **automode** —
-a real, per-requirement flag, not a project-wide default:
+Every requirement's acceptance criteria are human-checked by default. Each requirement also has a
+per-requirement **automode** checkbox -- corrected, 2026-08-06, to say plainly what it actually
+does: nothing yet. Live-verified directly against the real deployment, `auto_judge` is never read
+anywhere in `devsystem.assistant`'s own code. You can already ask the assistant in plain chat to
+judge and verify any requirement's criteria, and it works identically whether this box is checked
+or not -- it always could be asked. The checkbox is a real, honestly-labeled placeholder for future
+opt-in judgment logic, not a switch that unlocks anything today:
 
 <figure>
-<img src="{{ '/assets/img/tutorial-first-run/07-auto-judge.png' | relative_url }}" alt="The automode checkbox checked on the new requirement">
-<figcaption>Automode opted in for this one requirement. It stays off for every other requirement unless you opt those in too.</figcaption>
+<img src="{{ '/assets/img/tutorial-first-run/07-auto-judge.png' | relative_url }}" alt="The automode checkbox checked on the new requirement, labeled 'automode flag (not wired to any real behavior yet -- see tooltip)'">
+<figcaption>The real, current label -- honest about what checking this box does today (nothing) rather than implying a permission model that was never real.</figcaption>
 </figure>
 
-Honest caveat: as of this writing, checking this box only *authorizes* the assistant to judge this
-requirement later — it doesn't perform any judgment yet. The actual judgment logic (reading a run's
-real iteration history/evidence and deciding whether a criterion is genuinely met) is real, separate,
-still-open work.
+See [Requirements, verification, and automode]({{ '/explanation/requirements-and-automode/' | relative_url }})
+for the full live investigation that found this.
 
 ## 5. See the real pipeline state
 
