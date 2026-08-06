@@ -180,6 +180,20 @@ proposal in the batch, so a submission with several simultaneously-bad proposals
 per additional mistake to discover them all
 ([CADS-devsystem@48812ad](https://github.com/scimbe/CADS-devsystem/commit/48812ad)).
 
+**The GUI's own New Iteration panel enforces the same bound now, immediately, not just server-side**
+-- a real gap found and closed the same day: the panel's "Units" field for an embedded proposal had
+a client-side lower bound but no upper one, so a value like `99999` used to silently round-trip to
+the server before failing. Real, live capture after the fix:
+
+![The New Iteration panel showing "Units must be a whole number between 1 and 100." immediately after typing 99999 and clicking Submit iteration -- no round-trip to the server needed]({{ '/assets/img/howto-submit-iteration/08-embedded-proposal-units-cap.png' | relative_url }})
+
+Also closed in the same fix: the field used to silently turn a deliberately typed `0` (or any
+invalid value) into `1` with no warning at all, rather than rejecting it
+([CADS-devsystem@b8332e5](https://github.com/scimbe/CADS-devsystem/commit/b8332e5)). The same real
+bound is now enforced, client-side, at all three GUI entry points that have a `units` field --
+here, the quick-offer bid form on the Roles panel, and the Health & Criteria panel's own
+`AbortCriteria` fields use the identical shape for their own bound.
+
 ## `--remote` against this deployment: M2M bearer-token auth
 
 `devsystem-demo.bunsenbrenner.org` gates every route — including the API — behind a browser-based
