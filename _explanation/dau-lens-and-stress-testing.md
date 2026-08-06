@@ -99,6 +99,27 @@ container, and volume were torn down afterward; the source mutation itself was n
 real, reusable technique now, worth applying to more of these checks over time rather than a
 one-off.
 
+**A second round, applying the same technique to check `[36]` (the paused-run gate), found a real
+gap in the technique's own tooling before it found anything about the check itself.** The first
+attempt gave a confusing result: neutering only the paused-check also made the *unrelated* `[37]`
+fail. Investigated rather than trusted -- `strings`-checking the deployed binary showed it was
+missing `duplicate_of_last_iteration` entirely, a real feature merged days earlier. The real cause:
+`web/Dockerfile`'s BuildKit cache mounts are shared by *every* real `docker build -f web/Dockerfile`
+on this host, not just real deploys -- an ad-hoc scratch/mutation-test build shares the exact same
+cache a real deploy would use, completely outside `deploy-devsystem-web.sh`'s own `flock` (which only
+serializes concurrent invocations of *itself*, not unrelated ad-hoc builds). Two plain, sequential
+scratch builds -- no concurrency needed -- served a silently stale binary. Fixed at the process
+level: a real, prominent comment right at the cache mount declaration stating the actual rule going
+forward, any non-deploy build of this Dockerfile must pass `--no-cache`.
+
+Rebuilt properly and re-ran the harness: `[37]` now correctly passed (the earlier failure was
+conclusively a tooling artifact, not a real gap), and `[36]` failed exactly as intended -- with an
+instructive twist. Its own second assertion ("the identical submission succeeds once resumed") also
+failed, but for the right reason: the neutered paused-check let the while-paused submission through
+for real, so the still-intact idempotency guard correctly caught the "resumed" resubmission as a
+genuine duplicate of what had just wrongly landed. Both gates working exactly as designed,
+cross-confirming each other in a way the test hadn't originally anticipated.
+
 The same investigation that produced the harness also found a real gap in this project's own §5
 quality-bar table: it named `check-no-secrets.sh` as a real secrets-scanning gate, but that script
 had never actually existed in this repo at all -- a different project's convention, referenced in
