@@ -64,6 +64,30 @@ $ curl -X POST .../api/runs/webconference-android/assistant \
 one real call, **$0.2308** cumulative so far, with the full input/output/cache token breakdown --
 not an estimate, the actual number `devsystem_assistant`'s own LLM CLI call reported.
 
+## Your questions are remembered, too
+
+Until 2026-08-05, a real exchange with the assistant lived nowhere durable once the reply reached
+your browser -- close the tab and it was gone for good, no matter how useful the answer was.
+`devsystem-web` now persists every real `/ask` exchange (your actual question, its actual answer)
+into the run's own state, the same way it already tracks cumulative usage above. It's a rolling
+window (the most recent 50 exchanges; older ones drop off) rather than an unbounded log, since this
+accumulates passively from normal use, not something you explicitly add.
+
+You'll find it in the **Requirements** panel, under **Recent assistant conversation** -- real,
+live data from two actual questions asked against a real run:
+
+<figure>
+<img src="{{ '/assets/img/howto-ask-assistant/03-chat-history.png' | relative_url }}" alt="The Requirements panel's 'Recent assistant conversation' section, showing two real exchanges with timestamps, the real question asked, and the real answer given, most recent first">
+<figcaption>Most recent first -- the order you actually want when checking "what did I just ask".</figcaption>
+</figure>
+
+**Honest scope**: this shows recent conversation for the *run*, not a specific requirement. A real
+chat exchange has no field linking it to one particular requirement, and attaching one reliably
+would mean either a fragile guess (matching text) or a deeper change to how requirements track their
+own history -- either risks showing you the *wrong* decision basis, which is worse than showing none.
+If you want the real decision basis for one specific requirement, that's the "decision basis"
+section already inside each requirement's own card -- iteration history, not chat.
+
 ## A real, honest gap this walkthrough found (2026-08-05)
 
 Writing this page caught a real production regression: the first real question sent to the
