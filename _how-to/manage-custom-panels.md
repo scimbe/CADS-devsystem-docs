@@ -41,6 +41,28 @@ HTTP 400
 Enforced identically at all four real entry points that accept panel HTML -- adding, editing, and
 both of the assistant's proposal paths below.
 
+**A panel's `title`, unlike its `html`, is real trusted UI chrome** -- it's what shows in the panel
+list and what gets interpolated directly into this feature's own confirmation dialogs ("Remove
+custom panel "Title"?"), so it needs the opposite trust treatment from `html` (deliberately
+untrusted-by-design, sandboxed, never sanitized). A real gap closed 2026-08-06, extending the same
+[Trojan Source bidi-control-character
+fix]({{ '/explanation/requirements-and-automode/' | relative_url }}) already documented for
+requirements: a title like `"Safe Panel"` followed by a right-to-left override character and
+reversed text used to sail through untouched, displaying as an apparently-safe title while hiding
+real content after it. Fixed at all four real title entry points (add, edit, and both assistant
+proposal paths) --
+
+```
+$ curl -X POST .../api/runs/{id}/panels -d '{"title": "Safe Panel‮ ...", "html": "<p>x</p>"}'
+title contains a Unicode bidi control character (e.g. a right-to-left override) -- these can
+make the visually displayed text not match what's actually stored
+HTTP 400
+```
+
+-- while `html` deliberately keeps its existing untrusted-by-design treatment; adding this same
+check there would be inconsistent with the sandboxed-iframe model the whole feature already relies
+on, not a fix.
+
 ## Editing one directly
 
 Every live panel now has its own **Edit** button next to **Open** -- click it and that panel's
