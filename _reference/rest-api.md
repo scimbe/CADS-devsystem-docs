@@ -52,9 +52,9 @@ for how this was found and where else it applies.
 
 | Route | What it does |
 |---|---|
-| `POST /api/runs/{id}/backlog` | Add a backlog item (`{"text": "..."}`). |
+| `POST /api/runs/{id}/backlog` | Add a backlog item (`{"text": "..."}`). `text` must be non-empty and under 2,000 characters -- the same real cap every other free-text field in this API has, closed 2026-08-06 after a live test found this one had none (bounded only by the server's generic request-size limit). |
 | `POST /api/runs/{id}/backlog/{index}/toggle` | Toggle a backlog item's `done` flag. |
-| `POST /api/runs/{id}/milestones` | Add a milestone. |
+| `POST /api/runs/{id}/milestones` | Add a milestone. `description` has the identical non-empty/under-2,000-character requirement as backlog `text` above, same fix. |
 | `POST /api/runs/{id}/milestones/{index}/toggle` | Toggle a milestone's `achieved` flag. |
 | `POST /api/runs/{id}/requirements` | Add a requirement (EARS statement + acceptance criteria). Each criterion needs at least 5 alphanumeric characters and at most 500; a request with multiple bad criteria gets all of them named in one `400`, not just the first -- see [Requirements, verification, and automode]({{ '/explanation/requirements-and-automode/' | relative_url }})'s "what actually counts as a real acceptance criterion" section. |
 | `POST /api/runs/{id}/requirements/{index}/toggle` | Toggle a requirement's overall `verified` flag. Marking it verified is a real, hard-blocked `409` if this run declares a `review` role and no successful `devsystem.review` iteration has addressed this requirement yet -- see [Requirements, verification, and automode]({{ '/explanation/requirements-and-automode/' | relative_url }})'s "real, mandatory review gate" section. Un-verifying is always unconditional. |
