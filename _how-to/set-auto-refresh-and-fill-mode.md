@@ -78,3 +78,22 @@ hunt for where to click instead
 against the real deployment via a headless-browser walkthrough: both popovers open on click and
 close cleanly on Escape, with no console errors either way -- the same run used for the two
 screenshots above.
+
+**The other half of the same question, 2026-08-06: does Enter *submit*?** The dedicated-agent-label
+input has no surrounding `<form>`, so before this fix Enter had no default behavior at all -- typing
+a label and pressing Enter (the universal muscle memory for a lone single-line text field) did
+nothing: no submission, no error, the popover just sat there.
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-controls/05-enter-before-submit.png' | relative_url }}" alt="The fill-mode popover with 'Compass-1' typed into the dedicated-agent-label field, popover still open">
+<figcaption>Typed and ready -- pressing Enter here used to do nothing at all.</figcaption>
+</figure>
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-controls/06-enter-after-submit.png' | relative_url }}" alt="The same Roles panel after pressing Enter, the fill-mode popover now closed">
+<figcaption>After Enter: the popover closes and the role is really set as dedicated, the same as clicking "Set as dedicated" directly.</figcaption>
+</figure>
+
+Fixed by wiring Enter to the same submit path the button already uses, including its "label
+required" validation
+([CADS-devsystem@bfb2aee](https://github.com/scimbe/CADS-devsystem/commit/bfb2aee)).
