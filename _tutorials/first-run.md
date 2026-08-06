@@ -126,3 +126,21 @@ Panels window's own textarea sat directly on top of the Requirements panel's "Ad
 button, making it truly unclickable on a first-time user's very first real action. Fixed in
 [CADS-devsystem`56182ea`](https://github.com/scimbe/CADS-devsystem/commit/56182ea) — screenshots
 above are from the deployment *after* that fix, verified live before being written down here.
+
+**A second real gap, found and fixed 2026-08-06:** the New Project dialog in step 2 above looked
+fine but had no real keyboard focus management at all. Opening it never actually moved focus into
+the dialog (its `autofocus` attribute silently never took effect — a real quirk of markup inserted
+dynamically rather than present at page load), and with no focus trap, `Tab` walked straight through
+the *entire page hidden behind the overlay* — a keyboard-only user tabbing through this exact step
+could land on and edit fields they couldn't see at all, with no indication anything was wrong.
+
+<figure>
+<img src="{{ '/assets/img/tutorial-first-run/09-new-project-focus.png' | relative_url }}" alt="The New Project dialog immediately after opening, with the browser's real focus ring visible on the Project id field">
+<figcaption>Real, live evidence after the fix: opening the dialog now moves focus straight to <strong>Project id</strong> — no click required — and Tab/Shift+Tab now cycle only this dialog's own four fields/buttons, wrapping at each end rather than escaping to the page behind it.</figcaption>
+</figure>
+
+Fixed in [CADS-devsystem`ed39496`](https://github.com/scimbe/CADS-devsystem/commit/ed39496) with the
+standard accessible-modal pattern — the same "verify against the real deployment, not just the code"
+discipline behind this dialog's two custom-popover siblings gaining real `Escape`-to-close support;
+see [Set a panel's auto-refresh interval or a role's fill mode]({{ '/how-to/set-auto-refresh-and-fill-mode/' | relative_url }})
+for that earlier fix.
