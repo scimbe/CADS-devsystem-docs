@@ -102,6 +102,19 @@ LLM-judgment-in-disguise.
   very page's own subject: fixing a real gap can introduce a real regression if the fix narrows a
   check's data source instead of widening it.
 
+  **The natural "fix" didn't actually fix anything, found live-testing the edge cases of the fixes
+  above** — a human trying to resolve an unbounded role the obvious way (re-propose the exact same
+  role with a real `price_ceiling` this time) got a genuine `200`, since `apply_proposal` correctly
+  reports `AlreadyPresent` for a role whose service/tag hasn't changed -- but the check itself kept
+  citing the *original* proposal, because it always took the *first* matching record for a given
+  role, never the latest. The risk stayed flagged with stale evidence forever, with no way to
+  actually clear it through the real proposal mechanism. Fixed on both ends: every real approval
+  attempt is recorded now, not just ones that changed the live spec, and the check reads the *last*
+  matching record per role instead of the first -- so a later, better proposal genuinely supersedes
+  an earlier bad one. Verified this cuts both ways, not just the direction that was found broken: a
+  later proposal that *drops* an existing ceiling correctly re-flags the risk too, matching the same
+  "current, live state wins" discipline this check already used for staleness elsewhere on this page.
+
   **Not every check could get the same fix, and that's stated plainly, not hidden**:
   `touches auth/security` has the identical "only checks the latest iteration" shape, but a keyword
   mention in some past feedback text has no equivalent checkable "is this still live" entity the way
