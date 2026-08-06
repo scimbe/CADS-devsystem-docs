@@ -38,6 +38,26 @@ That second line — **constraints** — is the same real derivation
 computes server-side for the Memory Log panel (`proposals.map(p => "stage_id: rationale")`),
 mirrored client-side here so this view doesn't need a second fetch to see it.
 
+## A real gap this view surfaced, found and fixed live (2026-08-06)
+
+Long feedback text in the decision basis is shown truncated (a `"…"` preview, not the full text) --
+and until this fix, the truncation itself could corrupt an emoji or any other real character
+outside the Basic Multilingual Plane if it happened to straddle the cut point. JavaScript strings
+index by UTF-16 code unit, not real character, and a plain `slice(0, n)` doesn't know the
+difference -- reproduced directly before fixing:
+`truncate("x".repeat(219) + "😀" + "y".repeat(50), 220)` returned a string ending in a bare,
+unpaired high surrogate with no matching low half.
+
+Fixed ([CADS-devsystem@9d3dcf0](https://github.com/scimbe/CADS-devsystem/commit/9d3dcf0)) with
+`Array.from()`, which iterates by real Unicode code point instead of raw code unit, so a
+surrogate pair is never split. Real, live capture after the fix -- a requirement addressed by an
+iteration whose feedback contains an emoji positioned exactly at the truncation boundary:
+
+<figure>
+<img src="{{ '/assets/img/howto-decision-basis/01-emoji-intact.png' | relative_url }}" alt="The Requirements panel's decision basis section showing 'emoji test 😀 more t…' -- the emoji rendered whole and intact right at the truncation cut point, not split into a broken character">
+<figcaption>The emoji survives the cut whole -- no broken glyph, no replacement character.</figcaption>
+</figure>
+
 ## What's still not in this view
 
 The assistant's own chat exchanges about a requirement aren't pulled in yet — only real iteration
