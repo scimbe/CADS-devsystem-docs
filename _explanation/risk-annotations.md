@@ -44,6 +44,29 @@ LLM-judgment-in-disguise.
   they say. Only fires on `succeeded: true` — a FAILED iteration honestly admitting it's broken is
   the behavior this check wants to encourage, not flag.
 
+  **A risk doesn't get to expire just because the conversation moved on** — `no price ceiling set`
+  fires when a role needing a brand-new service (`use_existing_service: null`) landed in the run's
+  own live spec with no `price_ceiling`, so nothing bounds what filling it could actually cost. Until
+  2026-08-06 this only ever looked at the LATEST iteration's own proposals -- found live, the same
+  bug shape already fixed for other checks above: propose an unbounded role, get correctly flagged;
+  submit one completely unrelated iteration after it, and the exact same still-live, still-unbounded
+  role (confirmed still in `state.added_stages`) silently stopped being flagged, even though nothing
+  about the real exposure had changed. A human doing periodic check-ins would see a real cost risk
+  come and go based on what the most recent iteration happened to talk about, not on whether the
+  run's actual state had changed at all. Fixed by scanning all of history for an unbounded proposal
+  whose role is still live in `added_stages` -- the real, checkable "is this risk still real" signal.
+  A proposal that was rejected, or simply never approved, never entered `added_stages` and is
+  correctly never flagged either way -- this doesn't turn into permanent noise for something that was
+  actually resolved or discarded.
+
+  **Not every check could get the same fix, and that's stated plainly, not hidden**:
+  `touches auth/security` has the identical "only checks the latest iteration" shape, but a keyword
+  mention in some past feedback text has no equivalent checkable "is this still live" entity the way
+  a role in `added_stages` does -- there's no honest way to know a security concern was actually
+  *resolved* versus just not mentioned again. Left as the latest-iteration-only check it's always
+  been, named here as a real, remaining limitation rather than papered over with an invented
+  resolution signal.
+
   **A disabled cadence isn't the same as no risk at all** — `AbortCriteria.checkin_every`'s whole
   documented purpose is a mandatory human check-in that "fires at least this often, even when every
   iteration is succeeding". Found live: `checkin_every: 0` had zero validation anywhere (unlike
