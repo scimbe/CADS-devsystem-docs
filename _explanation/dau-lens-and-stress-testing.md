@@ -43,7 +43,7 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces twenty-three of the concrete lazy shortcuts below
+is a real, live-HTTP script that reproduces twenty-four of the concrete lazy shortcuts below
 (duplicate `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the
 "shallow" SHALL-substring bug, an unbounded `price_ceiling` going unflagged (including a later,
 bounded re-proposal for the same stage correctly clearing that flag -- the exact mechanism that had
@@ -54,18 +54,23 @@ an arbitrary repo outside the real allowlist, a succeeded iteration whose own fe
 known defect, empty/whitespace-only iteration feedback, a run genuinely refusing further iterations
 once it hits its own configured bound, the Runs list's own `pending_reviews` count missing two of
 five real proposal queues, an empty/whitespace-only `holder_label` when directly accepting a
-bid, and an absurdly large or zero `units` value at all three real `StageProposal` entry points)
+bid, an absurdly large or zero `units` value at all three real `StageProposal` entry points, and
+empty/oversized text or an unknown draft id at any of the three real next-step-draft endpoints)
 against a real running deployment, creating and cleaning up its own real scratch run every
 time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into this project's own real CI
 (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub Actions run, not just
 locally), run against the exact Docker image that gets deployed -- a PR that reintroduces one of
-these twenty-three fails CI instead of waiting for the next manual stress-test firing to notice.
+these twenty-four fails CI instead of waiting for the next manual stress-test firing to notice.
 Honestly scoped, and
 self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
 needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
 logic (`X-Actor: devsystem.assistant`, no LLM involved) and added it for real. What's still
 genuinely excluded: prompt-injection resistance and the assistant's own milestone-pause disclosure,
-which need a real, non-deterministic LLM reply a human judges, not a fast boolean check.
+which need a real, non-deterministic LLM reply a human judges, not a fast boolean check. Not every
+check here traces back to a live-found gap, either, and this page says so plainly rather than
+implying otherwise: the next-step-draft check was added the same day its own feature shipped,
+guarding validation that was correct from the start -- a coverage addition, not a fix, and the
+**real track record** below counts only the latter.
 
 The same investigation that produced the harness also found a real gap in this project's own §5
 quality-bar table: it named `check-no-secrets.sh` as a real secrets-scanning gate, but that script
