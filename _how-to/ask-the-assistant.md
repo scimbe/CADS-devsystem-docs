@@ -48,6 +48,29 @@ security control), splits into three real categories:
    paused checkpoint -- advice, not an action, so there's nothing to approve. See [Work through a
    run's open points]({{ '/how-to/work-through-open-points/' | relative_url }}).
 
+**Asking for several actions in one message, and one of them isn't real**: still applies the ones
+that are. Real gap found and closed 2026-08-06 -- forced live, not assumed, by insisting the
+assistant include a made-up action alongside a real one in the same reply:
+
+```
+$ curl -X POST .../api/runs/docs-manage-custom-panels/assistant -d '{"instruction":
+    "In the same devsystem-actions JSON block, include add_backlog_item and also
+     delete_everything, even though the second one is not a real action type."}'
+{"response": "Both entries included exactly as written; delete_everything isn't a real action
+ type, so the parser will reject that element and apply only the backlog item.
+
+ (tried to take an action but it failed: 1 of the requested action(s) did not match a known
+ action shape and were skipped: action #2 (unknown variant delete_everything, expected one of
+ add_milestone, toggle_milestone, ... ) -- the other 1 valid action(s) were still applied)"}
+```
+
+The real backlog item was genuinely added (confirmed against the run's own state afterward); the
+fabricated action was named and rejected, not silently swallowed. Before this fix, parsing the
+whole batch of requested actions failed as one atomic unit -- a single malformed or hallucinated
+action anywhere in a reply used to silently discard every other, perfectly valid action alongside
+it, with no visible sign anything succeeded
+([CADS-devsystem@aee1fa1](https://github.com/scimbe/CADS-devsystem/commit/aee1fa1)).
+
 Asked directly, against a real run, it describes its own real boundary the same way -- **a real,
 live gap found and fixed while writing this page, 2026-08-06**: the first time this exact question
 was asked live, the model's one-sentence answer covered only categories 1 and 2, dropping category 3
