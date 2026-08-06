@@ -38,10 +38,27 @@ count. Nothing here claims to verify that a review is actually *good* -- only th
 empty, repetitive, or misapplied. See [How real risk annotations work]({{ '/explanation/risk-annotations/' | relative_url }})
 for what these checks look like in the code.
 
+## Now a real, reusable regression guard, not just a narrative
+
+Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
+time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
+[`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
+is a real, live-HTTP script that reproduces thirteen of the concrete lazy shortcuts below (duplicate
+`run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the "shallow"
+SHALL-substring bug, an unbounded `price_ceiling` going unflagged, cross-account access, a "deleted"
+run not actually being gone) against a real running deployment, creating and cleaning up its own
+real scratch run every time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into
+this project's own real CI (`pipeline-ci.yml`'s `web` job), run against the exact Docker image
+that gets deployed -- a PR that reintroduces one of these thirteen fails CI instead of waiting for
+the next manual stress-test firing to notice. Honestly scoped: only the mechanical, deterministic
+gates are covered; the LLM-dependent findings (prompt-injection resistance, the assistant's
+milestone-pause disclosure) still need a slower live pass a human judges, not a fast boolean check.
+
 ## The real track record
 
-As of this writing, the stress test has run **thirty-four** real rounds against the actual
-deployment, finding and closing thirty-four real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **thirty-five** real rounds against the actual
+deployment, finding and closing thirty-four real gaps (the thirty-fifth round built the regression
+guard above, rather than finding a new one) -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
