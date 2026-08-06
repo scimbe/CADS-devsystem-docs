@@ -43,20 +43,21 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces eighteen of the concrete lazy shortcuts below (duplicate
+is a real, live-HTTP script that reproduces twenty of the concrete lazy shortcuts below (duplicate
 `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the "shallow"
 SHALL-substring bug, an unbounded `price_ceiling` going unflagged (including a later, bounded
 re-proposal for the same stage correctly clearing that flag -- the exact mechanism that had two
 real regressions earlier this session), cross-account access, a "deleted" run not actually being
 gone, `devsystem.assistant`'s own requirement-verification evidentiary gate, a role-filler forging
 fake markdown structure in the real requirements export, a proposed GitHub issue targeting an
-arbitrary repo outside the real allowlist, and a succeeded iteration whose own feedback admits a
-known defect) against a real running deployment, creating and cleaning up its own real scratch run
-every time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into this project's own
-real CI (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub Actions run, not just
-locally), run against the exact Docker image that gets deployed -- a PR that reintroduces one of
-these eighteen fails CI instead of waiting for the next manual stress-test firing to notice.
-Honestly scoped, and
+arbitrary repo outside the real allowlist, a succeeded iteration whose own feedback admits a known
+defect, empty/whitespace-only iteration feedback, and a run genuinely refusing further iterations
+once it hits its own configured bound) against a real running deployment, creating and cleaning up
+its own real scratch run every time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired
+into this project's own real CI (`pipeline-ci.yml`'s `web` job, confirmed green against a real
+GitHub Actions run, not just locally), run against the exact Docker image that gets deployed -- a PR
+that reintroduces one of these twenty fails CI instead of waiting for the next manual stress-test
+firing to notice. Honestly scoped, and
 self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
 needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
 logic (`X-Actor: devsystem.assistant`, no LLM involved) and added it for real. What's still
@@ -83,12 +84,31 @@ a hermetic test rather than the live harness above -- testing it live would need
 scratch runs (worsening the exact clutter problem the delete-run feature exists to fix) or direct
 filesystem access a remote script doesn't have.
 
+Every other real free-text field already rejected whitespace-only content -- an iteration's own
+`feedback` was the one exception, silently accepting a `succeeded: true` iteration with zero real
+account of what happened.
+
+## The most significant finding this methodology has produced
+
+Every gate above assumes the pipeline's own "bounded super loop" -- the central architectural claim
+repeated throughout this project's own design docs -- actually means something. It didn't.
+`RunOutcome::Abort` was purely advisory: the server correctly reported `"outcome": "Abort"` the
+moment a run hit its own configured `max_iterations`/`max_consecutive_failures`, but nothing else
+happened. Live-confirmed before anything was touched: a run capped at `max_iterations: 2` accepted
+a real third and fourth iteration anyway, its own history growing to double the configured,
+operator-set bound.
+
+Fixed at the root, not patched at one call site: `run_iteration` itself now pauses the run the
+moment it aborts, reusing the exact same mechanism the milestone-pause case above already
+established -- see [Why did my run pause itself?]({{ '/how-to/why-did-my-run-pause/' | relative_url }})
+for the second real trigger this added. Every real entry point (the GUI, the REST API, and the
+local `devsystem_iterate` CLI) shares the identical fix automatically, since they all funnel
+through the one function that now enforces it.
+
 ## The real track record
 
-As of this writing, the stress test has run **forty-four** real rounds against the actual
-deployment, finding and closing thirty-five real gaps (most of rounds thirty-five through forty-four
-strengthened the stress test's own infrastructure rather than finding a new one) -- not simulated,
-not hypothetical. A
+As of this writing, the stress test has run **forty-eight** real rounds against the actual
+deployment, finding and closing thirty-seven real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
