@@ -102,7 +102,7 @@ real `400` too. See [The DAU lens and the incompetent-agent stress test]({{ '/ex
 | `POST /api/runs/{id}/rag/sync` | Re-sync the run's indexed repo docs. |
 | `GET /api/runs/{id}/rag/search` | Search the run's RAG index (keyword, or semantic if an embedding credential is configured). |
 | `POST /api/runs/{id}/rag/documents` | Add a document by URL/text. |
-| `POST /api/runs/{id}/rag/upload-file` | Upload a real file (PDF/DOCX/image, via Unstructured if configured). |
+| `POST /api/runs/{id}/rag/upload-file` | Upload a real file. Unstructured API first if configured (PDF/DOCX/image); otherwise the real `devsystem.document_extraction` channel if that's configured instead (PDF/DOCX only). Real `503`, naming both, if neither is set. |
 | `POST /api/runs/{id}/rag/documents/{doc_id}/remove` | Remove an indexed document. |
 
 ## Assistant

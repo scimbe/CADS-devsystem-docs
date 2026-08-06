@@ -34,9 +34,13 @@ Open **Uploaded documents** to find both real ways to add one:
 
 - **Paste or type text directly** -- give it a name (`notes.md`, anything descriptive) and the
   real content. Good for design notes, decisions, anything that isn't already a file.
-- **Upload a real file** -- PDF, DOCX, or an image, extracted via the Unstructured API. This
-  reports itself honestly as unconfigured if `RAG_UNSTRUCTURED_API_KEY` isn't set on this
-  deployment, rather than silently failing or fabricating extracted text.
+- **Upload a real file** -- PDF, DOCX, or an image. Two real extraction paths, tried in this
+  order: the Unstructured API (`RAG_UNSTRUCTURED_API_KEY`) if configured -- the only path that
+  handles images -- otherwise the real `devsystem.document_extraction` pipeline role over a real
+  CADS-Tunnel Agent-Fabric channel, if *that's* configured (PDF/DOCX only, matching that role's own
+  real handler scope as of this writing). The response's `extracted_via` field says honestly which
+  one actually ran. Reports itself unconfigured with a real `503` naming both if neither is set on
+  this deployment, rather than silently failing or fabricating extracted text.
 
 Both land in the same real index as a repo sync would, searchable immediately.
 

@@ -117,12 +117,20 @@ call it) -- both real private keys persisted to this host's key store at mode 60
 anywhere, the grants themselves (not secrets -- signed authorizations) delivered where each side
 needs them.
 
-**Still genuinely open**: a grant existing isn't the same as the channel being live -- nobody has
-dialed it yet. `devsystem_document_extraction_client` (the caller-side binary) is still, in its own
-words, "deliberately NOT wired into `web/src/rag.rs` yet." Handler code being real and merged, and
-now a real authorization existing, still isn't the same as the role being wired into production
-traffic -- yet another instance of the same "declared/won is not the same as live-serving"
-distinction this section already makes for auction liveness.
+**Update, 2026-08-06**: `devsystem_document_extraction_client` is genuinely wired into
+`web/src/rag.rs` now, not left as caller-side plumbing -- a real upload falls back to this channel
+when `RAG_UNSTRUCTURED_API_KEY` isn't configured. See
+[Add, remove, and manage RAG documents]({{ '/how-to/manage-rag-documents/' | relative_url }})
+for the real, current behavior of both extraction paths and how to tell which one actually ran.
+
+**Still genuinely open**: a grant and real client wiring existing still isn't the same as the
+channel being *live* -- this deployment doesn't yet have the winning bidder's real peer connection
+details (their noise public key, TLS cert, listen address), so `DOCUMENT_EXTRACTION_CHANNEL_*`
+isn't set on the real deployment and every real upload still uses Unstructured or the honest `503`.
+Handler code being real and merged, a real authorization existing, and now real caller-side wiring
+too -- none of that is the same as the role actually being dialed in production traffic yet --
+another instance of the same "declared/won is not the same as live-serving" distinction this
+section already makes for auction liveness.
 
 ## Why role-filler proposals skip the queue
 
