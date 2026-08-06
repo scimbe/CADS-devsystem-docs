@@ -74,6 +74,19 @@ Real gap found and closed 2026-08-06: this used to only name the first out-of-ra
 "stops at the first match" bug already found and fixed for `proposals` above
 ([CADS-devsystem@609e170](https://github.com/scimbe/CADS-devsystem/commit/609e170)).
 
+**A second, more fundamental gap in the same check, closed the same day**: the `$ devsystem_iterate`
+example above uses this binary's real *local* mode (no `--remote`) -- and until this fix, that exact
+command line never actually enforced the rejection shown above at all. The bounds-check only ever
+lived in `devsystem-web`'s own HTTP handler; `devsystem_iterate`'s local mode calls the shared
+`run_iteration` core directly, with no HTTP layer in between to share that check through. Live-
+confirmed before fixing: on a real run with zero requirements, the exact command above with
+`requirement_indices: [999, 1000]` didn't get rejected locally -- it printed a real
+`iteration_outcome=Continue` and permanently persisted the garbage indices. Fixed by moving the
+check into a shared `validate_requirement_indices` function both the HTTP handler and this CLI's
+local mode now call
+([CADS-devsystem@eb7f146](https://github.com/scimbe/CADS-devsystem/commit/eb7f146)) -- the rejection
+shown above is now real and accurate for local mode too, not just `--remote`.
+
 ## 4. Submit it
 
 ```
