@@ -98,6 +98,15 @@ badge logic -- a fully paused run could show zero badge at all, indistinguishabl
 one at a glance. Both fixed the same day; the paused badge now shows the real reason (see below),
 confirmed with a real Playwright screenshot of the actual rendered GUI, not just the API payload.
 
+While checking whether that same undercounting bug had a third instance anywhere (it didn't), found
+something bigger: the Runs list sorted purely alphabetically, no priority at all. Live-confirmed
+against the actual deployment, not a synthetic scenario: the real flagship `webconference-android`
+run -- genuinely paused, needing an actual human decision -- sat at position 105 of 110, behind well
+over a hundred alphabetically-earlier scratch runs with nothing outstanding. Fixed to sort by the
+same real urgency order the badge already uses (paused first, then pending review, then needs
+attention, then stalled, then risk, alphabetical only as the tie-break within a tier) -- confirmed
+live afterward that the real flagship run moved to position 0.
+
 ## The most significant finding this methodology has produced
 
 Every gate above assumes the pipeline's own "bounded super loop" -- the central architectural claim
@@ -121,8 +130,8 @@ day -- the paused banner now shows the actual real reason for all three, not a g
 
 ## The real track record
 
-As of this writing, the stress test has run **fifty-one** real rounds against the actual
-deployment, finding and closing forty real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **fifty-two** real rounds against the actual
+deployment, finding and closing forty-one real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
