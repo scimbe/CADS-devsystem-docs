@@ -26,6 +26,13 @@ the human owner" half of this pipeline's own governing design (`docs/development
 exactly the kind of moment where the system should stop and let you look, not silently keep
 proposing more work toward whatever comes next.
 
+Because that side effect is real and easy to miss on what otherwise looks like a plain checkbox,
+checking a milestone as achieved in the GUI now asks you to confirm first -- *"Mark this milestone
+achieved? This pauses the run for real -- no new iterations are accepted until you resume it."*
+Cancelling leaves the checkbox and the run exactly as they were. Un-checking an already-achieved
+milestone has no such warning: it never auto-resumes the run, so there's nothing surprising about
+it either way.
+
 ## Getting going again
 
 Click **Resume run** in the Health & Criteria panel, or call `POST /api/runs/{id}/resume`

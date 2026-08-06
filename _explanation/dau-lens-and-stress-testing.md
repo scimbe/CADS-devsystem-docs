@@ -40,8 +40,8 @@ for what these checks look like in the code.
 
 ## The real track record
 
-As of this writing, the stress test has run **twenty-nine** real rounds against the actual
-deployment, finding and closing twenty-nine real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **thirty** real rounds against the actual
+deployment, finding and closing thirty real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
@@ -176,6 +176,13 @@ actual deployment, not just described:
   against a real bid, so a real `0` is exactly as unbounded as leaving it empty, and the same
   preflight check flags both identically). Fixed with an explicit label addition and a real `title`
   tooltip stating this plainly on the input itself.
+- Checking a milestone's checkbox to mark it achieved fired immediately, with zero warning -- but
+  that specific transition auto-pauses the ENTIRE run server-side, blocking every further iteration
+  submission until a human explicitly resumes it. A careless click on what looked like a plain
+  checkbox had no indication of that real, run-wide consequence. Fixed with a confirm() guarding
+  only the achieve direction (un-achieving has no such side effect, so it stays unconditional,
+  mirroring the existing un-verify-a-requirement pattern). See
+  [Why did my run pause itself?]({{ '/how-to/why-did-my-run-pause/' | relative_url }}).
 
 ## The same lens, applied to the flagship app itself
 
