@@ -80,6 +80,25 @@ implying otherwise: the next-step-draft check was added the same day its own fea
 guarding validation that was correct from the start -- a coverage addition, not a fix, and the
 **real track record** below counts only the latter.
 
+## Does the harness actually catch a regression, or just pass?
+
+Every check above was written once, against a real live-confirmed bug, and trusted ever since --
+never re-verified that it would still genuinely *fail* if that exact gate broke again, as opposed to
+passing vacuously for an unrelated reason. [A real engineering piece on harness design](https://www.anthropic.com/engineering/harness-design-long-running-apps)
+names this directly: *"every component in a harness encodes an assumption... those assumptions are
+worth stress testing."*
+
+Put to a real test, not just read and agreed with: check `[37]` (the byte-identical-resubmission
+`409` guard) was mutation-tested by building a throwaway Docker image from a deliberately neutered
+`duplicate_of_last_iteration` (hardcoded to always report "not a duplicate"), running it as a fully
+isolated container -- a different host port, its own scratch Docker volume, the real production
+`devsystem-web` never touched -- and running the real harness against *that*. Result: check `[37]`'s
+middle assertion correctly failed (`expected 409, got 200`) while all 71 other checks stayed green,
+real proof the check is genuinely load-bearing rather than historically true. The mutated image,
+container, and volume were torn down afterward; the source mutation itself was never committed. A
+real, reusable technique now, worth applying to more of these checks over time rather than a
+one-off.
+
 The same investigation that produced the harness also found a real gap in this project's own §5
 quality-bar table: it named `check-no-secrets.sh` as a real secrets-scanning gate, but that script
 had never actually existed in this repo at all -- a different project's convention, referenced in
