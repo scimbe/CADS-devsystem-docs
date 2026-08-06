@@ -123,14 +123,34 @@ when `RAG_UNSTRUCTURED_API_KEY` isn't configured. See
 [Add, remove, and manage RAG documents]({{ '/how-to/manage-rag-documents/' | relative_url }})
 for the real, current behavior of both extraction paths and how to tell which one actually ran.
 
-**Still genuinely open**: a grant and real client wiring existing still isn't the same as the
-channel being *live* -- this deployment doesn't yet have the winning bidder's real peer connection
-details (their noise public key, TLS cert, listen address), so `DOCUMENT_EXTRACTION_CHANNEL_*`
-isn't set on the real deployment and every real upload still uses Unstructured or the honest `503`.
-Handler code being real and merged, a real authorization existing, and now real caller-side wiring
-too -- none of that is the same as the role actually being dialed in production traffic yet --
-another instance of the same "declared/won is not the same as live-serving" distinction this
-section already makes for auction liveness.
+**Correction, 2026-08-06**: the grant and the client wiring above turned out to assume two
+different, incompatible connection models -- a real mistake, caught by the winning bidder asking a
+clarifying question rather than guessing at which env vars to set. This Agent-Fabric ecosystem has
+two genuinely separate ways for two channel members to actually connect:
+
+- **Direct-address** -- `CT_CHANNEL_ADDR`/`CT_CHANNEL_PEER_NOISE_KEY`/`CT_CHANNEL_PEER_CERT`, no
+  grant involved at all. What `devsystem_document_extraction_client` (and its sibling
+  `github_issue_channel_client`) actually implements -- confirmed by rereading its own source, not
+  assumed. Needs a real, dialable address on one side.
+- **Broker-mediated** -- `CT_CHANNEL_BROKER`/`CT_CHANNEL_RELAY`/`CT_CHANNEL_GRANT`/
+  `CT_CHANNEL_HOLDER_KEY`, the model this host's own already-running `alice` identity actually
+  uses. The `SignedChannelGrant`s minted above assumed this model. Empirically confirmed (a real
+  run of the actual `ct-agent channel` binary, not just read from source) that this model supports
+  a real relay-only mode (`CT_CHANNEL_RELAY_ONLY=1`) for a member with no dialable address at all
+  -- exactly the winning bidder's own real constraint (no port forwarding on their dev box).
+
+**Still genuinely open, and now more precisely scoped**: `devsystem_document_extraction_client`
+needs a real rewrite to speak the broker-mediated model instead of direct-address -- a different
+`ct-agent channel` invocation shape, not a config change. Investigating this further surfaced one
+more real prerequisite: `ct-agent channel register` (registering a channel authority with the
+control-plane, apparently required before the broker will accept a join for a given channel id)
+itself needs a real OIDC bearer token this deployment doesn't currently have provisioned for that
+specific purpose. Until both are real, every RAG upload still uses Unstructured or the honest
+`503`, same as before this investigation. Handler code being real and merged, a real authorization
+existing, and real caller-side wiring existing -- none of that is the same as the role actually
+being dialed in production traffic, using the *right protocol*, yet -- another instance of the same
+"declared/won is not the same as live-serving" distinction this section already makes for auction
+liveness.
 
 ## Why role-filler proposals skip the queue
 
