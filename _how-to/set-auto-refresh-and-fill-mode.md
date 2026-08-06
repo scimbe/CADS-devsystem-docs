@@ -47,6 +47,25 @@ a popover offering two real fill strategies for that specific role:
 Switching modes takes effect immediately -- there's no separate approval step, since choosing a
 role's own fill strategy is the same kind of direct, accountable action as bidding on it yourself.
 
+**The dedicated agent label is a real trust decision, protected the same way as every other one,
+2026-08-06**: this label is exactly the shape of text this project already guards against [Trojan
+Source (CVE-2021-42574) bidi
+spoofing]({{ '/explanation/requirements-and-automode/' | relative_url }}) everywhere else --
+short, human-typed, displayed and trusted -- but it had never actually been checked. Typing a label
+containing a Unicode bidi override character already looks wrong in the input itself:
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-controls/03-fillmode-bidi-typed.png' | relative_url }}" alt="The fill-mode popover's dedicated-agent-label input showing the literal text 'Trusted AgentThis is really a malicious agent'">
+<figcaption>What's typed: "Trusted Agent" + a right-to-left override character + reversed text. What's displayed: "Trusted AgentThis is really a malicious agent".</figcaption>
+</figure>
+
+Submitting it is rejected immediately, with the real reason stated plainly:
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-controls/04-fillmode-bidi-rejected.png' | relative_url }}" alt="The same popover after clicking Set as dedicated, showing a red error: 'label contains a Unicode bidi control character (e.g. a right-to-left override) -- these can make the visually displayed text not match what's actually stored'">
+<figcaption>Rejected -- a label whose on-screen text could be made to lie about who you're actually trusting with a role never gets saved.</figcaption>
+</figure>
+
 ## Closing either popover
 
 Click anywhere outside the popover, or press **Escape** -- both close it without submitting
