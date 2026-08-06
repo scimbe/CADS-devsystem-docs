@@ -194,6 +194,23 @@ bound is now enforced, client-side, at all three GUI entry points that have a `u
 here, the quick-offer bid form on the Roles panel, and the Health & Criteria panel's own
 `AbortCriteria` fields use the identical shape for their own bound.
 
+**Pressing Enter in one of these fields moves to the next one, 2026-08-06** -- deliberately not
+"submits the whole iteration". This form has several independently-required fields (stage,
+feedback, and -- when proposing -- stage id, tag, rationale, units), so wiring Enter to submit from
+any one of them risked a real footgun: reflexively hitting Enter while still filling in `Tag` could
+send an incomplete or wrong iteration before you meant to. Enter instead advances focus to the next
+field in the embedded proposal, same convention many multi-field forms use, ending at the **Submit
+iteration** button itself rather than silently doing nothing (which is what used to happen):
+
+<figure>
+<img src="{{ '/assets/img/howto-submit-iteration/09-enter-advances-focus.png' | relative_url }}" alt="The New Iteration panel with 'devsystem.load_test' typed into New stage id, and the Tag field now visibly focused after pressing Enter">
+<figcaption>Pressing Enter in "New stage id" moved focus straight to "Tag" -- nothing was submitted.</figcaption>
+</figure>
+
+`Rationale` is the one exception -- it's a real multi-line textarea, so Enter there still inserts an
+actual newline, same as it always has
+([CADS-devsystem@2f393b8](https://github.com/scimbe/CADS-devsystem/commit/2f393b8)).
+
 ## `--remote` against this deployment: M2M bearer-token auth
 
 `devsystem-demo.bunsenbrenner.org` gates every route — including the API — behind a browser-based
