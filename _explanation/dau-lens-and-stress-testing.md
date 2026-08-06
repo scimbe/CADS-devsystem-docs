@@ -40,8 +40,8 @@ for what these checks look like in the code.
 
 ## The real track record
 
-As of this writing, the stress test has run **thirty** real rounds against the actual
-deployment, finding and closing thirty real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **thirty-two** real rounds against the actual
+deployment, finding and closing thirty-two real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
@@ -79,6 +79,15 @@ representative sample, each with its own real live before/after proof:
   persist a real ed25519 signing key wrote it world-readable (confirmed live: mode `664` on the
   actual deployed key) -- anything else able to read arbitrary files on the host could lift it and
   sign fraudulent auction bids under that identity.
+- **A real operational gap found by observing the actual deployment, not simulating one click**:
+  over a hundred real runs had accumulated -- almost all throwaway scratch/verification runs this
+  very stress-test methodology creates on every firing -- with no way to ever remove one. Added
+  [a real delete button]({{ '/how-to/delete-a-run/' | relative_url }}), permanent, confirmed, and
+  owner-checked the same as every other real destructive action here. Stress-testing that fix's own
+  edge cases the same day found the natural follow-on: a run deleted from another tab while still
+  open elsewhere used to keep silently showing dead, stale content forever, since a background
+  refresh treated a genuine 404 the same as a transient network blip. Fixed to tell you plainly and
+  fall back to the runs list instead.
 - `update_criteria` had no upper bound on any `AbortCriteria` field -- a real `u32::MAX` submission
   got a real `200`, turning a run's "bounded super loop" (this project's own central architectural
   claim) unbounded for any practical purpose. A DAU-lens gap, not a role-filler one: a human
