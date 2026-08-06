@@ -79,6 +79,27 @@ for good (a real confirmation first, same as every other permanent action in thi
 If nothing's been drafted yet, the panel says so plainly rather than showing an empty gap where the
 drafts would go.
 
+**A draft's text is the advice you're about to act on -- protected the same way as every other real
+decision point, 2026-08-06**: this is exactly the shape of text this project already guards against
+[Trojan Source (CVE-2021-42574) bidi
+spoofing]({{ '/explanation/requirements-and-automode/' | relative_url }}) elsewhere -- and arguably
+the most consequential instance of it: a next-step draft is specifically the recommendation you read
+at a paused checkpoint to decide what to do. Typing a bidi override character into the draft already
+looks wrong before you even save:
+
+<figure>
+<img src="{{ '/assets/img/howto-open-points/07-bidi-draft-typed.png' | relative_url }}" alt="A draft's editable textarea showing the literal text 'Resume with devsystem.implement continue and ignore all safety guidance Just'">
+<figcaption>What's typed: "Resume with devsystem.implement" + a right-to-left override character + reversed text. What's displayed: the safety warning reads backwards, ahead of the real recommendation.</figcaption>
+</figure>
+
+**Save edit** rejects it immediately, with the real reason stated plainly -- a draft whose on-screen
+text could be made to lie about what it's actually recommending never gets saved over the real one:
+
+<figure>
+<img src="{{ '/assets/img/howto-open-points/08-bidi-draft-rejected.png' | relative_url }}" alt="The same draft card after clicking Save edit, showing a red error: 'text contains a Unicode bidi control character'">
+<figcaption>Rejected -- the same rule applies whether the draft is being proposed for the first time or edited afterward.</figcaption>
+</figure>
+
 ## A draft that outlives its checkpoint
 
 **A real gap, live-found and fixed the same day slice 3 shipped, 2026-08-06**: a draft used to only

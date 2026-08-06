@@ -97,7 +97,7 @@ real `400` too. See [The DAU lens and the incompetent-agent stress test]({{ '/ex
 | `POST /api/runs/{id}/panels/removal-proposals/{proposal_id}/approve` \| `/reject` | Resolve a pending panel-removal proposal -- approving actually removes the real panel. |
 | `POST /api/runs/{id}/panels/{panel_id}/propose-edit` | Propose editing an existing custom panel's title/html (pending). |
 | `POST /api/runs/{id}/panels/edit-proposals/{proposal_id}/approve` \| `/reject` | Resolve a pending panel-edit proposal -- approving actually overwrites the real panel's content. |
-| `POST /api/runs/{id}/issues/propose` | Propose filing a real GitHub issue (pending). |
+| `POST /api/runs/{id}/issues/propose` | Propose filing a real GitHub issue (pending). `title`/`body` reject a [Unicode bidi control character]({{ '/explanation/requirements-and-automode/' | relative_url }}), same class as every other real free-text field. |
 | `POST /api/runs/{id}/issues/proposals/{proposal_id}/approve` \| `/reject` | Resolve a pending issue proposal -- approving actually files it. |
 
 ## RAG (document search)
