@@ -92,6 +92,14 @@ LLM-judgment-in-disguise.
   annotation (`checkin_every == 0 || checkin_every >= max_iterations`, since the latter can also
   never fire before the ceiling does), and the health field itself now reports the real distance to
   the actual next check-in event.
+
+  **The opposite extreme, found later the same investigation thread, 2026-08-06**: `0` wasn't the
+  only unvalidated edge -- there was no *upper* bound on any of the three `AbortCriteria` fields
+  either. A live test proved `{"max_iterations": 4294967295, ...}` (`u32::MAX`) got a real `200`,
+  which doesn't just make check-ins sparse the way a large-but-sane value would -- it makes the
+  entire "bounded super loop" this project's own architecture is built around unbounded for any
+  practical purpose. Fixed with a real, generous ceiling (10,000) on all three fields -- real runs
+  here use single- or low-double-digit values, nowhere close to it.
 - **Process-level checks** (`process_annotations`, added 2026-08-05) — need the run's own live
   `PipelineSpec` too, since they're about *which roles are declared*, not just what already
   happened. The first one: a run with 3+ real successful iterations that has never declared a

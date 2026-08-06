@@ -40,9 +40,9 @@ for what these checks look like in the code.
 
 ## The real track record
 
-As of this writing, the stress test has run **fifteen** real rounds against the actual deployment,
-finding and closing fifteen real gaps -- not simulated, not hypothetical. A representative sample,
-each with its own real live before/after proof:
+As of this writing, the stress test has run **twenty-one** real rounds against the actual
+deployment, finding and closing twenty-one real gaps -- not simulated, not hypothetical. A
+representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
   well as real scrutiny -- closed with a minimum length bar, then a **distinct-word** bar once padded
@@ -63,6 +63,26 @@ each with its own real live before/after proof:
   declared a `review` role (most runs, by default) -- closed with a real evidentiary gate requiring
   the same evidence bar a human's own review needs, enforced unconditionally for the assistant's own
   calls.
+- A cluster of real, live-confirmed **untrusted-content** findings, one leading to the next: role-
+  filler-controlled free text (`feedback`, a proposal's `rationale`, a requirement's `statement`)
+  could impersonate this project's own real markdown structure in the mandatory check-in artifact
+  and the real requirements export -- a crafted statement once forged a completely convincing fake
+  "verified, human-authored" entry. The same untrusted text also reaches `devsystem.assistant`'s own
+  LLM context on every `/ask` call -- a live prompt-injection test found this particular model
+  already resisted a crafted `"SYSTEM OVERRIDE"` payload on its own, but an explicit structural
+  defense was added anyway as real defense-in-depth, since the LLM backend is documented as
+  swappable.
+- Two real, live-confirmed **infrastructure** findings, outside the GUI/API surface entirely: the
+  local `devsystem_iterate`/`devsystem_checkin` CLI binaries built filesystem paths straight from a
+  raw `run_id` argument with no validation -- `devsystem_iterate ../some-name record.json` wrote
+  real files directly into the repo root, completely outside `runs/`. Separately, both binaries that
+  persist a real ed25519 signing key wrote it world-readable (confirmed live: mode `664` on the
+  actual deployed key) -- anything else able to read arbitrary files on the host could lift it and
+  sign fraudulent auction bids under that identity.
+- `update_criteria` had no upper bound on any `AbortCriteria` field -- a real `u32::MAX` submission
+  got a real `200`, turning a run's "bounded super loop" (this project's own central architectural
+  claim) unbounded for any practical purpose. A DAU-lens gap, not a role-filler one: a human
+  mistyping a value would silently lose their own safety net.
 
 Real, live, currently-true data as of this writing -- the actual `webconference-android` run's own
 risks, fetched fresh:
