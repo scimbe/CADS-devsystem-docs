@@ -40,8 +40,8 @@ for what these checks look like in the code.
 
 ## The real track record
 
-As of this writing, the stress test has run **twenty-two** real rounds against the actual
-deployment, finding and closing twenty-two real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **twenty-six** real rounds against the actual
+deployment, finding and closing twenty-six real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
@@ -89,6 +89,27 @@ representative sample, each with its own real live before/after proof:
   in a row against the actual deployment, zero rejections. Closed by adding the identical check to
   all six remaining entry points; re-verified live by seeding a run to exactly 500 panels and
   confirming the 501st gets a real `400`.
+- **Stress-testing a feature the same day it ships, not just the ones already live for a while**:
+  real per-requirement chat attribution shipped, computing which requirement an assistant's chat
+  reply touched from its own dispatched `Action`s -- but it computed that *before* the real server
+  call behind each action resolved success or failure, so a genuine `404` (an out-of-range
+  acceptance criterion) still attributed the exchange to a requirement nothing had actually happened
+  to. A GUI upload-success message shipped the same session read "Extracted 0 element(s)." for a
+  real, successful upload through a path that has no "elements" concept at all -- confusing, not
+  wrong, but exactly the kind of thing a careless human reads as "something silently broke."
+- **A real cost-exposure gap, and a real regression in its own fix, both found live**:
+  `price_ceiling` is never actually enforced against a real bid anywhere in this codebase -- which
+  is exactly why the "no price ceiling set" risk exists -- so a real `0` conveys no more protection
+  than leaving it unset, but the check only matched "unset." Fixed, then investigating *that* fix
+  found something more significant: an assistant-relayed proposal's approval path never touched the
+  run's own history at all, so its real price ceiling became permanently unrecoverable the moment it
+  was approved -- not just invisible to one check, genuinely lost. Fixing *that* then caused a real
+  regression the same day: narrowing the check to only the new, complete-going-forward record
+  silently dropped every risk that predated it -- caught by a routine health check against the
+  actual flagship run, whose own real, months-old risk had vanished. The honest lesson, stated
+  plainly rather than glossed over: fixing a real gap can itself introduce a real regression if the
+  fix narrows a check's data source instead of widening it -- the same scrutiny this methodology
+  applies to everything else has to apply to its own fixes too.
 
 Real, live, currently-true data as of this writing -- the actual `webconference-android` run's own
 risks, fetched fresh:
