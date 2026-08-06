@@ -53,9 +53,36 @@ already does, so the Pipeline panel's own badge, the Custom Panels list, and eve
 same real state shows up all stay honest, not just this one panel. Once nothing is left, the panel
 says so plainly rather than sitting empty with no explanation.
 
-## What this isn't, yet
+## Drafting next-step options at a checkpoint
 
-This is the second of three real, separate slices behind a fuller guided "stack mode" -- stepping
-through what's already real. Still open: `devsystem.assistant` drafting first-cut next-iteration
-plan options at a paused checkpoint (editable, never silently applied), with its own real audit
-trail of what it proposed and when.
+<figure>
+<img src="{{ '/assets/img/howto-open-points/03-paused-checkpoint-with-drafts.png' | relative_url }}" alt="The Open Points panel showing a Paused checkpoint card with a Resume run button, and below it two of devsystem.assistant's real draft next-step options, each in an editable textarea with Save edit and Delete buttons">
+<figcaption>A paused run, with devsystem.assistant's own real draft next-step options shown right alongside the checkpoint -- each one a plain, editable textarea.</figcaption>
+</figure>
+
+When a run is genuinely paused, ask `devsystem.assistant` what to do next (in the chat panel, the
+same as any other question). Rather than picking one direction for you, it drafts 2-3 separate,
+concrete options -- each one lands here as its own real, editable entry, never silently applied to
+anything. This is the same "surface real choices, don't guess" discipline the operator already
+applies by hand at every real checkpoint on this project, now built into the assistant's own
+behavior.
+
+A draft has no approve/reject step, because it doesn't do anything on its own -- it's advice, not an
+action. Edit the textarea and click **Save edit** to change it in place, or **Delete** to discard it
+for good (a real confirmation first, same as every other permanent action in this GUI):
+
+<figure>
+<img src="{{ '/assets/img/howto-open-points/04-after-edit-and-delete.png' | relative_url }}" alt="The Open Points panel after editing one draft's text and deleting the other -- only the edited draft remains, showing the human-edited text">
+<figcaption>After editing one draft's text and deleting the other -- both changes are real and immediate, no approval gate to click through.</figcaption>
+</figure>
+
+If nothing's been drafted yet, the panel says so plainly rather than showing an empty gap where the
+drafts would go.
+
+## What this is
+
+All three planned slices of the guided "stack mode" are now real: the open-points queue itself, the
+panel that steps through it, and the assistant's own draft next-step options at a checkpoint. Every
+action here -- approve, reject, resume, save, delete -- calls the exact same endpoint its own
+dedicated panel already used before this one existed; nothing here is a new way for the assistant or
+anyone else to change a run's state, only a faster, guided way to reach the same real actions.
