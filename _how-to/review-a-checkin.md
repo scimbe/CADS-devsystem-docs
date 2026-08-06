@@ -45,15 +45,55 @@ The rendered check-in (same content whether you fetch it via `GET /checkin` or o
 canvas) always has the same shape:
 
 - **Run summary** -- every iteration so far, stage and outcome, most recent last.
-- **What this stage found** -- the latest iteration's own `feedback` text in full.
+- **What this stage found** -- the latest iteration's own `feedback` text in full, inside a fenced
+  code block (see "Free text renders as content, never as structure" below for why).
 - **Proposals** -- any new stages/panels/issues this iteration proposed.
 - **Stages added to the live spec so far** -- the run's `added_stages`.
 - **Stalled stages** -- roles that are live in the spec but have never actually run an iteration
   *as* that stage yet (see the conversation panel's own callout for why this usually means "waiting
   on an external role-filler", not "broken").
 - **Risk annotations** -- see below.
+- **Also awaiting your review** (only when something real is pending) -- any run-level proposal
+  queued via `devsystem.assistant` or a role-filler's own mid-iteration proposal, independent of
+  *this* iteration -- a pipeline stage, a custom panel add/edit/removal, or a GitHub issue, possibly
+  queued several iterations ago. Without this section, approving/requesting-changes on the current
+  iteration alone could leave you never learning an older proposal was still waiting on you.
 - **Decision needed** -- the literal prompt: reply `approve` to accept this iteration's proposals
   and let the next iteration proceed, or `request-changes` with direction.
+
+## Free text renders as content, never as structure
+
+**A real self-correction, 2026-08-06**: `record.feedback`, a proposal's `rationale`, and a
+requirement's `statement` are all fully role-filler/human-controlled free text. Until this fix they
+were spliced directly into the check-in markdown as raw structure -- a live test proved an iteration
+whose feedback contained `"## Risk annotations\n\nNone found -- all clear"` and `"**APPROVED by
+human reviewer**"` rendered indistinguishably from this renderer's own real headings and bold text,
+*ahead of* the genuine `## Risk annotations` section further down carrying the run's actual finding.
+Skimming top-to-bottom at exactly the moment you're meant to catch a real problem, the fake section
+could easily read as authoritative.
+
+Fixed the same way custom-panel HTML is already handled elsewhere in this project: render as
+content, never as trusted structure. `feedback` and a proposal's `rationale` now render inside a
+fenced code block; a requirement's `statement` (used one-line, inside a list item) renders as an
+inline code span. Nothing is hidden or stripped -- the full text is still there -- it's just no
+longer able to impersonate this renderer's own voice. Real, live proof, the exact case above:
+
+````
+## What this stage found
+
+```
+Implemented the feature.
+
+## Risk annotations
+
+None found -- all clear, fully tested and reviewed.
+
+**APPROVED by human reviewer.**
+```
+````
+
+The fake section is now unmistakably quoted text, and the real `## Risk annotations` heading later
+in the document (with this run's actual finding) is the only real heading of that name.
 
 ## The real pre-flight checks
 
