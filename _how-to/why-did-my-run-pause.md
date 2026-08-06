@@ -105,6 +105,20 @@ Resuming buys you exactly one more real iteration's worth of grace, not a reset.
 the ceiling, update the run's real criteria first (Health & Criteria panel, or
 `POST /api/runs/{id}/criteria`), then resume.
 
+**Raising it too far gets caught immediately, not after a round-trip.** All three fields share the
+same real, generous-but-finite cap the server itself enforces (10,000 -- see
+[the REST API reference]({{ '/reference/rest-api/' | relative_url }})'s `POST .../criteria` row for
+why). Real, live capture -- typing an absurdly large value and clicking **Save criteria**:
+
+![The Health & Criteria panel's edit form showing "All three fields must be at most 10,000." immediately after typing 999999 into max iterations and clicking Save -- no round-trip to the server needed]({{ '/assets/img/howto-criteria-cap/01-immediate-feedback.png' | relative_url }})
+
+A real gap found and closed 2026-08-06: this used to only get caught server-side, after a real
+round-trip (still a clear, specific error once it got there -- but one avoidable retry to discover
+it). Simply adding a `max="10000"` attribute to the input wouldn't have been enough on its own: this
+form's own **Save criteria** button is a plain click handler, not a real `<form>` submit, so the
+browser never runs native HTML5 validation against it regardless of the attribute. The fix checks
+the real bound explicitly before ever sending the request.
+
 ## A real example
 
 This page's own screenshot was captured the moment `webconference-android`'s **M1: 1:1
