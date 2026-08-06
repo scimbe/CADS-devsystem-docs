@@ -65,20 +65,26 @@ whole requirement is done" and a human ticking off individual criteria are two d
 calls — coupling them silently would be a real design decision made *for* the operator, not asked
 of them.
 
-## Why automode is per-requirement, not a project setting
+## `auto_judge`: a real flag that (still) does nothing -- and why the checkbox says so now
 
 The natural next question, once acceptance criteria exist at all, is: can `devsystem.assistant`
-judge them itself, instead of a human clicking checkboxes? The honest answer is: **by default, no**
-— every requirement starts, and stays, 100% human-driven.
+judge them itself, instead of a human clicking checkboxes? A requirement's owner can flip a
+per-requirement `auto_judge` bit in the API/GUI that looks like it should answer that question.
 
-A requirement's owner can opt a *specific* requirement into "automode" via `auto_judge`. This is
-deliberately **not** a global run or account setting. Opting in is a real, considered choice on one
-requirement — not something every future requirement should silently inherit just because automode
-was turned on once, somewhere, for something else. The flag is real and live in the API/GUI today;
-setting it only *authorizes* future judgment — it doesn't perform any judgment itself yet. Building
-the actual logic (grounding the assistant in a run's real iteration history/evidence before it
-touches a checkbox, and being honest when the evidence doesn't support a clean yes/no) is real,
-separate, still-open work.
+**A real, live-verified correction, 2026-08-06**: `auto_judge` is not read anywhere in
+`devsystem_assistant.rs` -- confirmed directly, not assumed. Three live tests against the real
+deployment, identical requirement/evidence shape each time, only the flag's value and the chat
+wording varied: asked to "judge and verify if it passes" with `auto_judge: true`, the assistant
+genuinely verified the requirement from nothing but the implementer's own feedback text; asked the
+same way with `auto_judge` at its default `false`, it declined, citing the same missing evidence.
+The flag's value did not predict the outcome -- the LLM's own read of the instruction and the
+available evidence did. **The checkbox never gated or unlocked anything.** It used to be labeled
+"let the assistant judge this one," implying otherwise; the GUI now says plainly that checking it
+changes nothing about what the assistant can already do
+([CADS-devsystem@2159a9b](https://github.com/scimbe/CADS-devsystem/commit/2159a9b)) -- the assistant
+could always be asked, in a plain chat message, to judge and verify any requirement, flag or no
+flag. Deliberately not deleted: it stays a real, honest, persisted placeholder for whatever future
+opt-in judgment logic eventually gets built, without pretending that logic already exists.
 
 ## The real, mandatory review gate
 
@@ -119,9 +125,8 @@ Real, live proof against the actual deployment:
 
 ```
 $ curl -X POST .../api/runs/{id}/requirements/0/toggle   # no review iteration exists yet
-requirement 0 cannot be marked verified yet -- this run declares a devsystem.review
-role, but no successful devsystem.review iteration addressing requirement 0 (via its
-requirement_indices) exists yet. Submit one first.
+requirement 0 cannot be marked verified yet -- no successful devsystem.review iteration
+addressing requirement 0 (via its requirement_indices) exists yet. Submit one first.
 HTTP 409
 
 $ curl -X POST .../api/runs/{id}/iterate -d '{"stage":"devsystem.review","feedback":"reviewed, approved","succeeded":true,"requirement_indices":[0]}'
@@ -145,6 +150,52 @@ HTTP 200
 The GUI surfaces the block as a real error message next to the Requirements panel, and — a related
 gap found and fixed alongside the gate itself — reverts the checkbox's own visual state rather than
 leaving it looking checked when the toggle was actually rejected.
+
+## The gate above only ever protected the human-click path -- until 2026-08-06
+
+The mandatory review gate's own scoping is deliberate: a run that never declares `review` is never
+gated at all (see above). That was always meant to apply to a *human's* own direct click -- but
+`POST /api/runs/{id}/requirements/{index}/toggle` is the exact same endpoint `devsystem.assistant`'s
+own `apply_action` calls when it decides, from a plain chat message, to mark a requirement verified.
+Nothing server-side could tell the two callers apart, so on the (very common) case of a run that
+never declared `review`, the assistant could be talked into verifying a requirement from nothing but
+the implementer's own self-report -- exactly the "soft, ignorable, no real review" pattern the gate
+above exists to close, just for a caller the gate never covered.
+
+Fixed for real, not just documented as a known gap: `devsystem.assistant` now sends a real
+`X-Actor: devsystem.assistant` header on every request it makes, and the toggle endpoint requires
+the identical real evidence the mandatory review gate already enforces -- **unconditionally**, when
+that header is present and the call would mark a requirement verified, regardless of whether this
+run declares `review` at all
+([CADS-devsystem@76facaf](https://github.com/scimbe/CADS-devsystem/commit/76facaf)). Un-verifying,
+and a human's own direct click (no `X-Actor` header), are both completely unaffected in every case.
+
+Real, live proof against the actual deployment, on a run that never declared `review` at all --
+exactly the case the original gate never covered:
+
+```
+$ curl -X POST .../api/runs/{id}/requirements/0/toggle           # human click, no review declared
+{"requirements":[{...,"verified":true,...}]}
+HTTP 200                                                          # succeeds -- by design, unaffected
+
+$ curl -X POST .../api/runs/{id}/requirements/0/toggle           # toggle back off, same human path
+{"requirements":[{...,"verified":false,...}]}
+HTTP 200
+
+$ curl -X POST .../api/runs/{id}/requirements/0/toggle \
+    -H 'X-Actor: devsystem.assistant'                             # the assistant-relayed path
+requirement 0 cannot be marked verified yet -- no successful devsystem.review iteration
+addressing requirement 0 (via its requirement_indices) exists yet. Submit one first. This
+check applies unconditionally to devsystem.assistant-driven verification, regardless of
+whether this run declares a review role -- a human's own direct click in the Requirements
+panel is not affected.
+HTTP 409
+```
+
+Same run, same requirement, same missing evidence -- the human's own click succeeds unconditionally
+(that scoping decision is untouched), the assistant-relayed call is blocked. Toggling individual
+acceptance criteria is deliberately unaffected either way -- that's always been routine bookkeeping,
+not the headline `verified` status this gate governs.
 
 ## Who wrote this requirement: `proposed_by`
 
