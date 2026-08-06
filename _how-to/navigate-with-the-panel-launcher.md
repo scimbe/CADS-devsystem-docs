@@ -45,12 +45,32 @@ macOS' own Dock uses for exactly this reason: full names for everyone would eith
 to cover most of the screen, or force every name to truncate. Neither is on -- click any bubble,
 labeled or not, and it opens (or brings to the front, if already open) the real panel behind it.
 
+## Prefer typing? There's a real filter for that too
+
+Live feedback after shipping the bubble-click version: hunting for one specific bubble by eye felt
+worse than just typing a panel name, the way the Process Prompt's own `./show`/`./hide`/`./toggle`
+commands already work. Rather than dropping the visual overview, the launcher now opens with a real
+text field, already focused -- start typing and every non-matching bubble dims out of the way,
+matching bubbles get a teal highlight:
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-launcher/04-filter.png' | relative_url }}" alt="The launcher open with 'back' typed into its filter field, the Backlog bubble highlighted with a teal border, every other bubble dimmed out" >
+<figcaption>Typing "back" narrows this down to Backlog, the one real match, highlighted -- everything else fades out of the way rather than disappearing outright.</figcaption>
+</figure>
+
+Press **Enter** once exactly one panel matches and it opens immediately, launcher closed -- the
+identical matching rule (panel id or title, substring) the real `./show` command already trusts, not
+a second guess at what counts as a match. If your filter still matches more than one panel, Enter
+does nothing rather than guessing which one you meant -- keep typing (or click) instead.
+
 ## Keyboard
 
 - **Escape** closes the launcher, same as it closes every other real popover/dialog in this app.
-- **Ctrl+C** also closes it, while it's actually open -- a real copy-to-clipboard anywhere else in
-  the app is never intercepted; this only fires when the launcher's own overlay is already capturing
-  input.
+- **Ctrl+C** also closes it, while it's actually open -- but only when there's genuinely nothing
+  selected. The filter field is focused the instant the launcher opens, so a blanket "always
+  intercept Ctrl+C while open" rule would have made a real copy-to-clipboard from that field
+  impossible. Select real text in the filter first, and Ctrl+C copies it normally, same as anywhere
+  else -- it only closes the launcher when there's no selection to protect.
 - Clicking (or Enter/Space-activating) a bubble always opens/brings-to-front that panel. It never
   toggles a panel closed, even if you pick one that's already open -- there's no way to see which
   panels are currently open while the launcher covers them, so a toggle would risk silently closing
