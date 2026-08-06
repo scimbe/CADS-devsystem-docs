@@ -40,8 +40,8 @@ for what these checks look like in the code.
 
 ## The real track record
 
-As of this writing, the stress test has run **twenty-six** real rounds against the actual
-deployment, finding and closing twenty-six real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **twenty-nine** real rounds against the actual
+deployment, finding and closing twenty-nine real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
@@ -109,7 +109,23 @@ representative sample, each with its own real live before/after proof:
   actual flagship run, whose own real, months-old risk had vanished. The honest lesson, stated
   plainly rather than glossed over: fixing a real gap can itself introduce a real regression if the
   fix narrows a check's data source instead of widening it -- the same scrutiny this methodology
-  applies to everything else has to apply to its own fixes too.
+  applies to everything else has to apply to its own fixes too. A third finding followed directly
+  from testing the fix's own edge cases: a human trying to actually *fix* an already-flagged
+  unbounded role the natural way -- re-proposing the same stage with a real price ceiling this time
+  -- got a real `200` back, but the fix was silently discarded, because the check always matched the
+  *first* proposal recorded for a stage, never a later, better one. The natural human "fix" action
+  was a no-op no one would have noticed without deliberately testing it. Fixed so the latest real
+  proposal for a stage wins, then re-verified the fix was symmetric (a later proposal *dropping* a
+  ceiling correctly re-flags too, not just the reverse).
+- A mechanical gap in this project's own quality-bar table, not a runtime bug: "idiomatic to the
+  language, not just working" had no real check at all -- `RUSTFLAGS=-D warnings` in CI catches
+  compiler warnings, a narrower and different layer than idiomatic-Rust lints. Running `cargo clippy
+  --all-targets -- -D warnings` hermetically against both real crates, before adding anything to CI,
+  found nine small, real, mechanical findings (a misparsed doc comment, a hand-rolled reimplementation
+  of a stdlib method, unnecessary clones, an overly complex type, a `drain`-then-`extend` that should
+  have been `append`, three sorts that should have used `sort_by_key`) -- all fixed in the same commit
+  that added the gate, watched green in the project's real GitHub Actions run for that exact push, not
+  just a local Docker run standing in for it.
 
 Real, live, currently-true data as of this writing -- the actual `webconference-android` run's own
 risks, fetched fresh:
@@ -154,6 +170,12 @@ actual deployment, not just described:
   Panels stayed out of this pattern on purpose: it's an opt-in, power-user feature (writing raw
   HTML), not a core per-run workflow item like the other four, so its existing lighter nudge may
   already be the right amount rather than a real gap.
+- The New Iteration form's price-ceiling field only warned about leaving it *blank* -- a careless
+  human reading "leave blank for none" could easily type `0` thinking it's a deliberate, conservative
+  choice, the opposite of the truth (nothing in this codebase actually enforces `price_ceiling`
+  against a real bid, so a real `0` is exactly as unbounded as leaving it empty, and the same
+  preflight check flags both identically). Fixed with an explicit label addition and a real `title`
+  tooltip stating this plainly on the input itself.
 
 ## The same lens, applied to the flagship app itself
 
