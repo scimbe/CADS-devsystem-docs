@@ -35,24 +35,36 @@ The assistant has **zero ct-agent-connected tools** -- it never executes an acti
 calls out to GitHub, never touches the network beyond reading the run's own state. `GET
 /api/assistant/status` reports this honestly (`disallowed_tools`) rather than hiding it. What it
 *can* do, per a real per-run rate limit (10 seconds, a spam-guard against a stuck retry loop, not a
-security control): write real narrow state changes on your behalf -- milestones, backlog items,
-requirements (including individual acceptance criteria), `repo_url`, and creating a whole new run --
-when you ask for them, and *propose* (not directly apply) a custom panel, editing or removing an
-existing custom panel, a new pipeline stage, or a GitHub issue -- all five land in a real pending
-queue for you to approve or reject, never applied on the spot. See [How the pipeline proposes and
-grows its own stages]({{ '/explanation/self-optimizing-pipeline/' | relative_url }}) and [Add,
-propose, and remove custom panels]({{ '/how-to/manage-custom-panels/' | relative_url }}) for exactly
-which of its actions apply immediately versus wait for you.
+security control), splits into three real categories:
 
-Asked directly, against a real run, it describes its own real boundary the same way:
+1. **Direct**: milestones, backlog items, requirements (including individual acceptance criteria),
+   `repo_url`, and creating a whole new run -- applied immediately when you ask for one, no gate.
+2. **Propose, then you approve or reject**: a custom panel (add/edit/remove), a new pipeline stage,
+   or a GitHub issue -- queued in a real pending list, never applied on the spot. See [How the
+   pipeline proposes and grows its own stages]({{ '/explanation/self-optimizing-pipeline/' |
+   relative_url }}) and [Add, propose, and remove custom panels]({{ '/how-to/manage-custom-panels/'
+   | relative_url }}).
+3. **Propose, then you edit or delete directly, no approval step**: a draft next-step option at a
+   paused checkpoint -- advice, not an action, so there's nothing to approve. See [Work through a
+   run's open points]({{ '/how-to/work-through-open-points/' | relative_url }}).
+
+Asked directly, against a real run, it describes its own real boundary the same way -- **a real,
+live gap found and fixed while writing this page, 2026-08-06**: the first time this exact question
+was asked live, the model's one-sentence answer covered only categories 1 and 2, dropping category 3
+entirely -- not a functional bug (`propose_next_step` worked correctly regardless), just an
+incomplete self-summary, since the system prompt introduced it as a separate aside rather than a
+peer of the other two. Fixed by stating all three explicitly together
+([CADS-devsystem@aa491d6](https://github.com/scimbe/CADS-devsystem/commit/aa491d6)); the same
+question, re-asked live after redeploy:
 
 ```
 $ curl -X POST .../api/runs/docs-manage-custom-panels/assistant \
     -d '{"instruction": "In one sentence, list the categories of actions you can take without further clarification."}'
 {"response": "I can add or toggle milestones, backlog items, and requirements (including
- acceptance criteria), set this run's repo_url, and create new runs outright; everything else —
- custom panels (add/edit/remove), pipeline stages, and GitHub issues — I can only propose for
- your approval."}
+ individual acceptance criteria), set this run's repo_url, and create new runs outright; propose
+ custom panels (add/edit/remove), pipeline stages, and GitHub issues against
+ scimbe/CADS-webconference-demo for your explicit approval; and queue plain-text next-step drafts
+ in Open Points that you can edit or delete directly."}
 ```
 
 ## Marking a milestone achieved through chat pauses the run -- and it says so
