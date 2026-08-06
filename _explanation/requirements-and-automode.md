@@ -49,13 +49,30 @@ has zero alphanumeric characters under this count:
 
 ```
 $ curl -X POST .../api/runs/{id}/requirements -d '{"statement": "WHEN a user submits an empty message, THE SYSTEM SHALL reject it", "acceptance_criteria": ["ok"]}'
-acceptance criterion "ok" doesn't have enough real content to be checkable (minimum 5
-letters/digits) -- "ok", ".", or an invisible character aren't real acceptance criteria.
+acceptance criteria: "ok" doesn't have enough real content to be checkable (minimum 5
+letters/digits) -- "ok", ".", or an invisible character aren't real acceptance criteria
 HTTP 400
 ```
 
 The bar is deliberately low (5 alphanumeric characters) — this filters non-answers, not real short
 criteria. `"no crash"` (7 alphanumeric characters) is accepted without issue.
+
+**A real gap in this same check, found and closed 2026-08-06**: the trivial-content check and the
+500-character length cap each used to reject on the *first* bad criterion it found and stop there —
+so submitting several simultaneously-bad criteria in one request meant discovering them one at a
+time, fixing, resubmitting, and repeating once per remaining mistake. Fixed to report every bad
+criterion from the one request that has them, in a single response:
+
+```
+$ curl -X POST .../api/runs/{id}/requirements -d '{"statement": "WHEN a user submits an empty message, THE SYSTEM SHALL reject it", "acceptance_criteria": ["ok", "."]}'
+acceptance criteria: "ok" doesn't have enough real content to be checkable (minimum 5
+letters/digits) -- "ok", ".", or an invisible character aren't real acceptance criteria;
+"." doesn't have enough real content to be checkable (minimum 5 letters/digits) --
+"ok", ".", or an invisible character aren't real acceptance criteria
+HTTP 400
+```
+
+Both criteria are named in the one response body — no retry needed to learn about the second.
 
 ## Two independent, explicit signals
 
