@@ -211,3 +211,37 @@ bounds how far any single run can go before a mandatory human check-in, and ever
 `rationale` field is a real, human-readable record of *why* -- visible in the run's iteration
 history, not hidden. `devsystem.assistant`'s path keeps a real approval gate precisely because it
 doesn't have that same accountable-work backing to justify skipping one.
+
+## `rationale` has to be trustworthy to read, not just present
+
+The paragraph above only holds if `rationale` genuinely says what it appears to say. A real gap
+closed 2026-08-06, closing out the last candidate of a [Trojan Source
+(CVE-2021-42574)]({{ '/explanation/requirements-and-automode/' | relative_url }})
+bidi-control-character sweep that started with requirement text and had already spread to
+milestones, backlog items, and custom-panel titles: a rationale laced with a real right-to-left
+override character used to sail through untouched at both real entry points, visually rendering as
+something like "Needed for real testing" while what was actually stored -- and what a reviewer
+would see if the text rendered honestly -- admitted "This is a dangerous stage, exposes actual data
+extraction." Text whose on-screen order doesn't match its real content defeats the entire point of
+`rationale` existing as a real, readable safety net; a role-filler proposal reaching the embedded
+path (skipping the review queue, per the design above) is exactly the case with the least room for
+that kind of deception to go unnoticed.
+
+Fixed at both real entry points -- the embedded/immediate path (no queue to catch it) and
+`devsystem.assistant`'s own pending-review `propose_stage` path (where a human approving from the
+queue trusts this exact text) -- with the identical rule already documented for requirements,
+milestones, and panel titles:
+
+```
+$ curl -X POST .../api/runs/{id}/stages/propose -d '{"stage_id":"devsystem.load_test",
+    "tag":"load_test","rationale":"Needed for real testing‮ ..."}'
+rationale contains a Unicode bidi control character (e.g. a right-to-left override) -- these
+can make the visually displayed text not match what's actually stored
+HTTP 400
+```
+
+With this fix, the bidi-control-character class is closed across every real free-text field a human
+reads and trusts for a decision in this codebase -- requirement statement/criteria, milestones,
+backlog items, custom-panel title, and now stage-proposal rationale. Custom-panel `html` stays
+deliberately untouched: it's rendered only inside a sandboxed iframe, untrusted-by-design, so the
+same rule there would contradict its own existing security model rather than close a gap.

@@ -86,7 +86,7 @@ real `400` too. See [The DAU lens and the incompetent-agent stress test]({{ '/ex
 
 | Route | What it does |
 |---|---|
-| `POST /api/runs/{id}/stages/propose` | Propose a new pipeline stage (pending). |
+| `POST /api/runs/{id}/stages/propose` | Propose a new pipeline stage (pending). `rationale` rejects a [Unicode bidi control character]({{ '/explanation/self-optimizing-pipeline/' | relative_url }}), same as `stage_id`/`tag` being non-empty. |
 | `POST /api/runs/{id}/stages/proposals/{proposal_id}/approve` \| `/reject` | Resolve a pending stage proposal. |
 | `POST /api/runs/{id}/panels/propose` | Propose a new custom panel (pending). |
 | `POST /api/runs/{id}/panels/proposals/{proposal_id}/approve` \| `/reject` | Resolve a pending panel proposal. |
