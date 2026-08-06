@@ -92,6 +92,16 @@ LLM-judgment-in-disguise.
   (`RunState.approved_stage_proposals`) both real approval paths now write to, regardless of which
   one a given proposal took.
 
+  **A real regression in that very fix, found the same day** — switching this check to scan *only*
+  the new field, instead of adding it, silently dropped every real risk approved before that field
+  existed. Caught live, not in a scratch test: a routine read-only health check against the actual
+  deployed `webconference-android` run found its own real `devsystem.document_extraction` risk --
+  correctly flagged all session -- had vanished. `history.proposals` was still the only real record
+  of everything approved before `approved_stage_proposals` existed; this check now scans the union
+  of both, not one replacing the other. Named plainly because it's a real, useful lesson about this
+  very page's own subject: fixing a real gap can introduce a real regression if the fix narrows a
+  check's data source instead of widening it.
+
   **Not every check could get the same fix, and that's stated plainly, not hidden**:
   `touches auth/security` has the identical "only checks the latest iteration" shape, but a keyword
   mention in some past feedback text has no equivalent checkable "is this still live" entity the way
