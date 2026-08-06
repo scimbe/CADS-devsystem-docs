@@ -44,6 +44,18 @@ LLM-judgment-in-disguise.
   they say. Only fires on `succeeded: true` — a FAILED iteration honestly admitting it's broken is
   the behavior this check wants to encourage, not flag.
 
+  **This one stays flagged, deliberately, once it's found** — until 2026-08-06 it only looked at the
+  LATEST iteration, the same bug shape as `no_price_ceiling` below. Live-verified: a real, unfixed
+  defect admission got correctly flagged, then vanished the moment one unrelated iteration followed
+  it, even though nothing was ever fixed. Unlike a price ceiling (a real, checkable field that either
+  got set or didn't), there's no structural "was this defect actually fixed" signal in free-text
+  feedback -- so instead of scanning for a resolution signal that doesn't exist, this now scans all
+  of history and keeps flagging as long as ANY successful iteration ever admitted a defect. The real
+  evidence text says so directly: *"No later iteration signals it was ever fixed, so this stays
+  flagged."* Named honestly: a defect that genuinely got fixed later, without anyone saying so in
+  words this check recognizes, still nags -- a real cost, but a smaller one than silently hiding a
+  defect nobody ever said was fixed.
+
   **A risk doesn't get to expire just because the conversation moved on** — `no price ceiling set`
   fires when a role needing a brand-new service (`use_existing_service: null`) landed in the run's
   own live spec with no `price_ceiling`, so nothing bounds what filling it could actually cost. Until
