@@ -384,6 +384,32 @@ actual deployment, not just described:
   only the achieve direction (un-achieving has no such side effect, so it stays unconditional,
   mirroring the existing un-verify-a-requirement pattern). See
   [Why did my run pause itself?]({{ '/how-to/why-did-my-run-pause/' | relative_url }}).
+- **The DAU lens extended to keyboard/screen-reader users, not just careless clicks**: the New
+  Project dialog -- the very first control a new user encounters -- turned out to have a genuinely
+  severe double gap once actually checked with a keyboard instead of a mouse. Its `autofocus`
+  attribute never actually took effect (a real browser quirk: markup inserted via `innerHTML` into
+  an already-connected node doesn't reliably trigger the HTML autofocus algorithm), and with no
+  focus trap at all, `Tab` from the trigger button walked straight through the *entire page hidden
+  behind the overlay* -- live-confirmed reaching requirement input fields a keyboard-only user could
+  never see. Fixed with the standard accessible-modal pattern: explicit focus-in, a real
+  `Tab`/`Shift+Tab` trap confined to the dialog, and focus restored to the trigger on every close
+  path. Checking the same dialog's real accessibility tree (Playwright's `ariaSnapshot`, not a guess
+  from the markup) found two more: no `role="dialog"`/`aria-modal` grouping at all, and its own
+  `Creating…`/error status line updated purely visually with no `aria-live` region -- a screen
+  reader got zero indication anything had happened, success or failure. All three fixed and
+  live-verified against the real redeployed production container. See the New Project section of
+  [Set up your first run]({{ '/tutorials/first-run/' | relative_url }}) for the real screenshot.
+- **The same `aria-live` gap, found sitewide once checked past the one dialog**: every one of this
+  app's 14 real status-line elements (Requirements, Backlog, Milestones, Custom Panels, RAG uploads,
+  quick-offer bids, fill-mode, criteria, and more) had the identical silent-to-screen-readers gap.
+  Fixed uniformly with the same `role="status"`/`aria-live="polite"` pattern. Worth naming plainly:
+  the number was first miscounted as 84 by a naive text-occurrence grep that also caught the CSS
+  rule and every later class-name reassignment to those same 14 elements -- corrected before
+  building anything on top of a wrong number, the same discipline this page's other entries apply to
+  the codebase now applied to a mistake in the investigation itself. And mid-fix, an explanatory
+  code comment containing literal backtick characters inside a JS template literal threw a real
+  `SyntaxError` that blanked the entire GUI -- caught by the same routine post-fix Playwright
+  verification pass this methodology always runs, before it ever reached a commit.
 
 ## The same lens, applied to the flagship app itself
 
