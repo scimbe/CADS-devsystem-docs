@@ -199,6 +199,22 @@ LLM-judgment-in-disguise.
   requirements, each with its own genuinely vague criterion (`"works"`, `"is fast"`), only ever
   produced one finding. Fixed to collect every real vague criterion across every requirement, not
   just the first.
+
+  **`stored text contains a Unicode bidi control character`, added 2026-08-06** — defense-in-depth
+  for the [Trojan Source (CVE-2021-42574) bidi-control-character
+  fixes]({{ '/explanation/requirements-and-automode/' | relative_url }}) closed at every real
+  write-time entry point this same day: requirement statement/criteria, milestones, backlog items,
+  custom-panel title, and stage-proposal rationale (both pending and approved). Those fixes only
+  guard *new* writes — they can't retroactively clean data already persisted before they shipped,
+  and say nothing about a future field that adds free text without remembering the check. A real
+  audit of every production `state.json` this repo actually has (110 files) found zero
+  contamination, but "audited once and found clean" isn't the same guarantee as "structurally can't
+  happen again" — this check scans the same seven fields the write-time fixes cover and surfaces
+  any hit here automatically, the same mechanical-check discipline every other finding on this page
+  already follows. Verifying it live meant simulating genuinely pre-existing contaminated data,
+  since the write-time gates now correctly block new bidi text through the normal API: a bidi-laced
+  milestone description written directly into a scratch run's `state.json` (bypassing the API
+  entirely) showed up in that run's real `GET /api/runs/{id}` response as this exact finding.
 - **Process-level checks** (`process_annotations`, added 2026-08-05) — need the run's own live
   `PipelineSpec` too, since they're about *which roles are declared*, not just what already
   happened. The first one: a run with 3+ real successful iterations that has never declared a
