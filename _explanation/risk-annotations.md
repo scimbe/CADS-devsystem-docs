@@ -16,10 +16,11 @@ LLM-judgment-in-disguise.
 
 - **History-only checks** (`preflight_annotations`) — a security-relevant keyword in the latest
   iteration's feedback, `devsystem.implement` running before any *substantive* `devsystem.test`
-  iteration, a new service proposal with no `price_ceiling`, and a `succeeded: true` iteration whose
-  own feedback admits a known defect. These only need a run's `RunState` — its iteration history —
-  so they're usable everywhere a run's history is available, including `devsystem_checkin`'s own
-  binary (which never loads the run's spec at all).
+  iteration, a new service proposal with no `price_ceiling`, a `succeeded: true` iteration whose
+  own feedback admits a known defect, and a mandatory check-in cadence that's effectively disabled.
+  These only need a run's `RunState` — its iteration history — so they're usable everywhere a run's
+  history is available, including `devsystem_checkin`'s own binary (which never loads the run's spec
+  at all).
 
   **"Substantive" is load-bearing, not decorative** — found live by this project's own
   incompetent-agent stress test, 2026-08-05: the test-before-implement check originally only asked
@@ -42,6 +43,20 @@ LLM-judgment-in-disguise.
   on something like "fixes the previously broken X", so the phrases are specific enough to mean what
   they say. Only fires on `succeeded: true` — a FAILED iteration honestly admitting it's broken is
   the behavior this check wants to encourage, not flag.
+
+  **A disabled cadence isn't the same as no risk at all** — `AbortCriteria.checkin_every`'s whole
+  documented purpose is a mandatory human check-in that "fires at least this often, even when every
+  iteration is succeeding". Found live: `checkin_every: 0` had zero validation anywhere (unlike
+  `max_iterations`/`max_consecutive_failures`, which already reject `0`), and it doesn't just make
+  check-ins sparse — the underlying `should_checkin` logic falls back to *only* the hard
+  `max_iterations` ceiling, so the cadence never fires on its own at all. Worse, the real bug this
+  surfaced while investigating: `health.iterations_until_checkin` used to hardcode `0` for this
+  case, actively claiming a check-in was **due right now** instead of **disabled** — and since the
+  run list's own `needs_attention` flag treats `iterations_until_checkin <= 1` as urgent, this
+  permanently false-flagged the run for a reason that was never real. Fixed both: a real risk
+  annotation (`checkin_every == 0 || checkin_every >= max_iterations`, since the latter can also
+  never fire before the ceiling does), and the health field itself now reports the real distance to
+  the actual next check-in event.
 - **Process-level checks** (`process_annotations`, added 2026-08-05) — need the run's own live
   `PipelineSpec` too, since they're about *which roles are declared*, not just what already
   happened. The first one: a run with 3+ real successful iterations that has never declared a
