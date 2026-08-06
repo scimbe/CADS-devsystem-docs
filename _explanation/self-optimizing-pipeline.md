@@ -91,12 +91,26 @@ up here is the pipeline saying "this is now a real thing you can bid on," not "t
 `android_emulator_test` actually ran two emulator instances and confirmed the run's own M1 milestone
 (closed as [issue #13](https://github.com/scimbe/CADS-devsystem/issues/13)); `document_extraction`
 shipped a real PDF-extraction handler, merged after independent re-verification (a genuine
-end-to-end run against a hand-built PDF, not just trusting the PR). Neither currently shows a live
-offer in `stalled_stages` as of this writing -- and that's the real, important distinction this
-section exists to make: **auction liveness and "the work got done" are two separate signals.** A
-role can have already delivered real, shipped work and still show as stalled once its bidder's
-process isn't actively running `--serve` any more -- stalled means "nobody is bidding on this role
-*right now*," not "this was never done."
+end-to-end run against a hand-built PDF, not just trusting the PR), then a second real increment
+added real DOCX support via headless `libreoffice --convert-to txt:Text` -- independently
+re-verified the same way: a hand-built, valid `.docx` through the actual compiled binary and a real
+`libreoffice` install, not just the PR's own claim. `image`/OCR stays honestly unbuilt (no
+`tesseract` CLI on the bidder's host, confirmed rather than assumed) -- an unsupported request gets
+a real `Error`, never a fabricated extraction. Neither role currently shows a live offer in
+`stalled_stages` as of this writing -- and that's the real, important distinction this section
+exists to make: **auction liveness and "the work got done" are two separate signals.** A role can
+have already delivered real, shipped work and still show as stalled once its bidder's process isn't
+actively running `--serve` any more -- stalled means "nobody is bidding on this role *right now*,"
+not "this was never done."
+
+**What's still genuinely open on `document_extraction`, as of this writing**: the two real
+`SignedChannelGrant`s that let the winning bidder actually serve the role's channel and let
+devsystem-web actually call it -- these need the bidder's real full holder public key, which the
+auction view deliberately only ever shows as a 4-byte display prefix (the section above explains
+why), and no `AgentCard` for this role is registered in the control-plane's agent directory yet.
+Handler code being real and merged isn't the same as the role being wired into production traffic --
+another instance of the same "declared/won is not the same as live-serving" distinction this section
+already makes for auction liveness.
 
 ## Why role-filler proposals skip the queue
 
