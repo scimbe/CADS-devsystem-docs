@@ -71,6 +71,15 @@ LLM-judgment-in-disguise.
   words this check recognizes, still nags -- a real cost, but a smaller one than silently hiding a
   defect nobody ever said was fixed.
 
+  **A second real gap under that very fix, found 2026-08-06 applying the same lens to
+  `no_price_ceiling`'s own "stops at the first match" bug below**: the "stays flagged" fix above
+  solved the defect vanishing over time, but the check still only ever returned ONE finding -- the
+  single most recent defect-admitting iteration. Live-confirmed: two real iterations, one admitting
+  an unfixed session-expiry security gap, the other an unfixed search crash, produced exactly one
+  risk finding. The security defect was completely invisible, not because it was ever resolved, but
+  because a genuinely different, more recent defect happened to get admitted afterward. Fixed to
+  collect every real defect-admitting succeeded iteration, not just the latest.
+
   **A risk doesn't get to expire just because the conversation moved on** — `no price ceiling set`
   fires when a role needing a brand-new service (`use_existing_service: null`) landed in the run's
   own live spec with no `price_ceiling`, so nothing bounds what filling it could actually cost. Until
@@ -183,6 +192,13 @@ LLM-judgment-in-disguise.
   phrases above: a genuinely specific-but-terse criterion (`"file exists"`) can still
   false-positive, and a genuinely vague-but-wordy one can still slip through. Not claimed
   comprehensive, same as everywhere else on this page.
+
+  **Only the first one, found 2026-08-06 applying the same lens as the two fixes above** — this
+  check had the identical shape: an early `return` inside a nested loop over every requirement's
+  every criterion, so it stopped at the first vague one it found. Live-confirmed: two separate
+  requirements, each with its own genuinely vague criterion (`"works"`, `"is fast"`), only ever
+  produced one finding. Fixed to collect every real vague criterion across every requirement, not
+  just the first.
 - **Process-level checks** (`process_annotations`, added 2026-08-05) — need the run's own live
   `PipelineSpec` too, since they're about *which roles are declared*, not just what already
   happened. The first one: a run with 3+ real successful iterations that has never declared a
