@@ -1,6 +1,6 @@
 ---
 title: "Why did my run pause itself?"
-description: What happens when a milestone is achieved, and how to get going again.
+description: What happens when a milestone is achieved or a run hits its own bound, and how to get going again.
 order: 5
 ---
 
@@ -33,6 +33,34 @@ Cancelling leaves the checkbox and the run exactly as they were. Un-checking an 
 milestone has no such warning: it never auto-resumes the run, so there's nothing surprising about
 it either way.
 
+## The other real trigger: hitting the run's own bound
+
+Milestones aren't the only real reason a run pauses. Every run has a real, operator-set
+[`AbortCriteria`]({{ '/reference/rest-api/' | relative_url }}) -- `max_iterations` and
+`max_consecutive_failures` -- and the "bounded super loop" this project's own governing design
+describes only means something if hitting that bound actually stops the loop. Until 2026-08-06 it
+didn't: the server correctly reported `"outcome": "Abort"` in its own response the moment a run hit
+its bound, but nothing else happened -- a role-filler (or a careless script) could keep submitting
+iterations past the configured ceiling forever, and the run's own real history would keep growing
+past the number the operator had actually set.
+
+Real, live-confirmed proof of the fix, current behavior: a run with `max_iterations: 1` accepts
+exactly one real iteration --
+
+```
+$ curl -X POST .../api/runs/docs-run/iterate -d '{"stage":"devsystem.implement", ...}'
+{"outcome": "Abort", "iteration": 1, ...}
+```
+
+-- and the run's own real state confirms `"paused": true` immediately after, the same real
+mechanism the milestone case above uses: the next iteration attempt gets the identical real `409`
+a milestone-paused run already gives, not silently accepted past the bound.
+
+**Honest scope**: unlike the milestone case, hitting the run's own bound doesn't yet say *why* in
+the GUI -- the paused banner looks identical whether a milestone was achieved or the run simply ran
+out of iterations/failed too many times in a row. Telling those two apart at a glance is a real,
+separate refinement, not solved yet.
+
 ## Getting going again
 
 Click **Resume run** in the Health & Criteria panel, or call `POST /api/runs/{id}/resume`
@@ -41,6 +69,14 @@ approval step beyond your own decision to resume. While paused, submitting a new
 (`POST /api/runs/{id}/iterate`) is refused with a real `409`, and the New Iteration panel's own
 submit button disables itself with a `resume the run first` tooltip -- so this can't be missed
 and silently worked around from the GUI.
+
+**If the run paused because it hit its own bound, resuming alone doesn't raise that bound** --
+live-confirmed: resuming a run that hit `max_iterations: 1` and submitting one more real iteration
+gets accepted (it's genuinely below the new, post-resume gate check), but immediately re-aborts and
+re-pauses on that same submission, since the run is still, correctly, at its configured ceiling.
+Resuming buys you exactly one more real iteration's worth of grace, not a reset. To actually raise
+the ceiling, update the run's real criteria first (Health & Criteria panel, or
+`POST /api/runs/{id}/criteria`), then resume.
 
 ## A real example
 
