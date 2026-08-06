@@ -22,6 +22,18 @@ every real EARS requirement type. Deliberately doesn't also require `"WHEN"`: a 
 EARS requirement (no trigger clause at all, e.g. "THE SYSTEM SHALL always encrypt messages at
 rest") is legitimate and would be wrongly rejected by a stricter check.
 
+**A real self-correction, 2026-08-06**: the check above was originally a plain substring search
+(`.contains("shall")`), which has the exact false-positive shape any raw substring search does — it
+matches inside completely unrelated words, not just the real keyword. A live test proved
+`"Do a shallow implementation of the login flow for now"` got a real `200` even though it has zero
+trigger/behavior clause and isn't remotely EARS-shaped — "shallow" contains "shall" as a substring.
+"Marshall"-style false positives have the same shape. Worth stating plainly: this isn't even
+necessarily adversarial — an agent genuinely describing scope as "shallow" would accidentally clear
+a gate meant to catch exactly this class of non-attempt. Fixed by requiring "shall" as a real,
+whole word (split on non-alphanumeric boundaries, case-insensitive) rather than any substring match
+— `"SHALL,"`, `"shall."`, and `"shall/could"` still correctly match; `"shallow"`/`"Marshall"` no
+longer do.
+
 `POST /api/runs/{id}/requirements` doesn't just check that a criterion is non-empty, either. That
 alone turned out to be a real gap: a live test of this exact endpoint (simulating the least
 competent realistic role-filler on purpose — see [the goal document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)'s
