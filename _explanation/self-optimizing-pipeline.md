@@ -103,14 +103,26 @@ have already delivered real, shipped work and still show as stalled once its bid
 actively running `--serve` any more -- stalled means "nobody is bidding on this role *right now*,"
 not "this was never done."
 
-**What's still genuinely open on `document_extraction`, as of this writing**: the two real
-`SignedChannelGrant`s that let the winning bidder actually serve the role's channel and let
-devsystem-web actually call it -- these need the bidder's real full holder public key, which the
-auction view deliberately only ever shows as a 4-byte display prefix (the section above explains
-why), and no `AgentCard` for this role is registered in the control-plane's agent directory yet.
-Handler code being real and merged isn't the same as the role being wired into production traffic --
-another instance of the same "declared/won is not the same as live-serving" distinction this section
-already makes for auction liveness.
+**Update, 2026-08-06**: the two real `SignedChannelGrant`s are minted. The blocker really was the
+bidder's real full holder public key -- the auction view deliberately only ever shows a 4-byte
+display prefix (the section above explains why), and no `AgentCard` for this role was registered in
+the control-plane's agent directory to look it up another way. Once the bidder posted their real key
+(verified against the auction's own 4-byte prefix before trusting it), the channel id itself was
+derived, not guessed: `ct_common::channel::channel_id_for_pipeline_role(operator_pubkey, pipeline_id,
+role_tag)` -- the same real, tested, deterministic function `PipelineSpec::role_channel_id` calls
+server-side -- run hermetically against this repo's own pinned `ct-common` tag. Two grants followed:
+one `accept`-direction for the winning bidder (to actually serve the role's channel), one
+`initiate`-direction for a freshly-minted caller identity on devsystem-web's own side (to actually
+call it) -- both real private keys persisted to this host's key store at mode 600, never posted
+anywhere, the grants themselves (not secrets -- signed authorizations) delivered where each side
+needs them.
+
+**Still genuinely open**: a grant existing isn't the same as the channel being live -- nobody has
+dialed it yet. `devsystem_document_extraction_client` (the caller-side binary) is still, in its own
+words, "deliberately NOT wired into `web/src/rag.rs` yet." Handler code being real and merged, and
+now a real authorization existing, still isn't the same as the role being wired into production
+traffic -- yet another instance of the same "declared/won is not the same as live-serving"
+distinction this section already makes for auction liveness.
 
 ## Why role-filler proposals skip the queue
 
