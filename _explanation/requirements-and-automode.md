@@ -121,7 +121,37 @@ empty or trivially repetitive. A generic-but-varied review ("looks good, works f
 flag, all clear here") would still clear both bars without being real scrutiny either -- a known,
 honestly-named, still-open gap, not claimed solved.
 
-Real, live proof against the actual deployment:
+**A real self-correction, 2026-08-06**: the two bars above were flat constants, but a single review
+iteration can name an arbitrary number of requirements at once via `requirement_indices` -- a live
+test proved one generic review, *"Reviewed all of these carefully, checked the real implementation
+against each one, everything looks correct and matches expectations on device testing today"* (22
+distinct words, comfortably past the flat 8-word bar), satisfied the gate for **five** completely
+unrelated requirements at once. Fixed by scaling both bars by how many requirements a given review
+claims to cover -- **25 characters × N AND 8 distinct words × N**, where N is that iteration's own
+`requirement_indices.len()`. A review naming 3 requirements now needs 75 characters and 24 distinct
+words to qualify, real live proof:
+
+```
+$ curl -X POST .../api/runs/{id}/iterate -d '{"stage":"devsystem.review","feedback":"Reviewed all of these carefully today","succeeded":true,"requirement_indices":[0,1,2]}'
+HTTP 200
+
+$ curl -X POST .../api/runs/{id}/requirements/2/toggle
+requirement 2 cannot be marked verified yet -- every devsystem.review iteration addressing
+it is too short or too repetitive to plausibly be real scrutiny (best is iteration 2, 37
+character(s) and 6 distinct word(s); minimum 75 characters AND 24 distinct words (this
+iteration names 3 requirements at once via requirement_indices, so the real bar for it is
+3x the usual minimum -- the same real per-requirement bar applies that many times over,
+not once for the whole batch)). A rubber-stamp, padded filler, or generic shotgun review
+doesn't satisfy this gate.
+HTTP 409
+```
+
+Single-requirement reviews -- the common case -- are completely unaffected (N=1, same bar as
+always). A genuinely thorough multi-requirement review naturally clears the scaled bar, since real
+per-requirement observations accumulate real distinct content; a generic "reviewed everything, LGTM"
+does not.
+
+Real, live proof against the actual deployment (single-requirement case, unaffected by the above):
 
 ```
 $ curl -X POST .../api/runs/{id}/requirements/0/toggle   # no review iteration exists yet

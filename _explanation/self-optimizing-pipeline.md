@@ -71,7 +71,13 @@ Logged in as a real account, the Pipeline panel shows exactly this -- five real 
 A pending proposal from `devsystem.assistant`'s own gated path (rather than a role-filler's
 immediate one) shows up one level up, too -- the panel toggle bar's Pipeline chip carries a real
 badge with the pending count, so it doesn't take opening this panel on spec to notice something is
-waiting on a decision.
+waiting on a decision. **Real count, all five real gated proposal kinds**: pipeline stage, custom
+panel add, custom panel remove, custom panel edit, and GitHub issue -- confirmed live against a run
+carrying one of each, the badge reads `5`. Worth naming as its own small history: the badge's first
+slice only summed three of these (stage/panel-add/issue); the other two (panel-remove, panel-edit)
+shipped later and the badge's own count didn't grow with them until a stress-test firing caught a
+real pending removal proposal silently showing a `0` badge -- fixed for real, not just noted, since
+this exact signal is what a human is meant to trust to know when to look.
 
 ## Declared is not filled
 
