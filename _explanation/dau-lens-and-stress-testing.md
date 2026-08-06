@@ -105,10 +105,14 @@ for the second real trigger this added. Every real entry point (the GUI, the RES
 local `devsystem_iterate` CLI) shares the identical fix automatically, since they all funnel
 through the one function that now enforces it.
 
+The fix itself named a real, honest gap: a milestone achieved, an abort ceiling reached, and a
+human's own manual pause all set the identical flag with no way to tell them apart. Closed the same
+day -- the paused banner now shows the actual real reason for all three, not a generic message.
+
 ## The real track record
 
-As of this writing, the stress test has run **forty-eight** real rounds against the actual
-deployment, finding and closing thirty-seven real gaps -- not simulated, not hypothetical. A
+As of this writing, the stress test has run **forty-nine** real rounds against the actual
+deployment, finding and closing thirty-eight real gaps -- not simulated, not hypothetical. A
 representative sample, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
