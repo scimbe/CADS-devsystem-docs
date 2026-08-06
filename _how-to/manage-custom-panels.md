@@ -22,6 +22,30 @@ session, whatever the panel's own markup does.
 <figcaption>A real panel already added ("Release Burndown"), and the direct add form below it -- title, HTML, one click.</figcaption>
 </figure>
 
+**"No access to this page or its session" was verified live, 2026-08-06, not just asserted.** Every
+prior note about this sandbox in this project's own code and docs was a claim read from the
+`sandbox="allow-scripts"` attribute -- never actually attacked this session until three real,
+separate live attempts, each opened through this real GUI's own **Open** button (a real floating
+panel window), inspected with a headless browser:
+
+1. **Page/session access** -- a panel whose script tried to overwrite the main page's title via
+   `window.parent.document`, read `document.cookie`, and write to `window.localStorage`. All three
+   blocked (`"Blocked a frame with origin \"null\" from accessing a cross-origin frame"`,
+   `"...lacks the 'allow-same-origin' flag"` twice) -- the main page's own title was never touched.
+2. **Navigation/popups** -- a panel whose script tried `window.top.location.href = "https://evil.example/..."`
+   and `window.open(...)`. Both blocked (`"the flag of 'allow-top-navigation' ... is not set"`,
+   `"'allow-popups' permission is not set"`) -- the real browser tab's own URL never left
+   `devsystem-web`, zero popups actually opened.
+3. **Direct API mutation** -- the most consequential test: a panel whose script tried a real
+   `fetch()` `POST` straight to this run's own `/milestones` endpoint with a planted description, no
+   UI involved at all. Blocked at the browser's CORS preflight (`"Response to preflight request
+   doesn't pass access control check"`) -- confirmed a third, independent way by re-fetching this
+   run's own real state afterward: the planted milestone was never written, `milestones: []`.
+
+Nothing here needed a fix -- the sandbox model documented above was already correct. Worth recording
+that it was actually attacked and held, not just described, across the three meaningfully different
+things a hostile panel could try.
+
 **Add panel** takes effect immediately -- no approval step, because a human directly filling this
 form in is already the accountable decision.
 

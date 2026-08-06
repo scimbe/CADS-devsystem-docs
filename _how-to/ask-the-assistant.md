@@ -48,6 +48,23 @@ security control), splits into three real categories:
    paused checkpoint -- advice, not an action, so there's nothing to approve. See [Work through a
    run's open points]({{ '/how-to/work-through-open-points/' | relative_url }}).
 
+**The 10-second rate limit was live-verified, 2026-08-06, not just read from the source.** Two real
+questions fired back-to-back at the same run: the first got a real answer, the immediate second got
+a real `429`:
+
+```
+$ curl -X POST .../api/runs/{id}/assistant -d '{"instruction": "how many iterations has this run had?"}'
+HTTP 200
+
+$ curl -X POST .../api/runs/{id}/assistant -d '{"instruction": "what is 2+2?"}'
+{"error": "too many requests for this run -- wait a few seconds"}
+HTTP 429
+```
+
+And a question fired at a *different* run immediately after got a clean `200` -- confirming the
+limit is genuinely per-run, not a shared bottleneck that would make the assistant briefly unusable
+across every run you have open just because you asked one of them something.
+
 **Asking for several actions in one message, and one of them isn't real**: still applies the ones
 that are. Real gap found and closed 2026-08-06 -- forced live, not assumed, by insisting the
 assistant include a made-up action alongside a real one in the same reply:
