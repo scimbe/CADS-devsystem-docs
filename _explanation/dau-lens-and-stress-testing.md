@@ -253,6 +253,17 @@ Every other real free-text field already rejected whitespace-only content -- an 
 `feedback` was the one exception, silently accepting a `succeeded: true` iteration with zero real
 account of what happened.
 
+**The git-SHA verification work (checks `[48]`/`[49]`, above) found one more real gap in its own CI
+job days after shipping**: `main`'s own CI runs started failing on check `[48]` -- not a regression
+in the application, but in the CI job's own `docker build` step, which had never been updated to pass
+`--build-arg GIT_SHA` the way the real `deploy-devsystem-web.sh` always does. The CI-built image was
+doing exactly what its own code says to do with an unset value -- honestly report `"unknown"` -- which
+is precisely what check `[48]` exists to catch. Not a bug in the check or the app, only in a CI step
+that had quietly drifted from what a real deploy actually does. Fixed by matching the deploy script's
+own build-arg exactly, verified locally first with the identical build command CI itself runs (a
+scratch container on a throwaway port, cleaned up after) before trusting the real CI run to confirm
+it.
+
 Two more real gaps, both about the Runs list silently hiding something a human needs to see. The
 Pipeline panel's own pending-proposal chip badge was already fixed once for undercounting (missing
 panel-removal/edit proposals) -- the Runs list's own separate `pending_reviews` count had the exact
