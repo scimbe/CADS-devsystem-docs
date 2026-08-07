@@ -113,6 +113,22 @@ exchanging a real message, see [issue #13](https://github.com/scimbe/CADS-devsys
 all still genuinely happened and are still real. It's the exact case this section's own reasoning
 was written to cover, now observed rather than only described.
 
+**Update, 2026-08-07**: `devsystem.android_native_bridge` -- the very first of the four proposed
+roles above, and the one this page's own list names but had never followed up on -- delivered real,
+verified work too, the identical "declared is not filled, filled is not the same as delivered"
+pattern this section already traces for the other two roles. A real iteration (21) landed real per-
+message delivery status in the actual Kotlin app: `SENT`/`FAILED`, honestly scoped to what this
+run's own direct, unacknowledged Noise_IK channel can actually prove (no acknowledgement protocol
+above the transport layer exists yet, so "delivered"/"read" would have to be fabricated rather than
+verified -- deliberately left for separate, later work instead)
+([CADS-webconference-android@7e325e6](https://github.com/scimbe/CADS-webconference-android/commit/7e325e6)).
+Submitting it as a real iteration, not a side-channel commit, mattered here for a reason this page's
+own mechanism explains directly: it's what correctly reset the run's `consecutive_failures` back to
+`0` (two real, honest failures from other stages had already landed since) and correctly triggered
+the run's own mandatory check-in pause -- the same real bounded-loop enforcement [Why did my run
+pause itself?]({{ '/how-to/why-did-my-run-pause/' | relative_url }}) documents, observed here firing
+on the actual flagship run rather than only in a hermetic test.
+
 **Update, 2026-08-06**: the two real `SignedChannelGrant`s are minted. The blocker really was the
 bidder's real full holder public key -- the auction view deliberately only ever shows a 4-byte
 display prefix (the section above explains why), and no `AgentCard` for this role was registered in
