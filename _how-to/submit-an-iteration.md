@@ -96,6 +96,85 @@ run's own immediately-preceding entry either, the same real duplicate-submission
 enforces over HTTP -- see [Why /iterate rejects exact duplicates]({{ '/explanation/duplicate-iteration-guard/' | relative_url }})
 for the full story, live reproduction, and fix.
 
+## `stage` itself is validated now too, 2026-08-07
+
+Every example above uses a real `stage` like `"devsystem.plan"` — but until
+[issue #49](https://github.com/scimbe/CADS-devsystem/issues/49), `stage` was the one field in this
+whole API with no validation at all. This matters because it's exactly what [the mandatory review
+gate]({{ '/explanation/requirements-and-automode/' | relative_url }}#the-real-mandatory-review-gate)
+keys "a review happened" on — an exact match against `"devsystem.review"`. Before this fix, an empty
+string, 5,000 characters of garbage, or a role this run never declared all got a real `200` and a
+history entry that looked exactly as legitimate as a real one; worse, a case or whitespace near-miss
+like `"  DEVSYSTEM.REVIEW  "` also got a `200` and a history entry that *reads* as a completed
+review — with the gate's own later exact-match comparison silently never counting it, and nothing
+anywhere explaining why.
+
+`stage` must now be non-empty, at most 200 characters, and free of Unicode bidi control characters —
+the same three bars `feedback` and a proposal's `rationale` already enforce elsewhere on this page.
+Beyond that, it must actually name something real: a role already declared in this run's own
+`PipelineSpec`, a stage this same submission's own `proposals` declares (the pattern in the section
+above), or one of the seven canonical stage names (`devsystem.plan`, `devsystem.test`,
+`devsystem.implement`, `devsystem.review`, `devsystem.verify`, `devsystem.remember`,
+`devsystem.improve`) — those seven are always valid regardless of whether this particular run has
+declared them as auction-backed roles, since `devsystem.improve` specifically is the *mechanism* by
+which a run proposes its other roles in the first place (see [How the pipeline proposes and grows
+its own stages]({{ '/explanation/self-optimizing-pipeline/' | relative_url }})) — requiring it
+pre-declared would be circular.
+
+Real, live proof against the actual deployment:
+
+```
+$ curl -X POST .../api/runs/{id}/iterate -d '{"stage":"","feedback":"x","succeeded":true}'
+stage must not be empty
+HTTP 400
+
+$ curl -X POST .../api/runs/{id}/iterate -d '{"stage":"devsystem.architekt-undeclared-probe","feedback":"x","succeeded":true}'
+stage "devsystem.architekt-undeclared-probe" is not one of this project's seven canonical pipeline
+stages, does not name any role currently declared in this run's own PipelineSpec, and this
+submission's own proposals (if any) don't declare it either -- check spelling/case/whitespace
+against the run's real roles (GET /api/runs/{id}), or include a matching proposal to declare it as
+a new stage in this same submission
+HTTP 400
+
+$ curl -X POST .../api/runs/{id}/iterate -d '{"stage":"  DEVSYSTEM.REVIEW  ","feedback":"x","succeeded":true}'
+stage "  DEVSYSTEM.REVIEW  " is not one of this project's seven canonical pipeline stages, ...
+HTTP 400
+
+$ curl -X POST .../api/runs/{id}/iterate -d '{"stage":"devsystem.plan","feedback":"real plan work","succeeded":true}'
+{"added_stages":[],"iteration":1,"outcome":"Continue","pause_reason":null,"roles_now":1}
+HTTP 200
+```
+
+Checked against the raw, untrimmed `stage` deliberately — trimming first would let the exact
+near-miss case above (correct name, stray whitespace) silently pass this check while still failing
+the review gate's own later exact match, reintroducing the identical trap one step removed. Failing
+loudly here, at submission time, means a reviewer who fat-fingers `stage` finds out immediately, not
+after wondering why their review never counted.
+
+`devsystem_iterate`'s local (non-`--remote`) CLI mode enforces the identical rule, real live proof:
+
+```
+$ devsystem_iterate docs-stage-demo record-empty-stage.json
+rejected: stage must not be empty
+
+$ devsystem_iterate docs-stage-demo record-undeclared.json
+rejected: stage "devsystem.architekt-undeclared-probe" is not one of this project's seven canonical
+pipeline stages, does not name any role currently declared in this run's own PipelineSpec, and this
+submission's own proposals (if any) don't declare it either -- check spelling/case/whitespace
+against the run's real roles (GET /api/runs/{id}), or include a matching proposal to declare it as
+a new stage in this same submission
+
+$ devsystem_iterate docs-stage-demo record-real.json
+run_id=docs-stage-demo iteration_outcome=Continue roles_now=1 added_stages=[]
+```
+
+An earlier draft of this fix only accepted a declared role or same-submission proposal — no
+canonical fallback — which broke real, live production behavior: the actual flagship
+`webconference-android` run genuinely uses `devsystem.improve` without it ever being a declared
+role, exactly the circular case named above. Caught before shipping by checking that run's own real
+state, not just by the 20 hermetic tests it also broke
+([CADS-devsystem@2c40250](https://github.com/scimbe/CADS-devsystem/commit/2c40250)).
+
 ## 4. Submit it
 
 ```

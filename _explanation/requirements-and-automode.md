@@ -233,6 +233,14 @@ The GUI surfaces the block as a real error message next to the Requirements pane
 gap found and fixed alongside the gate itself — reverts the checkbox's own visual state rather than
 leaving it looking checked when the toggle was actually rejected.
 
+**This whole gate is only as strong as the integrity of the `stage` string it reads** — until
+[issue #49](https://github.com/scimbe/CADS-devsystem/issues/49), that field had no validation at
+all, so a case/whitespace near-miss like `"  DEVSYSTEM.REVIEW  "` got a real `200` and a history
+entry that *reads* as a completed review while this gate's own exact-match comparison silently
+never counted it. See [`stage` itself is validated now
+too]({{ '/how-to/submit-an-iteration/' | relative_url }}#stage-itself-is-validated-now-too-2026-08-07)
+for the fix and live proof.
+
 ## The gate above only ever protected the human-click path -- until 2026-08-06
 
 The mandatory review gate's own scoping is deliberate: a run that never declares `review` is never
