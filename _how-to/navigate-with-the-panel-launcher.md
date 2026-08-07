@@ -1,18 +1,18 @@
 ---
 title: Open panels with the launcher, and find every keyboard shortcut
-description: The green dot bottom-left replaced the old flat chip bar -- what it does, why panels are different sizes, and where the real Keyboard Shortcuts list lives.
+description: The orange dot bottom-left replaced the old flat chip bar -- what it does, why panels are different sizes, and where the real Keyboard Shortcuts list lives.
 order: 13
 ---
 
 # Open panels with the launcher, and find every keyboard shortcut
 
 The flat row of panel-name buttons across the top of the screen is gone (operator design ask,
-2026-08-06) -- in its place, a fixed, un-draggable green dot sits in the bottom-left corner. The top
+2026-08-06) -- in its place, a fixed, un-draggable orange dot sits in the bottom-left corner. The top
 bar itself now shows the current project's real name instead.
 
 <figure>
-<img src="{{ '/assets/img/howto-panel-launcher/01-closed.png' | relative_url }}" alt="The Development System's landing page with the flat chip bar gone, the current project name shown in the top bar instead, and a small green dot fixed in the bottom-left corner">
-<figcaption>The green dot is always there, always the same size (~1.5cm), never moves.</figcaption>
+<img src="{{ '/assets/img/howto-panel-launcher/01-closed.png' | relative_url }}" alt="The Development System's landing page with the flat chip bar gone, the current project name shown in the top bar instead, and a small orange dot fixed in the bottom-left corner">
+<figcaption>The orange dot is always there, always the same size (~1.5cm), never moves.</figcaption>
 </figure>
 
 ## Opening it
@@ -22,8 +22,8 @@ element). It unfolds into a real, animated circle segment confined to the corner
 full-screen overlay -- with every real panel shown as an icon "bubble" inside it.
 
 <figure>
-<img src="{{ '/assets/img/howto-panel-launcher/02-open.png' | relative_url }}" alt="The launcher open, showing panel icon bubbles of different sizes fanning out from the green dot in four rings, hugging the screen's left and bottom edges, with a real red badge on the Pipeline bubble" >
-<figcaption>Pipeline's real red badge here is the same live pending-proposal count the old chip bar's badge used to show -- nothing about what a badge means changed, only how it's presented.</figcaption>
+<img src="{{ '/assets/img/howto-panel-launcher/02-open.png' | relative_url }}" alt="The launcher open, showing panel icon bubbles of different sizes fanning out from the orange dot in four rings, hugging the screen's left and bottom edges, each ring offset from its neighbor rather than aligned on the same spokes" >
+<figcaption>Any bubble with a real pending proposal waiting on you carries the same live red badge the old chip bar's badge used to show -- nothing about what a badge means changed, only how it's presented (this run has none open right now, so none show here).</figcaption>
 </figure>
 
 Every bubble carries a small pictogram for its panel and, on hover or focus, a real floating
@@ -38,6 +38,11 @@ An earlier version of this launcher gave the most important panels a permanent, 
 label instead of an icon+tooltip -- reverted after live feedback: that permanent label needed real
 horizontal room, which was the actual reason the bubble rings sat so far apart from each other.
 Icon+tooltip everywhere let every ring sit much closer to the dot instead.
+
+Each ring's bubbles are also nudged a few degrees off the ring next to it (2026-08-07, live operator
+feedback) -- every ring used to share the identical angle sequence, so a bubble in one ring sat almost
+exactly on the same spoke as the one at the same position in the ring beside it. The small alternating
+offset interlocks the rings instead, visible in the fan above.
 
 ## Panels are not all the same size, on purpose
 
@@ -66,9 +71,9 @@ Live feedback after shipping the bubble-click version: hunting for one specific 
 worse than just typing a panel name, the way the Process Prompt's own `./show`/`./hide`/`./toggle`
 commands already work. Rather than dropping the visual overview, the launcher now opens with a real
 text field, already focused -- start typing and every non-matching bubble dims out of the way,
-matching bubbles get a teal highlight. It sits directly beside the dot (bottom edges aligned) rather
-than floating independently above it, per later live feedback that the two read as one control
-cluster better that way:
+matching bubbles get a teal highlight. It sits on the same bottom edge as the dot, a little further
+along it (nudged right again, 2026-08-07, live operator feedback) rather than floating independently
+above it, so the two still read as one control cluster in the corner:
 
 <figure>
 <img src="{{ '/assets/img/howto-panel-launcher/04-filter.png' | relative_url }}" alt="The launcher open with 'back' typed into its filter field, the Backlog bubble highlighted with a teal border, every other bubble dimmed out, and a real '1 match -- press Enter to open' status line under the field" >
@@ -86,6 +91,13 @@ Press **Enter** once exactly one panel matches and it opens immediately, launche
 identical matching rule (panel id or title, substring) the real `./show` command already trusts, not
 a second guess at what counts as a match. If your filter still matches more than one panel, Enter
 does nothing rather than guessing which one you meant -- keep typing (or click) instead.
+
+**A real bug in clicking this field was found and fixed, 2026-08-07**: the field is always auto-focused
+the instant the launcher opens, so typing right away always worked -- but clicking back into it after
+clicking elsewhere in the launcher silently did nothing, since the invisible bubble-fan layer sitting
+behind it in the page's own element order was catching the click first. Fixed at the source, verified
+directly against the real running page (not just visually): the field itself is now what a click
+actually lands on.
 
 ## Closing it without the keyboard
 

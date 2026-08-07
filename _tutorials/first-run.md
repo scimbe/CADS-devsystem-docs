@@ -23,8 +23,8 @@ is its own independently movable/resizable window. On your very first visit, onl
 default — enough to get oriented without being overwhelmed:
 
 <figure>
-<img src="{{ '/assets/img/tutorial-first-run/01-landing.png' | relative_url }}" alt="The GUI landing page with a small default set of panels open: Runs, Process, Pipeline, Requirements, and a small green dot fixed in the bottom-left corner">
-<figcaption>Runs, Process, Pipeline, and Requirements are open by default. Every other panel — Backlog, Milestones, Roles, Check-in, and so on — is one click away on the green dot in the bottom-left corner. See <a href="{{ '/how-to/navigate-with-the-panel-launcher/' | relative_url }}">Open panels with the launcher</a> for what it does and why panels aren't all the same size.</figcaption>
+<img src="{{ '/assets/img/tutorial-first-run/01-landing.png' | relative_url }}" alt="The GUI landing page with a small default set of panels open: Runs, Process, Pipeline, Requirements, and a small orange dot fixed in the bottom-left corner">
+<figcaption>Runs, Process, Pipeline, and Requirements are open by default. Every other panel — Backlog, Milestones, Roles, Check-in, and so on — is one click away on the orange dot in the bottom-left corner. See <a href="{{ '/how-to/navigate-with-the-panel-launcher/' | relative_url }}">Open panels with the launcher</a> for what it does and why panels aren't all the same size.</figcaption>
 </figure>
 
 ## 2. Create a new project
