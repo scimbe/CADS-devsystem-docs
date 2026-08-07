@@ -512,9 +512,21 @@ The DAU lens isn't only aimed at this project's own GUI -- it's applied to the r
   not silently left unfixed -- closing it needs an upstream change to a separate, pinned dependency
   (`ct_common::a2a::a2a_respond` learns the initiator's key during the handshake but doesn't return
   it), correctly scoped as its own separate increment rather than worked around locally.
+- **A real leak, reverted once for host disk-space reasons, shipped for real once that constraint
+  was re-examined properly**: `MessageStore` (a real `SQLiteOpenHelper`) kept its real
+  `SQLiteDatabase` handle open once first touched, and nothing ever closed it -- every Activity
+  recreation (e.g. a rotation) opened a fresh handle to the same on-disk file without releasing the
+  previous one. A first attempt at the fix was written, then reverted rather than risk a disk-full
+  incident pulling a multi-GB Android SDK image just to test it locally. Re-examined instead of
+  left standing: this repo's Kotlin side has never had a *local* hermetic test path at all -- its
+  own real GitHub Actions CI is the established verification gate for every one of these fixes, not
+  a fallback. Shipped `MainActivity.onDestroy()` calling the real `close()`, with a Robolectric test
+  driving the actual production path end to end (captures the live handle, confirms it's open,
+  moves the scenario through real teardown, confirms it's closed afterward) -- not declared done
+  until the real, deployed GitHub Actions run for that exact commit confirmed green.
 
-All five are real commits in the app's own repository, each with its own real test proving the fix
-(four Robolectric, one hermetic `cargo test` -- no Android SDK/NDK needed for pure Rust logic),
+All six are real commits in the app's own repository, each with its own real test proving the fix
+(five Robolectric, one hermetic `cargo test` -- no Android SDK/NDK needed for pure Rust logic),
 verified green in that repo's real CI on every push -- the same discipline, applied to a different
 codebase this pipeline is building, not just the pipeline's own tooling.
 
