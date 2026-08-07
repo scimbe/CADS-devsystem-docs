@@ -43,8 +43,10 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces forty-seven of the concrete lazy shortcuts below
-(ninety-eight total assertions, since several checks prove both the failing case and the genuinely-clear
+is a real, live-HTTP script that reproduces forty-nine of the concrete lazy shortcuts below
+(one hundred total assertions when a `devsystem.assistant` is reachable locally -- the newest check
+gracefully skips, not fails, if one isn't deployed, a genuinely optional dependency; since several
+checks prove both the failing case and the genuinely-clear
 case in one go -- duplicate `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the
 "shallow" SHALL-substring bug, an unbounded `price_ceiling` going unflagged (including a later,
 bounded re-proposal for the same stage correctly clearing that flag -- the exact mechanism that had
@@ -72,12 +74,13 @@ security-sensitive iteration's own risk flag silently vanishing the moment any u
 follows it, a fired but unacknowledged check-in cadence silently resetting to "not due" the instant
 it fires instead of staying a real, persistent signal until a human explicitly acknowledges it, and
 that same signal never reaching the Open Points panel -- the one endpoint whose entire purpose is
-"every real item this run is actually waiting on a human to decide")
+"every real item this run is actually waiting on a human to decide", and a stale Docker build-cache
+silently serving a binary that doesn't match this repo's actual real, current source)
 against a real running deployment, creating and cleaning up its own real scratch run every
 time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into this project's own real CI
 (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub Actions run, not just
 locally), run against the exact Docker image that gets deployed -- a PR that reintroduces one of
-these forty-seven fails CI instead of waiting for the next manual stress-test firing to notice.
+these forty-nine fails CI instead of waiting for the next manual stress-test firing to notice.
 Honestly scoped, and
 self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
 needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
@@ -182,6 +185,21 @@ harness failed on exactly the targeted check while every sibling stayed green, c
 a pre-mutation backup, real fix redeployed, full suite reconfirmed clean. A growing, not one-off,
 list of checks with real, live proof they'd catch their own regression coming back, spanning both
 crates this project's stress harness exercises.
+
+**The Docker-cache-staleness incident that motivated all of the above got a real, general fix, not
+another one-off behavioral patch**: both `devsystem-web` and `devsystem_assistant` -- two genuinely
+separate binaries with two separate real deploy paths -- now bake in their own build-time
+`git rev-parse HEAD` and expose it via a real `GET /version`; each deploy script compares the running
+process's reported SHA against the actual current source immediately after startup and fails loudly
+on any mismatch. Checks `[48]`/`[49]` prove the real, currently-deployed processes report a genuine
+40-hex-character SHA, not the honest `"unknown"` fallback that would mean the wiring silently didn't
+reach them -- `[49]` gracefully skips, not fails, when no assistant is reachable locally, since it's a
+real, optional dependency. And finally, mutation-testing reached all the way back to check `[1]`
+(`create_run`'s own duplicate-`run_id` rejection, this harness's literal first check, foundational
+but never verified this way before): neutering it to the literal "silently clobbers" pre-fix behavior
+failed the hermetic test and the live harness precisely, with every other check unaffected --
+confirming even the oldest, most-trusted gate in this file still has real teeth, not just a plausible
+green checkmark inherited from the day it was written.
 
 The same investigation that produced the harness also found a real gap in this project's own §5
 quality-bar table: it named `check-no-secrets.sh` as a real secrets-scanning gate, but that script
