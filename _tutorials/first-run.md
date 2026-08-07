@@ -46,6 +46,18 @@ Submitting creates a genuinely empty run — a plan-only `PipelineSpec`, no hist
 enters the live spec later, through a real `StageProposal` a role-filler raises for itself once it's
 actually needed — not pre-declared up front.
 
+**The dialog's own copy above says this now too, 2026-08-07** — it used to read "creates a real run
+with the generic 7-stage pipeline template," which a real evaluator (re-verifying [the `stage`
+validation work]({{ '/how-to/submit-an-iteration/' | relative_url }}#stage-itself-is-validated-now-too-2026-08-07))
+read as "all seven stages are already set up," then couldn't find six of them anywhere
+([issue #51](https://github.com/scimbe/CADS-devsystem/issues/51)). Only `plan` is a real role at
+creation — but the other six real, canonical stage names aren't hidden either: the New Iteration
+panel's stage dropdown offers all seven from the start (grouped: this run's actual live roles,
+separately from the other six canonical names that are valid but not yet auction-backed here), so
+recording work under `devsystem.implement` or `devsystem.review` never requires hand-typing it —
+see [Bid for a role and submit a real iteration]({{ '/how-to/submit-an-iteration/' | relative_url }})
+for that panel in action.
+
 <figure>
 <img src="{{ '/assets/img/tutorial-first-run/04-run-created.png' | relative_url }}" alt="The newly created run selected, showing an empty pipeline state">
 </figure>
