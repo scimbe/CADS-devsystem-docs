@@ -1,6 +1,6 @@
 ---
 title: "Why did my run pause itself?"
-description: What happens when a milestone is achieved or a run hits its own bound, and how to get going again.
+description: What happens when a milestone is achieved, a run hits its own bound, or a mandatory check-in fires -- and how to get going again.
 order: 5
 ---
 
@@ -88,6 +88,34 @@ Health & Criteria panel showing exactly this:
 
 ![Paused banner honestly showing "no reason recorded" for a pause that predates reason-tracking]({{ '/assets/img/howto-milestone-pause/02-paused-banner-no-reason.png' | relative_url }})
 
+## A third real trigger: a mandatory check-in fired
+
+A run's `AbortCriteria` has a third field beyond the two bounds above: `checkin_every`, the "pause
+at least this often for a human to look, even if nothing is failing" cadence. Its own doc comment
+has always promised the run must pause here -- but until 2026-08-07 nothing did (real evaluator
+finding, [issue #48](https://github.com/scimbe/CADS-devsystem/issues/48)): a fired check-in was
+correctly reported (`"outcome": "CheckinDue"`), and correctly accepted and recorded, but the run
+kept going regardless of how many boundaries it crossed unacknowledged. Fixed: a fired check-in
+now pauses the run for real, the identical mechanism the other two triggers already use --
+
+```
+$ curl -X POST .../api/runs/docs-run/iterate -d '{"stage":"devsystem.implement", ...}'
+{"outcome": "CheckinDue", "iteration": 1, ...}
+$ curl .../api/runs/docs-run
+"paused": true, "pause_reason": "check-in due -- iteration 1 crossed the every-1-iteration cadence"
+```
+
+**This one has a real, deliberate difference from the other two.** Acknowledging it (`POST
+/api/runs/{id}/checkin/acknowledge`, or the **Acknowledge check-in** button in the Health &
+Criteria/Check-in panels) both resumes the run *and* records that a human actually reviewed that
+boundary -- a cadence check-in is a review checkpoint, not a stop, so acknowledging it is the real
+decision to continue. Plain **Resume** also unblocks the run (unlike a ceiling pause, which refuses
+even after resuming -- above), but it does *not* record the review: live-confirmed, resuming
+five separate check-in pauses without ever acknowledging leaves the run genuinely running
+(`"paused": false`) while `health.checkin_pending` stays `true` and the run keeps showing up as
+needing attention in the Runs list and Open Points. Acknowledge, not Resume, is the button that
+actually closes the loop.
+
 ## Getting going again
 
 Click **Resume run** in the Health & Criteria panel, or call `POST /api/runs/{id}/resume`
@@ -137,9 +165,10 @@ resuming a run that already reached its ceiling does not raise the ceiling
 ```
 
 To actually raise the ceiling, update the run's real criteria first (Health & Criteria panel, or
-`POST /api/runs/{id}/criteria`), then resume -- `Resume` alone is now only ever correct for the
-*other* pause reasons (a milestone, a manual pause), where the underlying condition genuinely
-isn't still true the moment the run comes back.
+`POST /api/runs/{id}/criteria`), then resume -- `Resume` alone is only ever correct for pause
+reasons where the underlying condition genuinely isn't still true the moment the run comes back: a
+milestone, a manual pause, or (see below) a check-in you're prepared to acknowledge properly rather
+than just wave past.
 
 **Raising it too far gets caught immediately, not after a round-trip.** All three fields share the
 same real, generous-but-finite cap the server itself enforces (10,000 -- see
