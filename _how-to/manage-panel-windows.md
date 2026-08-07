@@ -69,3 +69,22 @@ so the very first click behaves as expected.
 Drag anywhere on a panel's header (not on one of the three buttons) to move it. Drag the small
 handle in the bottom-right corner to resize it. Both are clamped to the visible desktop area -- a
 panel can't be dragged or resized to a position that would put it partly off-screen.
+
+## Shrinking the browser window itself
+
+Making the whole browser window smaller (docking it, moving it to a smaller display, opening
+devtools) can leave a panel positioned somewhere the new, smaller desktop area no longer reaches.
+Rather than let it render off-screen or overlapping unpredictably, that panel is temporarily
+hidden -- and a real, plain-text notice tells you so, naming exactly which panel(s):
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-windows/05-viewport-fit-notice.png' | relative_url }}" alt="A notice reading 'Hid 3 panels that no longer fit this window: Process, Requirements, Pipeline -- comes back automatically if the window grows, or reopen from the launcher', shown top-left of the screen">
+<figcaption>Real, current data -- not illustrative. The notice fades on its own after a few seconds; it's informational, not a decision.</figcaption>
+</figure>
+
+This used to be permanent -- growing the window back, or even reloading the page, wouldn't bring a
+hidden panel back on its own ([issue #30](https://github.com/scimbe/CADS-devsystem/issues/30), a
+real evaluator finding). Fixed: grow the window back to where a hidden panel would fit again, and it
+comes back automatically -- no need to reopen it from the [panel launcher]({{ '/how-to/navigate-with-the-panel-launcher/' | relative_url }}),
+though that still works too. Nothing you typed into a hidden panel is lost either way -- the panel's
+DOM (and whatever draft text it held) survives underneath, it's just not shown until it fits again.
