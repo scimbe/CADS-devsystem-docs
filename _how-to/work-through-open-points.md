@@ -16,9 +16,11 @@ queue instead -- open it from the [panel launcher]({{ '/how-to/navigate-with-the
 ## What counts as an open point
 
 Deliberately narrow: only things nothing else can proceed without a real decision on. As of this
-writing that's the same five real pending-proposal queues the Pipeline chip's own badge already
-counts (a new stage, a new/edited/removed custom panel, a proposed GitHub issue), a paused run's own
-checkpoint, and any leftover draft next-step option once the run isn't paused anymore (see below).
+writing that's the same six real pending-proposal queues the Pipeline chip's own badge already
+counts (a new stage, a new/edited/removed custom panel, a proposed GitHub issue, and -- since
+2026-08-07 -- a [proposal to delete the whole
+run]({{ '/how-to/ask-the-assistant/' | relative_url }})), a paused run's own checkpoint, and any
+leftover draft next-step option once the run isn't paused anymore (see below).
 An unverified requirement or a stalled stage is a normal, common run state on its own, not a stuck
 decision -- both are deliberately left out so the queue stays a real signal, not noise.
 
@@ -35,11 +37,31 @@ rationale, a panel's title, or the run's own real `pause_reason`. **Prev**/**Nex
 queue without acting on anything.
 
 The action buttons differ by kind, but every single one calls the identical endpoint its own
-dedicated panel already uses -- this panel adds no new way to approve, reject, or resume anything,
-just a faster way to reach the same real action:
+dedicated panel already uses -- this panel adds no new *state-changing* action beyond what already
+existed, just a faster way to reach the same real ones:
 
-- A proposal (stage, panel add/edit/removal, GitHub issue) gets **Approve**/**Reject**.
+- A proposal (stage, panel add/edit/removal, GitHub issue, or run deletion) gets **Approve**/
+  **Reject**.
 - A paused checkpoint gets **Resume run**.
+
+**Reject asks first here too now, 2026-08-07**: rejecting a proposal permanently discards it --
+exactly as real and unrecoverable as the destructive actions this GUI already confirms everywhere
+else. The dedicated panels (Custom Panels manager, Pipeline panel) already asked before rejecting;
+this shared queue, reachable straight from the panel launcher and plausibly the first place you'd
+ever notice a pending proposal, used to skip that question entirely for the identical action. Fixed:
+clicking **Reject** here now shows the same real confirmation, naming exactly what's being discarded
+-- a careless click can no longer silently throw away a role-filler's proposed stage or the
+assistant's own drafted GitHub issue.
+
+<figure>
+<img src="{{ '/assets/img/howto-open-points/09-reject-before-confirm.png' | relative_url }}" alt="The Open Points panel showing a pending stage proposal for devsystem.load_test with its real rationale, and Approve/Reject buttons">
+<figcaption>A real pending stage proposal, reached through Open Points. Clicking Reject here now pops a real browser confirmation: "Reject this new pipeline stage proposal? This discards it for real -- there's no undo." Cancelling it leaves the proposal genuinely untouched; only confirming actually discards it.</figcaption>
+</figure>
+
+The one deliberate exception is a run-deletion proposal's own **Reject**: rejecting it is genuinely
+safe (the run itself was never touched -- only the pending proposal goes away), so it stays a single
+click, matching the same reasoning that already puts the confirmation on its **Approve** button
+instead.
 
 ## After you act
 
