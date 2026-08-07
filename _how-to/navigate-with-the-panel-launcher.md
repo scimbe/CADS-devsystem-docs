@@ -63,9 +63,16 @@ than floating independently above it, per later live feedback that the two read 
 cluster better that way:
 
 <figure>
-<img src="{{ '/assets/img/howto-panel-launcher/04-filter.png' | relative_url }}" alt="The launcher open with 'back' typed into its filter field, the Backlog bubble highlighted with a teal border, every other bubble dimmed out" >
-<figcaption>Typing "back" narrows this down to Backlog, the one real match, highlighted -- everything else fades out of the way rather than disappearing outright.</figcaption>
+<img src="{{ '/assets/img/howto-panel-launcher/04-filter.png' | relative_url }}" alt="The launcher open with 'back' typed into its filter field, the Backlog bubble highlighted with a teal border, every other bubble dimmed out, and a real '1 match -- press Enter to open' status line under the field" >
+<figcaption>Typing "back" narrows this down to Backlog, the one real match, highlighted -- everything else fades out of the way rather than disappearing outright. The status line under the field says the same thing in words, not just dimming.</figcaption>
 </figure>
+
+A real evaluator report (2026-08-07, [issue #29](https://github.com/scimbe/CADS-devsystem/issues/29))
+found the dimming alone easy to miss at a glance across the full fan of bubbles, and separately found
+a real timing bug: filtering right as the launcher's own entrance animation was still settling could
+make the dimming feel unresponsive. Both addressed -- the status line spells out the match count in
+plain text (`"No panels match \"...\""` for a real miss), and filter-driven dimming now has its own
+fast transition, independent of the entrance animation's stagger.
 
 Press **Enter** once exactly one panel matches and it opens immediately, launcher closed -- the
 identical matching rule (panel id or title, substring) the real `./show` command already trusts, not
