@@ -253,6 +253,41 @@ The same self-description question, asked again, now correctly says "twenty tota
 ([CADS-devsystem@cdf7829](https://github.com/scimbe/CADS-devsystem/commit/cdf7829),
 [CADS-devsystem@f06b2ba](https://github.com/scimbe/CADS-devsystem/commit/f06b2ba))
 
+**An eighth real instance, same day**: the [check-in-pending gate]({{ '/how-to/review-a-checkin/' | relative_url }}#knowing-a-check-in-is-actually-due-even-if-you-missed-the-moment)
+added a real, direct human action (acknowledging a fired check-in) with no assistant equivalent --
+`acknowledge_checkin`, the twenty-first action type, closes it
+([CADS-devsystem@a6387ce](https://github.com/scimbe/CADS-devsystem/commit/a6387ce)). Re-asked the
+identical self-description question against the actual live deployment, not trusted from the commit
+message:
+
+```
+$ curl -X POST .../api/runs/docs-verify-twentyone-actions/assistant \
+    -d '{"instruction": "In one sentence, how many kinds of data can you take action on, and how many total action types?"}'
+{"response": "Nine kinds of data (milestones, backlog items, requirements, repo_url, runs, custom
+ panels, stages, issues, next-step drafts) across 21 total action types — 14 direct, 6 propose_*
+ gated on your approval, plus propose_next_step as an editable draft."}
+```
+
+And a real, live proof the action itself works, not just the count: created a fresh scratch run with
+`checkin_every: 1`, submitted one iteration to genuinely cross the boundary, then asked in plain
+language:
+
+```
+$ curl .../api/runs/docs-verify-twentyone-actions | jq .health.checkin_pending
+true
+
+$ curl -X POST .../api/runs/docs-verify-twentyone-actions/assistant \
+    -d '{"instruction": "I have reviewed the check-in, please acknowledge it."}'
+{"response": "Check-in acknowledged through iteration 1 — the run continues; next check-in fires at
+ iteration 2 (`checkin_every: 1`)."}
+
+$ curl .../api/runs/docs-verify-twentyone-actions | jq .health.checkin_pending
+false
+```
+
+Same direct-action treatment as `set_paused` above -- takes effect immediately, no approval gate,
+since acknowledging is explicit and never destructive.
+
 ## Marking a milestone achieved through chat pauses the run -- and it says so
 
 Toggling a milestone to achieved has a real, run-wide consequence regardless of how you do it: see
