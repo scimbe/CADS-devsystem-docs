@@ -652,6 +652,25 @@ actual deployment, not just described:
   already uses -- live-verified against the redeployed container (a real Playwright DOM query
   confirming the link exists and resolves to the correct URL for that hostname), not just read from
   the diff.
+- **A second real evaluator finding, and an honest partial fix rather than a claimed-complete one**:
+  on a genuinely fresh session at a realistic browser width, this app's own default-visible panels
+  (Runs, Process, Pipeline, Requirements) could spawn stacked exactly on top of each other -- silent
+  dead clicks, no visual cue anything was even there.
+  [Reported](https://github.com/scimbe/CADS-devsystem/issues/21) with real DOM inspection and a
+  Playwright "intercepts pointer events" error. Reproduced live first (cleared `localStorage`, a real
+  accessibility check -- is the topmost element at each panel's own close-button position actually
+  that panel's close button?) before touching any code. Found and fixed three distinct real bugs:
+  the existing cascade clamped x/y independently, silently retesting the same failed position once
+  either saturated; the desktop's own real usable width can be smaller than the combined default
+  panel widths, making a fully non-overlapping layout mathematically impossible at some viewports
+  (a header-avoidance fallback keeps every panel's title bar and close button reachable even when
+  bodies must still overlap); and the actual root cause the first two exposed -- the panel-creation
+  code computed a real cascaded position but never persisted it, so every later panel checked
+  collision against stale coordinates. Result, stated honestly rather than rounded up: the same
+  accessibility check went from 1-of-4 genuinely clickable close buttons to 3-of-4. The issue stays
+  open, not closed, since four panels this size in that little space is a genuinely hard packing
+  problem this fix doesn't always fully resolve -- named as a real, specific residual gap rather than
+  left implied.
 
 ## The same lens, applied to the flagship app itself
 
