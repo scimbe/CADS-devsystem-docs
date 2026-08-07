@@ -43,8 +43,9 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces thirty-one of the concrete lazy shortcuts below
-(duplicate `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the
+is a real, live-HTTP script that reproduces forty-five of the concrete lazy shortcuts below
+(ninety total assertions, since several checks prove both the failing case and the genuinely-clear
+case in one go -- duplicate `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the
 "shallow" SHALL-substring bug, an unbounded `price_ceiling` going unflagged (including a later,
 bounded re-proposal for the same stage correctly clearing that flag -- the exact mechanism that had
 two real regressions earlier this session), cross-account access, a "deleted" run not actually
@@ -62,13 +63,18 @@ all of them in one response, an iteration's own embedded `proposals` batch only 
 first bad proposal instead of every one of them, an iteration's own `requirement_indices` batch
 only ever naming the first out-of-range index instead of every one of them, a custom panel
 accepting genuinely empty/whitespace-only HTML at all four real entry points that write it,
-backlog item text/milestone descriptions having no real length cap at all, and `repo_url` having
-the identical gap)
+backlog item text/milestone descriptions having no real length cap at all, `repo_url` having
+the identical gap, a careless re-proposal silently un-bounding an already-set real `price_ceiling`
+by omission, a review that once satisfied `no_review_for_succeeded_work` covering unlimited later
+succeeded work forever instead of only until the next real change, one early `devsystem.test`
+covering unlimited later `devsystem.implement` rounds instead of only the next one, and a real
+security-sensitive iteration's own risk flag silently vanishing the moment any unrelated iteration
+follows it)
 against a real running deployment, creating and cleaning up its own real scratch run every
 time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into this project's own real CI
 (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub Actions run, not just
 locally), run against the exact Docker image that gets deployed -- a PR that reintroduces one of
-these thirty-one fails CI instead of waiting for the next manual stress-test firing to notice.
+these forty-five fails CI instead of waiting for the next manual stress-test firing to notice.
 Honestly scoped, and
 self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
 needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
@@ -119,6 +125,18 @@ failed, but for the right reason: the neutered paused-check let the while-paused
 for real, so the still-intact idempotency guard correctly caught the "resumed" resubmission as a
 genuine duplicate of what had just wrongly landed. Both gates working exactly as designed,
 cross-confirming each other in a way the test hadn't originally anticipated.
+
+**The mutation-testing technique, applied to a full batch at once, not just one check at a time**:
+the same day four new checks (`[42]`-`[45]`) were added -- one per real staleness-bug fix, see
+[How real risk annotations work]({{ '/explanation/risk-annotations/' | relative_url }}) for what
+each fix actually was -- every one of the four was mutation-tested individually: temporarily
+reverted to its own literal pre-fix code (never a synthetic mutation), confirmed the hermetic unit
+test genuinely panics against it, rebuilt and redeployed the mutated binary, confirmed the live
+check fails *precisely* on its own claimed regression while every sibling check stays green, then
+cleanly reverted and redeployed the real fix. All four passed on both counts -- real teeth, and
+precise teeth, not a broader collateral break of the whole check. This closed out the first
+complete mutation-verified batch: every check added that day now has real, live proof it would
+actually catch its own regression coming back, not just a plausible-sounding assertion.
 
 The same investigation that produced the harness also found a real gap in this project's own §5
 quality-bar table: it named `check-no-secrets.sh` as a real secrets-scanning gate, but that script
