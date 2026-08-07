@@ -206,17 +206,28 @@ second assertion while its sibling lower-bound assertion, a genuinely separate c
 source block, correctly stayed green throughout.
 
 Checks `[48]`/`[49]` themselves eventually got the same scrutiny applied to the mechanism that
-*proves* every other check's binary is real, not just the checks that mechanism protects. `[48]`
-passed: neutering `version()` to always report `"unknown"`, ignoring `DEVSYSTEM_GIT_SHA` entirely,
-failed exactly `[48]` on the live harness with every other assertion unaffected. No hermetic unit
-test applies to this one by design -- the handler's own doc comment already explains why: mutating a
-process-global env var in a multi-threaded test binary would race unpredictably, so the "real SHA is
-correctly reported" case is deliberately proven live only, by the deploy script's own post-deploy
-check. That deploy-script check turned out to be a second, independent witness to the same mutation:
-`deploy-devsystem-web.sh` caught the exact same mismatch and refused to call the deploy verified,
-without being told to -- real proof the git-SHA safety net has teeth at two separate layers, not
-just the harness. `[49]` (the separate `devsystem_assistant` binary and deploy path) is the one
-check in this whole list still without a live mutation-test round.
+*proves* every other check's binary is real, not just the checks that mechanism protects. Both
+passed the identical probe, one deploy path at a time: neutering `version()` (`devsystem-web`) and
+`version_response_body()` (`devsystem_assistant`) to always report `"unknown"`, ignoring
+`DEVSYSTEM_GIT_SHA` entirely, failed exactly `[48]` and exactly `[49]` respectively on the live
+harness, every other assertion unaffected each time. No hermetic unit test applies to either by
+design -- both handlers' own doc comments already explain why: mutating a process-global env var in
+a multi-threaded test binary would race unpredictably, so the "real SHA is correctly reported" case
+is deliberately proven live only, by each deploy script's own post-deploy check. Both deploy-script
+checks turned out to be a second, independent witness to their own mutation: `deploy-devsystem-web.sh`
+and `deploy-devsystem-assistant.sh` each caught the exact same mismatch and refused to call their
+deploy verified, without being told to -- real proof the git-SHA safety net has teeth at two separate
+layers for both binaries, not just the harness.
+
+**Named honestly, not left implied**: this batch of mutation-test rounds -- `[1]`, `[2]`, `[36]`
+through `[49]` -- covers every check added or singled out this window, sixteen of the harness's
+forty-nine checks. That is a real, growing list, not the whole harness verified this way; `[3]`
+through `[35]`, the harness's original early-session core, remain a real, honestly-named backlog for
+a future round. An earlier draft of this project's own internal goal-doc record of the `[49]` round
+first claimed "every check in the harness now has real, live proof" before a second look at the
+actual numbers caught the overclaim and corrected it before it shipped further than that one
+document -- worth naming here too, since this page's own stated purpose is applying this project's
+honesty standard to its own investigations, not just the code it reviews.
 
 The same investigation that produced the harness also found a real gap in this project's own §5
 quality-bar table: it named `check-no-secrets.sh` as a real secrets-scanning gate, but that script
