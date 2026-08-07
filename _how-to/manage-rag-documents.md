@@ -26,6 +26,20 @@ auto-focus a field -- there's no single obvious one here (search is useless agai
 index, and the real next action lives in two different places: set a repo, or upload). The banner
 and the auto-expanded form are the honest substitute.
 
+## Know how stale the repo index is before you trust a result
+
+A synced repo is indexed as of whenever **Sync now** was last clicked -- not continuously, and
+GitHub's own unauthenticated API budget (~60 requests/hour) is the real reason this isn't
+automatic on every panel open. The sync line says so plainly, with a real "X ago" phrase next to
+the raw timestamp, not just a bare date you have to notice and mentally subtract:
+
+<figure>
+<img src="{{ '/assets/img/howto-manage-rag-documents/05-sync-staleness.png' | relative_url }}" alt="The Docs Search panel's sync line reading 'Repo: indexed 3 file(s) from main, synced 1 hour ago', with a caveat that this is a snapshot from the last sync">
+<figcaption>"1 hour ago" here is real, current data -- not illustrative. The caveat underneath repeats next to search results themselves too, especially for a "No matches" -- the honest cause there could just as easily be a stale index missing the real file as a genuine absence.</figcaption>
+</figure>
+
+If you expected a real match and don't see it, **Sync now** before assuming it isn't there.
+
 ## Search is live as you type
 
 Type into the search box and results come back from the real index -- no separate "search"
