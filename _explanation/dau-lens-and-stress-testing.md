@@ -695,6 +695,23 @@ actual deployment, not just described:
   ever matched panel *types*, never the run entries inside this specific panel -- a real gap in its
   own right this report indirectly surfaced). Live-verified against the actual 111-run deployment,
   not a small fixture: filtering "webconference" correctly narrows to exactly the 5 real matches.
+- **A real evaluator finding about silently stale search results**: a user relying on the Docs
+  Search (RAG) panel instead of the Assistant searched against a stale, 1-file index and missed the
+  single most relevant document for their actual question, with nothing in the panel suggesting the
+  index might be incomplete -- a manual "Sync now" made the same search correctly surface it.
+  [Reported](https://github.com/scimbe/CADS-devsystem/issues/24) by a persona relying on this panel
+  as their primary path rather than the Assistant. Deliberately did *not* fix this with
+  auto-sync-on-open: GitHub's own unauthenticated API allows only ~60 requests/hour (the Code
+  panel's own commit loader already documents this exact constraint), and every real action in this
+  GUI re-renders every visible panel -- an auto-sync here would burn through that budget on actions
+  that have nothing to do with docs search. Two real, always-true additions instead: a new
+  `formatRelativeAge()` helper turns the raw sync timestamp into a plain "synced 47 minutes ago"
+  phrase next to the existing raw date, and an honest caveat ("this is a snapshot from the last
+  sync...") now appears both under the sync line and again directly next to search results
+  themselves -- including "No matches", where the honest cause could just as easily be a stale
+  index as a real absence. Live-verified against the actual redeployed flagship
+  `webconference-android` run: real sync data read "synced 47 minutes ago", and the panel correctly
+  found `docs/channel-join-options.md` once pointed at the right run.
 
 ## The same lens, applied to the flagship app itself
 
