@@ -202,6 +202,37 @@ reasons where the underlying condition genuinely isn't still true the moment the
 milestone, a manual pause, or (see below) a check-in you're prepared to acknowledge properly rather
 than just wave past.
 
+**`max_consecutive_failures` has one real escape `max_iterations` does not: a genuine success.**
+This was a real, hard deadlock until 2026-08-07 -- the fix above checked the run's state *before*
+the incoming submission, with no visibility into what was actually being submitted. Once
+`consecutive_failures` reached the bound, **every** further call got the same `409`, including a
+real `succeeded: true` submission that would have reset the streak to `0` -- exactly the remedy the
+error message itself named, but the one submission that could never actually land (real evaluator
+finding, [issue #47](https://github.com/scimbe/CADS-devsystem/issues/47), reported as a follow-up
+comment on the same issue rather than filed fresh, since it was the same control degrading). The
+only working way out was editing `max_consecutive_failures` -- a door the message never said was the
+*only* one that opened.
+
+Fixed the same day: the gate now looks at the incoming submission's own `succeeded` flag and lets a
+real success through specifically because applying it is what clears the streak -- landing it is the
+resolution, not a bypass. A further failure at the same bound is still refused outright, so this
+stays a real ceiling, not a blanket unlock the instant anyone resumes. Real, live proof:
+
+```
+$ curl -X POST .../api/runs/docs-run/iterate -d '{"stage":"devsystem.implement","succeeded":false,...}'
+already at 1 consecutive failed iteration(s), at or past the configured limit of 1 -- raise
+max_consecutive_failures for this run, or submit a real, succeeded iteration to reset the streak
+(a succeeded:true submission is let through specifically to clear it)
+HTTP 409
+
+$ curl -X POST .../api/runs/docs-run/iterate -d '{"stage":"devsystem.implement","succeeded":true,...}'
+{"outcome":"Continue","iteration":2, ...}
+HTTP 200
+```
+
+`max_iterations` has no equivalent escape -- iteration count only ever grows, so no incoming
+`succeeded` flag changes anything there; raising the ceiling itself really is the only way past it.
+
 **Raising it too far gets caught immediately, not after a round-trip.** All three fields share the
 same real, generous-but-finite cap the server itself enforces (10,000 -- see
 [the REST API reference]({{ '/reference/rest-api/' | relative_url }})'s `POST .../criteria` row for
