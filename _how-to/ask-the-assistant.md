@@ -38,7 +38,11 @@ calls out to GitHub, never touches the network beyond reading the run's own stat
 security control), splits into three real categories:
 
 1. **Direct**: milestones, backlog items, requirements (including individual acceptance criteria),
-   `repo_url`, and creating a whole new run -- applied immediately when you ask for one, no gate.
+   `repo_url`, creating a whole new run, a role's fill mode (dedicated/auction, in the Roles panel),
+   and this run's own abort criteria (max iterations, max consecutive failures, check-in cadence) --
+   applied immediately when you ask for one, no gate. The last two are deliberate parity with what a
+   human already has in the GUI, not a new risk: both real endpoints already bounds-check the values
+   themselves, and neither gets an extra confirmation dialog on the human path either.
 2. **Propose, then you approve or reject**: a custom panel (add/edit/remove), a new pipeline stage,
    or a GitHub issue -- queued in a real pending list, never applied on the spot. See [How the
    pipeline proposes and grows its own stages]({{ '/explanation/self-optimizing-pipeline/' |
@@ -139,6 +143,55 @@ $ curl -X POST .../api/runs/docs-action-count-check/assistant \
     -d '{"instruction": "In one sentence, how many kinds of data can you take action on, and how many total action types?"}'
 {"response": "Nine kinds of data (milestones, backlog items, requirements, repo_url, runs, custom
  panels, stages, issues, next-step drafts) across sixteen action types."}
+```
+
+**A fourth and fifth real instance of this same bug class, both found and fixed the same way**:
+two more direct actions shipped after the third instance above -- `set_role_fill_mode`
+(seventeenth action type: switch a role between auction and dedicated mode from chat, the same
+real toggle the Roles panel's own menu already exposes) and `update_criteria` (eighteenth: change
+a run's own abort criteria -- max iterations, max consecutive failures, check-in cadence -- the
+same fields the Criteria panel's Save button already writes). Both were deliberately deferred
+earlier in this project's history precisely because `update_criteria` "governs the run's own
+abort/pause safety bounds, not just inert metadata" -- closed only once it was confirmed that the
+real `/api/runs/{id}/criteria` endpoint already rejects a zero value or anything above the
+configured ceiling, and that the human GUI's own Save button gets zero extra confirmation beyond
+those same two real bounds. Giving the assistant the identical direct-action treatment is parity
+with what a human already has, not a new risk
+([CADS-devsystem@1af3fe5](https://github.com/scimbe/CADS-devsystem/commit/1af3fe5),
+[CADS-devsystem@ba68c43](https://github.com/scimbe/CADS-devsystem/commit/ba68c43)).
+
+Real, live evidence against a fresh scratch run, 2026-08-07 -- the role's fill mode and the run's
+criteria both genuinely changed, not just the reply text:
+
+```
+$ curl -X POST .../api/runs/docs-verify-eighteen-actions/assistant \
+    -d '{"instruction": "Set the plan role to dedicated mode, held by alice."}'
+{"response": "Done — `plan` is now dedicated to alice."}
+
+$ curl .../api/runs/docs-verify-eighteen-actions | jq .state.role_fill_modes
+{"plan": {"mode": "dedicated", "label": "alice", "accepted_bid": null}}
+```
+
+```
+$ curl -X POST .../api/runs/docs-verify-eighteen-actions/assistant \
+    -d '{"instruction": "Raise this run'"'"'s abort criteria to max_iterations 30,
+         max_consecutive_failures 5, checkin_every 10."}'
+{"response": "Criteria raised.\n\n| Field | Old | New |\n|---|---|---|\n
+ | max_iterations | 20 | 30 |\n| max_consecutive_failures | 3 | 5 |\n
+ | checkin_every | 5 | 10 |"}
+
+$ curl .../api/runs/docs-verify-eighteen-actions | jq .state.criteria
+{"max_iterations": 30, "max_consecutive_failures": 5, "checkin_every": 10}
+```
+
+And the same self-description question, asked again against the same fresh scratch run, correctly
+reflects both additions with no stale count this time:
+
+```
+$ curl -X POST .../api/runs/docs-verify-eighteen-actions/assistant \
+    -d '{"instruction": "In one sentence, how many kinds of data can you take action on, and how many total action types?"}'
+{"response": "Nine kinds of data (milestones, backlog items, requirements, repo_url, runs, custom
+ panels, stages, issues, next-step drafts) across eighteen total action types."}
 ```
 
 ## Marking a milestone achieved through chat pauses the run -- and it says so
