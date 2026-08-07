@@ -19,17 +19,30 @@ bar itself now shows the current project's real name instead.
 
 Click the dot (or press Tab to it and hit Enter/Space, it's a real `<button>`, not a decorative
 element). It unfolds into a real, animated circle segment confined to the corner -- not a
-full-screen overlay -- with every real panel shown as a "bubble" inside it.
+full-screen overlay -- with every real panel shown as an icon "bubble" inside it.
 
 <figure>
-<img src="{{ '/assets/img/howto-panel-launcher/02-open.png' | relative_url }}" alt="The launcher open, showing panel bubbles of different sizes fanning out from the green dot: large labeled circles for Process, Runs, Pipeline, and Requirements, smaller unlabeled circles for the rest, and a real red badge showing '1' on the Pipeline bubble" >
+<img src="{{ '/assets/img/howto-panel-launcher/02-open.png' | relative_url }}" alt="The launcher open, showing panel icon bubbles of different sizes fanning out from the green dot in four rings, hugging the screen's left and bottom edges, with a real red badge on the Pipeline bubble" >
 <figcaption>Pipeline's real red badge here is the same live pending-proposal count the old chip bar's badge used to show -- nothing about what a badge means changed, only how it's presented.</figcaption>
 </figure>
 
+Every bubble carries a small pictogram for its panel and, on hover or focus, a real floating
+tooltip with its full name -- no panel name is ever permanently written on screen or truncated:
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-launcher/02b-hover-tooltip.png' | relative_url }}" alt="The launcher open with the mouse hovering the warning-triangle icon, a floating tooltip reading 'Risks & Stalled' shown above it" >
+<figcaption>Hovering (or Tab-focusing) any bubble shows its real name as a floating label -- click it, and it opens (or brings to the front, if already open) the panel behind it.</figcaption>
+</figure>
+
+An earlier version of this launcher gave the most important panels a permanent, always-visible text
+label instead of an icon+tooltip -- reverted after live feedback: that permanent label needed real
+horizontal room, which was the actual reason the bubble rings sat so far apart from each other.
+Icon+tooltip everywhere let every ring sit much closer to the dot instead.
+
 ## Panels are not all the same size, on purpose
 
-Every panel is shown, but not with equal weight. Size encodes real, current relevance, not a fixed
-ranking:
+Every panel is shown, but not with equal weight. Size (and how close to the dot a bubble sits)
+encodes real, current relevance, not a fixed ranking:
 
 - A panel with a real pending decision (a proposal waiting on your approval, same signal as the old
   badge) is weighted up.
@@ -37,13 +50,7 @@ ranking:
   default on a first-time visit) are weighted up.
 - A panel you already have open right now is weighted up (it also gets a small teal dot under its
   icon, a second, independent signal from size alone).
-- Everything else is a plain, smaller icon.
-
-The most important panels get a real, permanent, never-abbreviated text label. The rest are
-icon-only -- hover or focus one to see its real full name in a floating label, the same convention
-macOS' own Dock uses for exactly this reason: full names for everyone would either force the segment
-to cover most of the screen, or force every name to truncate. Neither is on -- click any bubble,
-labeled or not, and it opens (or brings to the front, if already open) the real panel behind it.
+- Everything else is a plain, smaller icon further out.
 
 ## Prefer typing? There's a real filter for that too
 
@@ -51,7 +58,9 @@ Live feedback after shipping the bubble-click version: hunting for one specific 
 worse than just typing a panel name, the way the Process Prompt's own `./show`/`./hide`/`./toggle`
 commands already work. Rather than dropping the visual overview, the launcher now opens with a real
 text field, already focused -- start typing and every non-matching bubble dims out of the way,
-matching bubbles get a teal highlight:
+matching bubbles get a teal highlight. It sits directly beside the dot (bottom edges aligned) rather
+than floating independently above it, per later live feedback that the two read as one control
+cluster better that way:
 
 <figure>
 <img src="{{ '/assets/img/howto-panel-launcher/04-filter.png' | relative_url }}" alt="The launcher open with 'back' typed into its filter field, the Backlog bubble highlighted with a teal border, every other bubble dimmed out" >
@@ -62,6 +71,14 @@ Press **Enter** once exactly one panel matches and it opens immediately, launche
 identical matching rule (panel id or title, substring) the real `./show` command already trusts, not
 a second guess at what counts as a match. If your filter still matches more than one panel, Enter
 does nothing rather than guessing which one you meant -- keep typing (or click) instead.
+
+## Closing it without the keyboard
+
+Clicking anywhere on empty canvas outside the fanned-out bubbles closes the launcher too -- a real
+fix, live operator report 2026-08-07: it silently didn't, before. The launcher's own bubble
+container is a full-viewport layer sitting inside the reveal circle, so a click on the empty space
+between bubbles was landing on that container, not the backdrop the close handler was actually
+listening on. Fixed to treat either as "outside" now.
 
 ## Keyboard
 
