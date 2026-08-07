@@ -69,6 +69,25 @@ now shows the actual real reason, live-confirmed for all three real triggers:
 A consecutive-failure abort says so specifically too (*"3 consecutive failed iterations (limit
 3)"*), distinct from an iteration-count abort -- not just "the run aborted."
 
+**Update, 2026-08-07**: that same real, distinguishing reason now reaches the `/iterate` response
+itself, not just a follow-up `GET` -- a real, cheap gap named in both [issue
+#46](https://github.com/scimbe/CADS-devsystem/issues/46) and [issue
+#47](https://github.com/scimbe/CADS-devsystem/issues/47): until this fix, the response to the exact
+submission that triggered an abort only ever said `"outcome": "Abort"`, and the GUI's own status
+line fell back to a generic *"too many consecutive failures, or the iteration ceiling was
+reached"* -- unable to tell you which one actually happened, even though the server already knew.
+Live-confirmed current behavior, the same two real submissions from above:
+
+```
+$ curl -X POST .../api/runs/docs-run/iterate -d '{"stage":"devsystem.implement", ..., "succeeded": true}'
+{"outcome": "Abort", "iteration": 1, "pause_reason": "reached the 1-iteration limit", ...}
+$ curl -X POST .../api/runs/docs-run/iterate -d '{"stage":"devsystem.implement", ..., "succeeded": false}'
+{"outcome": "Abort", "iteration": 1, "pause_reason": "1 consecutive failed iterations (limit 1)", ...}
+```
+
+The GUI's own status line (right after **Submit iteration**) now shows this real, specific reason
+too, not the old generic sentence.
+
 **What if the reason itself is missing?** Every real code path that pauses a run today sets a real
 reason alongside it, but `pause_reason` predates the other pieces of `RunState` by a while, so a run
 whose own `state.json` was written before this field existed can genuinely have `paused: true` with
