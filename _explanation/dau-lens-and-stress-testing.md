@@ -43,8 +43,8 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces forty-five of the concrete lazy shortcuts below
-(ninety total assertions, since several checks prove both the failing case and the genuinely-clear
+is a real, live-HTTP script that reproduces forty-seven of the concrete lazy shortcuts below
+(ninety-eight total assertions, since several checks prove both the failing case and the genuinely-clear
 case in one go -- duplicate `run_id` clobbering, an unbounded/zero `AbortCriteria`, whitespace-only fields, the
 "shallow" SHALL-substring bug, an unbounded `price_ceiling` going unflagged (including a later,
 bounded re-proposal for the same stage correctly clearing that flag -- the exact mechanism that had
@@ -69,12 +69,15 @@ by omission, a review that once satisfied `no_review_for_succeeded_work` coverin
 succeeded work forever instead of only until the next real change, one early `devsystem.test`
 covering unlimited later `devsystem.implement` rounds instead of only the next one, and a real
 security-sensitive iteration's own risk flag silently vanishing the moment any unrelated iteration
-follows it)
+follows it, a fired but unacknowledged check-in cadence silently resetting to "not due" the instant
+it fires instead of staying a real, persistent signal until a human explicitly acknowledges it, and
+that same signal never reaching the Open Points panel -- the one endpoint whose entire purpose is
+"every real item this run is actually waiting on a human to decide")
 against a real running deployment, creating and cleaning up its own real scratch run every
 time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into this project's own real CI
 (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub Actions run, not just
 locally), run against the exact Docker image that gets deployed -- a PR that reintroduces one of
-these forty-five fails CI instead of waiting for the next manual stress-test firing to notice.
+these forty-seven fails CI instead of waiting for the next manual stress-test firing to notice.
 Honestly scoped, and
 self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
 needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
@@ -137,6 +140,21 @@ cleanly reverted and redeployed the real fix. All four passed on both counts -- 
 precise teeth, not a broader collateral break of the whole check. This closed out the first
 complete mutation-verified batch: every check added that day now has real, live proof it would
 actually catch its own regression coming back, not just a plausible-sounding assertion.
+
+**The technique kept getting applied as new checks shipped, not treated as a one-time exercise**:
+`[46]` (the check-in-pending signal) and `[47]` (its own Open Points entry) each passed the same
+real revert-confirm-rebuild-redeploy-reconfirm cycle the day they were added. Applying it to an
+*older* check later found something worth naming honestly: neutering `[41]`'s own price-ceiling
+enforcement made **two** checks fail, not one -- `[42]`'s final assertion genuinely reuses that
+same enforcement line for its own real proof, so both correctly failed together. Not a bug in
+either check, just evidence that "one check, one independent regression" isn't always literally
+true, worth knowing before trusting a green run to mean every individual check is testing something
+wholly separate from its neighbors. One near-miss during this whole sweep, corrected before it cost
+anything real: `git checkout --` (meant to revert only the temporary mutation) instead reverted a
+file back to its last real *commit*, discarding a just-written, not-yet-committed real fix along
+with the mutation -- caught immediately by reading the file's actual content rather than trusting
+the command, restored from a backup taken before mutating. Every mutation-test round since has
+restored from a pre-mutation backup file instead.
 
 The same investigation that produced the harness also found a real gap in this project's own §5
 quality-bar table: it named `check-no-secrets.sh` as a real secrets-scanning gate, but that script
