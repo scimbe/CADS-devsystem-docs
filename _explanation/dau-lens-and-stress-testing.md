@@ -199,7 +199,24 @@ real, optional dependency. And finally, mutation-testing reached all the way bac
 but never verified this way before): neutering it to the literal "silently clobbers" pre-fix behavior
 failed the hermetic test and the live harness precisely, with every other check unaffected --
 confirming even the oldest, most-trusted gate in this file still has real teeth, not just a plausible
-green checkmark inherited from the day it was written.
+green checkmark inherited from the day it was written. The adjacent check `[2]`
+(`update_criteria`'s own upper-bound rejection) got the same treatment next: neutering the
+`max_iterations`/`max_consecutive_failures`/`checkin_every` cap failed precisely the check's own
+second assertion while its sibling lower-bound assertion, a genuinely separate check in the same
+source block, correctly stayed green throughout.
+
+Checks `[48]`/`[49]` themselves eventually got the same scrutiny applied to the mechanism that
+*proves* every other check's binary is real, not just the checks that mechanism protects. `[48]`
+passed: neutering `version()` to always report `"unknown"`, ignoring `DEVSYSTEM_GIT_SHA` entirely,
+failed exactly `[48]` on the live harness with every other assertion unaffected. No hermetic unit
+test applies to this one by design -- the handler's own doc comment already explains why: mutating a
+process-global env var in a multi-threaded test binary would race unpredictably, so the "real SHA is
+correctly reported" case is deliberately proven live only, by the deploy script's own post-deploy
+check. That deploy-script check turned out to be a second, independent witness to the same mutation:
+`deploy-devsystem-web.sh` caught the exact same mismatch and refused to call the deploy verified,
+without being told to -- real proof the git-SHA safety net has teeth at two separate layers, not
+just the harness. `[49]` (the separate `devsystem_assistant` binary and deploy path) is the one
+check in this whole list still without a live mutation-test round.
 
 The same investigation that produced the harness also found a real gap in this project's own §5
 quality-bar table: it named `check-no-secrets.sh` as a real secrets-scanning gate, but that script
