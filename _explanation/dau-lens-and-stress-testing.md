@@ -556,6 +556,17 @@ actual deployment, not just described:
   code comment containing literal backtick characters inside a JS template literal threw a real
   `SyntaxError` that blanked the entire GUI -- caught by the same routine post-fix Playwright
   verification pass this methodology always runs, before it ever reached a commit.
+- The Flow panel exists for one reason: a fast "where are we" glance, distinct on purpose from the
+  dedicated Milestones/Backlog panels, which correctly show full text. But it rendered milestone
+  descriptions and backlog item text with zero truncation, unlike `renderProcessPanel`'s own history
+  entries just below it in the same file, which already reuse the same `truncate()` helper for
+  exactly this reason. Not a hypothetical: a real Playwright screenshot against the actual flagship
+  `webconference-android` run showed a wall of untruncated text pushing the panel's own "what
+  happened" section fully off-screen, since this project's own real backlog items run to several
+  hundred characters. Fixed by reusing the existing 220-character budget `renderProcessPanel`'s own
+  feedback preview already uses -- live-verified with a second screenshot against the redeployed
+  container, confirming every entry now fits, cleanly truncated with an ellipsis, and "what
+  happened" is visible again.
 
 ## The same lens, applied to the flagship app itself
 
