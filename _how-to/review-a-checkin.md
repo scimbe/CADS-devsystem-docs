@@ -49,8 +49,17 @@ The rendered check-in (same content whether you fetch it via `GET /checkin` or o
 canvas) always has the same shape:
 
 - **Run summary** -- every iteration so far, stage and outcome, most recent last.
+- **Requirement coverage** (only when the run has any requirements) -- every declared requirement by
+  index and verified state, with either the real iteration numbers that addressed it, scanned from
+  the *whole run's history*, or an explicit **never addressed by any iteration**. Added after a real
+  evaluator finding (issue #34): a requirement nobody had ever worked on used to render as nothing at
+  all here, indistinguishable from a section with nothing to say, at the exact moment you're deciding
+  whether to let the run continue.
 - **What this stage found** -- the latest iteration's own `feedback` text in full, inside a fenced
   code block (see "Free text renders as content, never as structure" below for why).
+- **Requirements addressed this iteration** (only when the *triggering* iteration names any) -- a
+  narrower, iteration-scoped complement to Requirement coverage above; this one is just what the
+  latest submission itself claims.
 - **Proposals** -- any new stages/panels/issues this iteration proposed.
 - **Stages added to the live spec so far** -- the run's `added_stages`.
 - **Stalled stages** -- roles that are live in the spec but have never actually run an iteration
@@ -62,8 +71,13 @@ canvas) always has the same shape:
   *this* iteration -- a pipeline stage, a custom panel add/edit/removal, or a GitHub issue, possibly
   queued several iterations ago. Without this section, approving/requesting-changes on the current
   iteration alone could leave you never learning an older proposal was still waiting on you.
-- **Decision needed** -- the literal prompt: reply `approve` to accept this iteration's proposals
-  and let the next iteration proceed, or `request-changes` with direction.
+- **Decision needed** -- names two real, different channels rather than one generic prompt (issue
+  #41: this section used to unconditionally tell every reader to reply `approve`/`request-changes`, a
+  verb that only exists in `ecc-plan-canvas`, the CLI channel below -- the web control panel implements
+  neither; its only check-in action is the content-free **Acknowledge check-in** button described
+  further down). If you're in `ecc-plan-canvas`, reply `approve` or `request-changes` as below. If
+  you're reading this in the web panel, there's no reply field there at all -- Acknowledge is the only
+  real action, and it carries no answer.
 
 ## Free text renders as content, never as structure
 
