@@ -33,6 +33,19 @@ Cancelling leaves the checkbox and the run exactly as they were. Un-checking an 
 milestone has no such warning: it never auto-resumes the run, so there's nothing surprising about
 it either way.
 
+**Update, 2026-08-07**: a milestone achieved while the run is *already* paused for one of the real
+bounds below no longer overwrites that reason -- a real, precisely-evidenced evaluator finding
+([issue #50](https://github.com/scimbe/CADS-devsystem/issues/50)). Until this fix, achieving a
+milestone always set `pause_reason` to its own free text, even on a run genuinely halted for
+`max_consecutive_failures` or `max_iterations` -- silently replacing *"3 consecutive failed
+iterations (limit 2)"* with *"milestone achieved: ..."* and permanently losing the real reason
+(un-checking the milestone afterward did not restore it). Since a milestone's own description and
+`achieved` flag are entirely self-serve -- any signed-in account can set both, on any unowned run
+(see [Delete a run]({{ '/how-to/delete-a-run/' | relative_url }})'s own coverage of that gap) -- an
+operator reading the banner had no way to tell they were about to `Resume` a run that had actually
+hit its real failure budget. Fixed: the first real reason a run halts for now wins and stays visible
+-- a milestone reached while already correctly paused for a real bound doesn't get to relabel why.
+
 ## The other real trigger: hitting the run's own bound
 
 Milestones aren't the only real reason a run pauses. Every run has a real, operator-set
