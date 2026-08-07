@@ -39,6 +39,14 @@ text, auto-refresh setting) is preserved underneath, not destroyed. Click the ye
 <figcaption>Minimized: just the header remains, everything else preserved underneath.</figcaption>
 </figure>
 
+**A second real bug here was found and fixed, 2026-08-07** ([issue #33](https://github.com/scimbe/CADS-devsystem/issues/33)):
+reopening a minimized panel from the [panel launcher]({{ '/how-to/navigate-with-the-panel-launcher/' | relative_url }})'s
+bubble, or with `./show <panel>` in the Process Prompt, used to do nothing visible -- the panel stayed
+a bare ~33px header, with no way back except finding and clicking its own tiny yellow button a second
+time. Root cause: showing a panel and un-minimizing it were two different code paths, and only the
+second one cleared the minimized state. Fixed at the source -- the panel launcher and `./show` now
+correctly restore a minimized panel to its full size and content, the same as clicking yellow again.
+
 ## Maximize (teal)
 
 Expands the panel to fill the available desktop area (the real work surface to the left of
