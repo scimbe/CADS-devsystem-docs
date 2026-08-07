@@ -99,6 +99,16 @@ honestly as unbounded. Auction-cleared bids (the more common path) still aren't 
 ceiling anywhere -- this fix covers the one real, local, one-click acceptance path this app owns
 outright, not the whole auction pipeline.
 
+**A real ceiling survives a careless re-proposal, found and fixed the same day**: re-proposing a role
+(e.g. to change its rationale or units) without repeating its `price_ceiling` does **not** silently
+remove an already-set one -- the effective ceiling is the last real, positive `price_ceiling` anyone
+ever actually specified for that role, not just literally the most recent proposal. This matters
+because the risk panel's own re-propose flow (the "Fix it" button, above) always shows an *empty*
+price field, not the current value -- without this fix, using it for an unrelated reason (a role
+already correctly bounded needing a units bump, say) and forgetting to re-type the price would have
+silently un-bounded it again. A deliberate, later re-proposal that DOES set a different real ceiling
+still changes it, exactly as you'd expect -- only an omission stops counting as removal.
+
 ## Closing either popover
 
 Click anywhere outside the popover, or press **Escape** -- both close it without submitting
