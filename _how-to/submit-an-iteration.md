@@ -233,6 +233,18 @@ iteration** button itself rather than silently doing nothing (which is what used
 actual newline, same as it always has
 ([CADS-devsystem@2f393b8](https://github.com/scimbe/CADS-devsystem/commit/2f393b8)).
 
+**The `succeeded` checkbox above no longer defaults to checked, 2026-08-07** -- the screenshot in
+this section predates that change and still shows it checked. This form is regenerated from scratch
+on every render, including every render right after a submit, so a hardcoded checked default meant
+the box silently re-armed itself no matter what you'd just unchecked -- and it's the one control
+that resets a run's `consecutive_failures` streak back to `0` (see [Why did my run pause
+itself?]({{ '/how-to/why-did-my-run-pause/' | relative_url }})'s own coverage of that bound). A real
+evaluator found this by hitting it themselves: they submitted what they intended as a failing
+iteration, and the still-checked box silently reported it as a success instead
+([issue #47](https://github.com/scimbe/CADS-devsystem/issues/47),
+[CADS-devsystem@e32c741](https://github.com/scimbe/CADS-devsystem/commit/e32c741)). Marking work
+succeeded is meant to be a deliberate, explicit click now, every time.
+
 ## `--remote` against this deployment: M2M bearer-token auth
 
 `devsystem-demo.bunsenbrenner.org` gates every route — including the API — behind a browser-based
