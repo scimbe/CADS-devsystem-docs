@@ -77,7 +77,15 @@ canvas) always has the same shape:
   neither; its only check-in action is the content-free **Acknowledge check-in** button described
   further down). If you're in `ecc-plan-canvas`, reply `approve` or `request-changes` as below. If
   you're reading this in the web panel, there's no reply field there at all -- Acknowledge is the only
-  real action, and it carries no answer.
+  real action for *this specific check-in*, and it carries no answer.
+
+  **A real, related but distinct mechanism landed 2026-08-07**: the web panel does now have its own
+  real `approve`/`request_changes` verdicts -- for reviewing a run's own `devsystem.plan` iteration
+  specifically, via the [Plan Canvas panel]({{ '/how-to/review-a-plan-with-plan-canvas/' | relative_url }}).
+  It's a genuinely different real gate from the check-in Acknowledge button described here (a plan
+  review vs. a periodic cadence check-in), and the two don't substitute for each other -- Acknowledge
+  still carries no answer, and Plan Canvas's own verdicts don't touch `checkin_acknowledged_through`
+  at all.
 
 ## Free text renders as content, never as structure
 
