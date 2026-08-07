@@ -58,6 +58,45 @@ iteration whose feedback contains an emoji positioned exactly at the truncation 
 <figcaption>The emoji survives the cut whole -- no broken glyph, no replacement character.</figcaption>
 </figure>
 
+## Who confirmed a criterion, and when
+
+Until 2026-08-07, a confirmed acceptance criterion was a bare `true` — the pipeline's own
+highest-stakes verdict signal (a human saying "yes, this is actually met") carried no record of who
+confirmed it or when, on any run, ever. Fixed: a confirmed criterion is now a real object, shown
+right under the criterion's own strikethrough text, and a requirement now shows who created it too:
+
+<figure>
+<img src="{{ '/assets/img/howto-decision-basis/02-real-confirmation-provenance.png' | relative_url }}" alt="A requirement card showing 'created by scimbe@gmail.com', with two confirmed acceptance criteria -- one reading 'confirmed by scimbe@gmail.com, 8/7/2026, 6:45:15 PM' and the other reading 'confirmed 8/7/2026, 6:45:15 PM (no account on the session)'">
+<figcaption>Two real, live-captured confirmations: one from a real gate-verified browser session, one from a header-less request -- honestly recording no actor rather than fabricating one.</figcaption>
+</figure>
+
+Both actors here are real, not staged text: `created_by` and `confirmed_by` are always stamped
+server-side from the same real `X-Gate-Email` session header every other owner-scoped write in this
+API already trusts — never a client-claimed value in the request body. A request with no session
+(the local `devsystem_iterate` CLI, an M2M `--remote` submission) still records the *timestamp*
+honestly, just with `confirmed_by: null` — "confirmed, no account on the session" is a real,
+distinct state from "confirmed by someone," not a gap papered over.
+
+**This does not repurpose `proposed_by`.** That field already had a different, correct meaning
+before this fix — human-authored (`null`) vs. LLM-proposed (`Some(stage_tag)`) — and still does.
+`created_by` is a new, separate field for "which real account."
+
+### The honest fallback for history older than this fix
+
+Every run's confirmed criteria that predate 2026-08-07 migrated automatically on load — a legacy
+`true` becomes a real record, just one that honestly admits it doesn't know who or when:
+
+<figure>
+<img src="{{ '/assets/img/howto-decision-basis/03-legacy-migrated-fallback.png' | relative_url }}" alt="A requirement card on the real webconference-android run, with 'created by: not recorded (local CLI, M2M, or predates this field)' under the statement, and a confirmed criterion reading 'confirmed -- predates provenance tracking, who/when unknown'"
+/>
+<figcaption>The real flagship webconference-android run's own one confirmed criterion, migrated live -- the fact ("yes, confirmed") is preserved, honestly paired with "who/when unknown" instead of an invented actor or timestamp.</figcaption>
+</figure>
+
+Nothing is lost and nothing is invented: the migration was verified live against this exact run's
+`state.json` before and after deploying, comparing all eighteen of its real requirements one by one.
+See the [REST API reference]({{ '/reference/rest-api/' | relative_url }}#backlog-milestones-requirements)
+for the wire shape.
+
 ## What's still not in this view
 
 The assistant's own chat exchanges about a requirement aren't pulled in yet — only real iteration
