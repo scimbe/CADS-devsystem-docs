@@ -364,13 +364,15 @@ $ curl .../api/runs/{id}/requirements/export
 
 1/1 verified.
 
-## 1. ✅
+## #0 ✅
 
 ```
 WHEN a user taps send with an empty message, THE SYSTEM SHALL not attempt to send anything and SHALL leave the input focused for retry
 ```
 
 *Human-authored.*
+
+*Addressed by iteration(s) 1.*
 
 Acceptance criteria:
 
@@ -379,9 +381,22 @@ Acceptance criteria:
 - [ ] `no crash or exception is thrown`
 ````
 
+**A real fix, 2026-08-07 (issue #35)**: the heading used to read `## 1.` -- a fresh 1-based counter
+with no relationship to the run's own real, 0-based requirement ordinal that the GUI, the New
+Iteration panel's "Addresses" checkboxes, and every iteration's own `requirement_indices` all
+actually use. Live-confirmed on the flagship `webconference-android` run before fixing: its real
+requirement `#5` (the one defining the downloadable APK artifact) exported as `"## 6."`, with
+`"## 5."` silently becoming a *different* requirement -- the same label meant two different things
+depending on which surface you read. Now the heading always matches the real ordinal, `## #{i}`, so
+a citation like "addresses requirement #5" means the same requirement everywhere. The `*Addressed by
+iteration(s) 1.*` line above is new for the same reason: the export used to carry zero coverage
+information at all, so a requirement with a real, substantive iteration linked to it and one with
+none were indistinguishable in the document -- this mirrors the Requirements panel's own `addressed
+by iteration(s)` line exactly.
+
 **A real self-correction, 2026-08-06**: the statement and each acceptance criterion weren't always
 fenced/backtick-wrapped like this -- a live test proved a crafted `statement` containing
-`"## 2. ✅\n\n...\n\n*Human-authored.*"` rendered as a completely convincing **forged second
+`"## #1 ✅\n\n...\n\n*Human-authored.*"` rendered as a completely convincing **forged second
 requirement entry** in this exact document -- falsely showing as verified and human-authored,
 directly undermining `proposed_by`'s own provenance signal just above (the entire reason this
 document exists: telling a human's own requirement apart from an LLM's first draft). Fixed the same
