@@ -138,6 +138,33 @@ The forged heading text is still fully visible -- nothing here is ever hidden, s
 fenced-block fix above -- it's just contained inside a real double-backtick span a markdown renderer
 treats as one unbroken piece of inline code, not as a second `###` heading.
 
+## Knowing a check-in is actually due, even if you missed the moment
+
+**A real gap found live, 2026-08-07**: until this fix, a fired check-in was visible *only* as a
+one-time toast right after the triggering iteration -- reload the page, switch tabs, or come back
+later, and `health.iterations_until_checkin` silently reset to the full `checkin_every` value
+again, indistinguishable from a run that simply hadn't reached its next boundary yet. A genuinely
+overdue, never-reviewed check-in looked exactly like a healthy run mid-cycle everywhere in the GUI.
+
+Fixed with a real, persisted signal: `health.checkin_pending` stays `true` from the moment a real
+`checkin_every` boundary is crossed until a human explicitly acknowledges it -- not merely views
+the markdown, which never counts as review on its own. The Check-in panel now shows this plainly:
+
+<figure>
+<img src="{{ '/assets/img/howto-review-checkin/02-checkin-due-banner.png' | relative_url }}" alt="The Check-in panel showing a persistent 'Check-in due' warning banner with an Acknowledge check-in button, captured live against a real run that just crossed its own checkin_every boundary">
+<figcaption>A real, live capture -- a fresh run with <code>checkin_every: 2</code>, two iterations in. The banner and its <b>Acknowledge check-in</b> button persist across reloads and new sessions until someone actually clicks it; the Runs list badge and sort order reflect the same real signal.</figcaption>
+</figure>
+
+Acknowledging is `POST /api/runs/{id}/checkin/acknowledge` -- a real, explicit, idempotent action
+(a careless double-click is a harmless no-op). It records the exact iteration count acknowledged
+through, so a *later* boundary correctly re-flags rather than staying silently satisfied by an
+earlier acknowledgment forever -- the same "found once, forgotten forever" bug class this project's
+own stress-test methodology keeps finding and closing elsewhere (see
+[The DAU lens and the incompetent-agent stress test]({{ '/explanation/dau-lens-and-stress-testing/' | relative_url }})).
+`ecc-plan-canvas`-driven review (above) and this GUI-side acknowledgment are independent, real
+signals -- opening the canvas doesn't clear `checkin_pending`, and acknowledging doesn't touch the
+canvas session; use whichever fits how a given run is actually being watched.
+
 ## The real pre-flight checks
 
 `preflight_annotations` (`pipeline/src/preflight.rs`) runs five mechanical checks over a run's
