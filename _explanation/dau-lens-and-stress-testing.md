@@ -501,10 +501,22 @@ The DAU lens isn't only aimed at this project's own GUI -- it's applied to the r
 - Tapping **Send** with a real, genuine message *before ever connecting to anyone* used to hit a
   silent early return -- no status update, no rendered message, nothing to tell a user "you're not
   connected" apart from the app looking broken.
+- **Found by `devsystem.assistant` itself, not a human sweep**: a received `TextMessage`'s
+  `sender_pubkey` was taken verbatim from the wire -- entirely self-reported by whoever sent it,
+  never checked against anything the receiving side actually authenticated during the real
+  `Noise_IK` handshake. Harmless today only because nothing in the GUI currently trusts this field
+  (message direction alone drives rendering), but a forged value would have been silently accepted
+  the moment that changes. Fixed on the dialer/initiator side, which already has the peer's
+  handshake-pinned key in scope: a wrong key fails the handshake outright, so a live session means
+  it's real, not just claimed. The listener/responder side is a real, honestly-named residual gap,
+  not silently left unfixed -- closing it needs an upstream change to a separate, pinned dependency
+  (`ct_common::a2a::a2a_respond` learns the initiator's key during the handshake but doesn't return
+  it), correctly scoped as its own separate increment rather than worked around locally.
 
-All four are real commits in the app's own repository, each with its own Robolectric test proving
-the fix, verified green in that repo's real CI on every push -- the same discipline, applied to a
-different codebase this pipeline is building, not just the pipeline's own tooling.
+All five are real commits in the app's own repository, each with its own real test proving the fix
+(four Robolectric, one hermetic `cargo test` -- no Android SDK/NDK needed for pure Rust logic),
+verified green in that repo's real CI on every push -- the same discipline, applied to a different
+codebase this pipeline is building, not just the pipeline's own tooling.
 
 ## Why this is a page, not just commit messages
 
