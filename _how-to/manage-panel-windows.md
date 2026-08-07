@@ -1,0 +1,71 @@
+---
+title: Close, minimize, maximize, drag, and resize a panel
+description: The traffic-light window controls every open panel carries, what each one actually preserves, and one open, honestly-unreproduced report about the maximize button.
+order: 14
+---
+
+# Close, minimize, maximize, drag, and resize a panel
+
+Every open panel is a real floating window (macOS convention: close = red, minimize = yellow,
+maximize = teal), not a fixed layout block -- drag it by its header, resize it from its bottom-right
+corner, and use the three traffic-light buttons to change how much of the screen it takes up.
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-windows/01-normal-window.png' | relative_url }}" alt="The Pipeline panel in its normal floating-window state, with red, yellow, and teal traffic-light buttons in its header">
+<figcaption>A panel in its normal state -- close, minimize, maximize, left to right, same order and colors on every panel.</figcaption>
+</figure>
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-windows/02-traffic-lights-closeup.png' | relative_url }}" alt="A close-up of the three traffic-light buttons in a panel's header">
+<figcaption>Close-up: red closes, yellow minimizes, teal maximizes.</figcaption>
+</figure>
+
+## Close (red)
+
+Hides the panel -- for the core panel set (Pipeline, Runs, Process, and the rest of the fixed set),
+this doesn't delete anything, it just stops showing it. Reopen it any time from the
+[panel launcher]({{ '/how-to/navigate-with-the-panel-launcher/' | relative_url }}) or with
+`./show <panel>` in the Process Prompt. A [custom panel]({{ '/how-to/manage-custom-panels/' | relative_url }})'s
+close button is different -- it really deletes that panel, and asks you to confirm first.
+
+## Minimize (yellow)
+
+Collapses the panel down to just its header -- the body's real state (scroll position, any typed
+text, auto-refresh setting) is preserved underneath, not destroyed. Click the yellow button again
+(or `./restore <panel>`) to bring it back exactly as you left it.
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-windows/03-minimized.png' | relative_url }}" alt="The Pipeline panel minimized to just its header, sitting over the Requirements panel underneath">
+<figcaption>Minimized: just the header remains, everything else preserved underneath.</figcaption>
+</figure>
+
+## Maximize (teal)
+
+Expands the panel to fill the available desktop area (the real work surface to the left of
+**devsystem.assistant**, which always stays visible and is never covered by a maximized panel).
+Click the teal button again to restore the panel to its exact previous position and size -- the
+real pre-maximize rectangle is remembered, not a generic default.
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-windows/04-maximized.png' | relative_url }}" alt="The Pipeline panel maximized to fill the desktop area, with devsystem.assistant still visible on the right">
+<figcaption>Maximized: fills the desktop, devsystem.assistant stays put on the right.</figcaption>
+</figure>
+
+The same command exists in the Process Prompt: `./max <panel>` maximizes (idempotent -- running it
+again while already maximized leaves it maximized, it doesn't toggle back), `./restore <panel>`
+undoes either a maximize or a minimize.
+
+**Open, unreproduced report:** [issue #26](https://github.com/scimbe/CADS-devsystem/issues/26)
+describes the maximize button silently not resizing on its very first click after a fresh page
+load, only working on a second click. Four separate live reproduction attempts this session --
+a direct button click as the literal first interaction on a freshly loaded page, the `./max`
+command, a raw JS `.click()`, and a near-zero-settle-time click -- all showed the button working
+correctly on the first try, so this couldn't be confirmed as of this writing. Documented here, not
+silently omitted, in case it happens to you: if it does, a second click on the same button gets you
+where you were headed either way.
+
+## Drag and resize
+
+Drag anywhere on a panel's header (not on one of the three buttons) to move it. Drag the small
+handle in the bottom-right corner to resize it. Both are clamped to the visible desktop area -- a
+panel can't be dragged or resized to a position that would put it partly off-screen.
