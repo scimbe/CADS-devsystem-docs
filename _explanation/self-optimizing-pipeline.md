@@ -153,6 +153,31 @@ the run's own mandatory check-in pause -- the same real bounded-loop enforcement
 pause itself?]({{ '/how-to/why-did-my-run-pause/' | relative_url }}) documents, observed here firing
 on the actual flagship run rather than only in a hermetic test.
 
+**Update, 2026-08-07 -- the run's own review/merge gate closed a real panic, not just proposed a
+fix**: iteration 27 above delivered real work but honestly stopped short of shipping it --
+[`CADS-webconference-android` PR #11](https://github.com/scimbe/CADS-webconference-android/pull/11)
+sat open, CI-green, unmerged, because a role-filler's own iteration can submit a PR but has no
+merge authority over the target repo. Closing that gap is a distinct real action from the auction
+itself: a real code review (not a rubber stamp) of the actual diff, independent
+confirmation the root cause was correctly diagnosed (`hex_decode_32` gated on `str::len()`, a BYTE
+count, then indexed the same `&str` by byte range -- a 64-BYTE peer key holding any multi-byte
+UTF-8 character cleared the length check and then panicked on a non-char-boundary slice), and
+direct confirmation of both CI jobs independently -- not just trusted from a green checkmark. The
+`verify-native-bridge` job's own log was read directly: a fresh NDK rebuild's exported symbols
+matched the committed `.so` exactly, 105 symbols on each of `arm64-v8a`/`x86_64`, proving the
+binary the APK actually ships contains the fix, not just the Rust source. Merged as
+[`ff3864d`](https://github.com/scimbe/CADS-webconference-android/commit/ff3864d), both CI jobs
+re-confirmed green on the resulting `main`.
+
+Requirement #17's own criteria (live-checked against the real run, not assumed) stay honestly,
+deliberately partial after this: criteria 1-3 -- the hermetic regression test itself, the
+round-trip proof the fix isn't over-restrictive, and `onConnectClicked`'s real typed-error catch --
+are confirmed. Criterion 0's own text asks for the exact repro pasted into the peer-key field with a
+real tap on Connect; code-level and binary-level proof isn't the same claim as a real device
+interaction, so it stays unconfirmed rather than being marked done on the strength of a unit test.
+Criterion 4 (an automated emulator test) remains what it always was: real, open work belonging to
+`devsystem.android_emulator_test`, a separate stalled role this merge deliberately didn't touch.
+
 **Update, 2026-08-06**: the two real `SignedChannelGrant`s are minted. The blocker really was the
 bidder's real full holder public key -- the auction view deliberately only ever shows a 4-byte
 display prefix (the section above explains why), and no `AgentCard` for this role was registered in
