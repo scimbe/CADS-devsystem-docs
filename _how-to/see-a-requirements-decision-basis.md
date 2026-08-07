@@ -97,6 +97,13 @@ Nothing is lost and nothing is invented: the migration was verified live against
 See the [REST API reference]({{ '/reference/rest-api/' | relative_url }}#backlog-milestones-requirements)
 for the wire shape.
 
+## Correcting a wrong requirement
+
+A requirement that turns out wrong or unsatisfiable as written isn't permanently stuck any more --
+see [Correct a wrong requirement]({{ '/how-to/edit-a-requirement/' | relative_url }}) for the real
+Edit control this panel now has, and why saving a correction honestly resets the requirement's own
+confirmation state.
+
 ## What's still not in this view
 
 The assistant's own chat exchanges about a requirement aren't pulled in yet — only real iteration
