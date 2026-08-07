@@ -52,6 +52,14 @@ encodes real, current relevance, not a fixed ranking:
   icon, a second, independent signal from size alone).
 - Everything else is a plain, smaller icon further out.
 
+**A real bug in that teal dot was found and fixed, 2026-08-07**
+([issue #43](https://github.com/scimbe/CADS-devsystem/issues/43)): it used to be computed only once,
+the moment the launcher opened. If shrinking the browser window while the launcher was still open
+auto-hid a panel (see [close, minimize, maximize]({{ '/how-to/manage-panel-windows/' | relative_url }})),
+that panel's bubble kept its teal dot -- clicking it then *revealed* the panel you'd just watched get
+auto-hidden, the opposite of what "currently open" implied. Fixed: the launcher now stays live while
+it's open, not a snapshot taken the moment you clicked the dot.
+
 ## Prefer typing? There's a real filter for that too
 
 Live feedback after shipping the bubble-click version: hunting for one specific bubble by eye felt
