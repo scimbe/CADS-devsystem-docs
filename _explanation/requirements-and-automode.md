@@ -279,6 +279,37 @@ Same run, same requirement, same missing evidence -- the human's own click succe
 acceptance criteria is deliberately unaffected either way -- that's always been routine bookkeeping,
 not the headline `verified` status this gate governs.
 
+## Which requirement is "requirement 0"?
+
+Requirement prose and iteration feedback refer to each other by **ordinal** — a requirement's own
+`statement` might read "WHEN an iteration is submitted for requirement 0 (M2 broker-mediated channel
+discovery), THE SYSTEM SHALL be validated by...". Until 2026-08-07 that ordinal was never actually
+*shown* anywhere in the GUI — it existed only as a `data-index` attribute in the DOM, so resolving a
+cross-reference meant opening devtools or counting cards and assuming 0-based numbering
+([issue #32](https://github.com/scimbe/CADS-devsystem/issues/32), a real evaluator finding).
+
+Fixed: each Requirements panel card now shows its own real `#N` badge, the identical ordinal the
+prose already uses:
+
+<figure>
+<img src="{{ '/assets/img/explanation-requirement-ordinals/01-requirements-badges.png' | relative_url }}" alt="A Requirements panel card with a real '#0' badge next to its statement, reading 'WHEN the Android client starts and no manual peer address/public-key has been entered...'">
+<figcaption>Real data from the live webconference-android run -- this is requirement #0.</figcaption>
+</figure>
+
+The same index is prefixed onto each entry in the New Iteration form's "Addresses" traceability
+list, where a truncated statement alone can be ambiguous -- this run has two entries that both
+truncate to "WHEN a participant sends a 1:1 message, THE SYSTEM SHALL...":
+
+<figure>
+<img src="{{ '/assets/img/explanation-requirement-ordinals/02-newiter-addresses.png' | relative_url }}" alt="The New Iteration form's Addresses checklist, each entry prefixed with a real #N badge, disambiguating two entries that otherwise truncate to the same text">
+<figcaption>#3 and #4 are otherwise indistinguishable once truncated -- the badge is the only way to tell them apart.</figcaption>
+</figure>
+
+**A real, honestly-named residual gap, not fixed here**: the ordinal is positional. If requirements
+are ever reordered or one is deleted, every prose reference to "requirement N" silently retargets —
+with the index now visible, that drift is at least *visible* too, but a stable requirement id that
+survives reorder/delete would close the gap fully. Left open as a real, separate, bigger question.
+
 ## Who wrote this requirement: `proposed_by`
 
 A requirement can come from two real places: a human typing directly into the GUI's Requirements
