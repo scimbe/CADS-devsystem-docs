@@ -671,6 +671,30 @@ actual deployment, not just described:
   open, not closed, since four panels this size in that little space is a genuinely hard packing
   problem this fix doesn't always fully resolve -- named as a real, specific residual gap rather than
   left implied.
+- **A real evaluator finding that connected directly to a decision this project had already flagged
+  as open, deliberately answered without making that bigger call**: an iteration could be marked
+  `succeeded:true` while its own feedback explicitly admitted the requirement wasn't met. The
+  backend's own `succeeded_iteration_admits_a_defect` check already detects exactly this pattern --
+  but only as a passive line in the Risks & Stalled panel, which most people never open.
+  [Reported](https://github.com/scimbe/CADS-devsystem/issues/23) by an evaluator who found it while
+  deliberately clicking through the app's less-visited panels. Fixed the real, narrower gap without
+  making the bigger, genuinely still-open call (whether to hard-block such submissions outright, a
+  real pending decision on this project's own tracking issue): the Process panel's own "last: ..."
+  headline -- the one place every user actually looks -- now reads "⚠ ok, but admits a known defect"
+  with the real risk evidence shown inline, whenever the backend's already-existing check flags the
+  latest iteration. Matched by iteration number against the risk's own real evidence text rather than
+  re-deriving the defect-admission check client-side, so the GUI can never drift from the one real,
+  tested source of truth. Live-verified against the actual flagship run, the exact iteration the
+  report named.
+- **A real evaluator finding about this project's own accumulated scratch state**: this deployment
+  has 111 real runs, the overwhelming majority created by this project's own stress-test/verification
+  methodology, with no way to search or filter them --
+  [reported](https://github.com/scimbe/CADS-devsystem/issues/22) as burying a real project among
+  dozens of cryptically-named test fixtures. Fixed with a real filter input under "+ New Project",
+  the same substring-match convention the launcher's own filter already uses (which, tellingly, only
+  ever matched panel *types*, never the run entries inside this specific panel -- a real gap in its
+  own right this report indirectly surfaced). Live-verified against the actual 111-run deployment,
+  not a small fixture: filtering "webconference" correctly narrows to exactly the 5 real matches.
 
 ## The same lens, applied to the flagship app itself
 
