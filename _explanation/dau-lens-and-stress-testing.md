@@ -264,6 +264,41 @@ own build-arg exactly, verified locally first with the identical build command C
 scratch container on a throwaway port, cleaned up after) before trusting the real CI run to confirm
 it.
 
+**The host this project's own tooling runs on turned out to have a real, recurring resource
+constraint of its own -- found honestly, not swept under a "works on my machine."** A planned
+mutation-test round hit a genuine `No space left on device` mid-build: the host's root filesystem
+was already at 100% (72G, 33MB free) before the build even started, worsened by an ad-hoc
+verification build writing its `target/` output to the host bind-mount instead of a named volume --
+exactly the "host bind-mount accumulation" failure mode this project had already hit and fixed once
+before, repeated here by not applying the same discipline to a one-off verification build. Cleaned
+up safely (removed the root-owned `target/` via a throwaway root container, pruned ~16GB of
+genuinely unused Docker images and stale build cache, none of it tied to any running container) and
+recovered real headroom without touching anything a live service on this host depends on. A second,
+related incident followed on the very next redeploy attempt: the build ran several times its normal
+duration while the same disk kept draining, live-affecting the same shared host several other
+services (this project's own control-plane, multiple demo tunnels) run on. Killed it before it could
+exhaust the disk again rather than let one scratch verification build risk that -- confirmed via its
+own log it was genuinely still compiling, not hung, and confirmed the live `devsystem-web` container
+was never touched (a fresh image only swaps in after a successful build). The real, structural fix:
+`deploy-devsystem-web.sh` now refuses to even start a build below a 2GB-free floor, with a clear,
+actionable message -- failing in under a second beats failing (or silently degrading every other
+service on the host) minutes in.
+
+**Shipping that precondition also turned up a real lesson about this host's own actual build cost,
+not just its disk.** The real deploy that verified the fix took nearly 5 minutes -- roughly double
+this project's own previously-documented "genuinely cold build" baseline of ~7 minutes for a single
+`cargo build`. Traced rather than assumed: `web/Dockerfile`'s one build step runs `cargo build`
+**twice** -- once for the web binary, once for two pipeline client binaries -- and a genuinely cold
+cache means neither build's compiled dependencies help the other, even for crates both share by name
+and version, if their enabled feature sets differ (real, ordinary Cargo behavior). Watched the same
+dependency (`reqwest`, `ed25519-dalek`, `chacha20poly1305`) compile a second time mid-build,
+confirming this directly. Two earlier attempts in this same window were killed too early (under two
+minutes each) on the mistaken read that unusually slow meant something was newly wrong -- the real
+problem both times was impatience against a legitimately-documented cold-build cost, not a third
+incident. A full, patient run stayed disk-stable throughout, confirming the two *earlier* incidents
+genuinely were real (one actual disk-full crash, one build correctly killed while the disk was still
+actively draining) rather than conflating three events into one story.
+
 Two more real gaps, both about the Runs list silently hiding something a human needs to see. The
 Pipeline panel's own pending-proposal chip badge was already fixed once for undercounting (missing
 panel-removal/edit proposals) -- the Runs list's own separate `pending_reviews` count had the exact
