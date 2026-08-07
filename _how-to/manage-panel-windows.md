@@ -1,6 +1,6 @@
 ---
 title: Close, minimize, maximize, drag, and resize a panel
-description: The traffic-light window controls every open panel carries, what each one actually preserves, and one open, honestly-unreproduced report about the maximize button.
+description: The traffic-light window controls every open panel carries, and what each one actually preserves.
 order: 14
 ---
 
@@ -55,14 +55,14 @@ The same command exists in the Process Prompt: `./max <panel>` maximizes (idempo
 again while already maximized leaves it maximized, it doesn't toggle back), `./restore <panel>`
 undoes either a maximize or a minimize.
 
-**Open, unreproduced report:** [issue #26](https://github.com/scimbe/CADS-devsystem/issues/26)
-describes the maximize button silently not resizing on its very first click after a fresh page
-load, only working on a second click. Four separate live reproduction attempts this session --
-a direct button click as the literal first interaction on a freshly loaded page, the `./max`
-command, a raw JS `.click()`, and a near-zero-settle-time click -- all showed the button working
-correctly on the first try, so this couldn't be confirmed as of this writing. Documented here, not
-silently omitted, in case it happens to you: if it does, a second click on the same button gets you
-where you were headed either way.
+**A real bug here was found and fixed, 2026-08-07** ([issue #26](https://github.com/scimbe/CADS-devsystem/issues/26)):
+a panel you'd left maximized in an earlier session used to come back **small** on your next visit,
+even though it still silently believed it was maximized -- the first click on that panel's teal
+button then appeared to do nothing (it was actually performing a correct-but-invisible "restore" from
+small back to small), and only the *second* click visibly maximized it. Root cause: reopening the app
+never re-rendered a restored panel at its real maximized size, only its old pre-maximize one. Fixed
+at the source -- a panel you left maximized now correctly renders maximized again when you come back,
+so the very first click behaves as expected.
 
 ## Drag and resize
 
