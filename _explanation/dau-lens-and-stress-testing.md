@@ -458,6 +458,14 @@ actual deployment, not just described:
   -- but only the removal button asked for confirmation. All three reject buttons now do.
 - Removing an indexed RAG document, and marking a memory-log entry "reviewed" (an attestation with no
   undo), had the same gap. Both now confirm.
+- **The other direction of the same gap, and the more consequential one**: the Architecture panel's
+  own "Approve & post to GitHub" button (an approved `devsystem.assistant` issue proposal) posted a
+  real, public GitHub issue to an external repo the instant it was clicked -- zero confirmation,
+  even though approving a stage proposal (purely additive to this run's own live spec) correctly
+  needs none while this reaches outside the pipeline entirely and isn't meaningfully undoable. Fixed
+  with a real `confirm()` naming the actual target repo; live-verified by seeding a real proposal,
+  clicking Approve, capturing the real dialog, and confirming a cancel genuinely leaves the proposal
+  pending -- proof the old click would have posted for real with zero warning.
 - The Pipeline chip's own pending-proposal badge -- meant to be the one signal that tells a human
   "something needs your decision" -- silently undercounted for a while: its formula summed three of
   the five real proposal queues, missing panel-removal and panel-edit proposals entirely until a
