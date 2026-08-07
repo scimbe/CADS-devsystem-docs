@@ -121,6 +121,20 @@ scratch builds -- no concurrency needed -- served a silently stale binary. Fixed
 level: a real, prominent comment right at the cache mount declaration stating the actual rule going
 forward, any non-deploy build of this Dockerfile must pass `--no-cache`.
 
+**That mitigation turned out to be real but incomplete, found live 2026-08-07**: a later, *regular*
+(non-scratch) run of `deploy-devsystem-web.sh` -- not an ad-hoc build -- served a binary that passed
+the existing behavioral smoke test (`duplicate_of_last_iteration`) clean while a completely
+different, unrelated feature (`checkin_cadence_effectively_disabled`) was silently missing, only
+caught by the full stress harness afterward, not the deploy script itself. Chasing individual
+behavioral proxies one at a time doesn't scale to every future feature. General fix instead: [`GET
+/api/version`]({{ '/reference/rest-api/' | relative_url }}) reports the running binary's own
+build-time `git rev-parse HEAD`, baked into the image via a new `web/Dockerfile` build-arg --
+`deploy-devsystem-web.sh` now compares it against the real, current source immediately after every
+deploy and fails loudly on any mismatch, catching staleness in *any* feature rather than just
+whichever one a smoke test happens to exercise. Live-verified twice: once against the pre-commit
+source, again after committing -- both times the script printed the running container's real,
+correct build SHA.
+
 Rebuilt properly and re-ran the harness: `[37]` now correctly passed (the earlier failure was
 conclusively a tooling artifact, not a real gap), and `[36]` failed exactly as intended -- with an
 instructive twist. Its own second assertion ("the identical submission succeeds once resumed") also
