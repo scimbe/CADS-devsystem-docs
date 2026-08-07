@@ -63,6 +63,25 @@ safe (the run itself was never touched -- only the pending proposal goes away), 
 click, matching the same reasoning that already puts the confirmation on its **Approve** button
 instead.
 
+**Approve asks first here too, for the two kinds where it's the destructive step, 2026-08-07**: the
+fix above turned out to have a worse sibling on the other button. Approving a panel-removal proposal
+deletes a real, existing panel for good; approving a panel-edit proposal overwrites one for good --
+both exactly as permanent as the run-deletion case just above, just on **Approve** instead of
+**Reject**, since here it's *approving* that destroys something, not rejecting it. The dedicated
+Custom Panels manager already confirmed both; this shared queue, reaching the identical endpoint,
+didn't -- a real panel could vanish or be silently overwritten with one careless click and no warning
+at all.
+
+<figure>
+<img src="{{ '/assets/img/howto-open-points/11-approve-destroys-panel-before-confirm.png' | relative_url }}" alt="The Open Points panel showing a pending panel removal proposal for the real panel 'Team Retro Notes', with Approve and Reject buttons">
+<figcaption>A real panel-removal proposal, reached through Open Points. Clicking Approve here now pops a real browser confirmation naming the exact panel: "Remove the real panel &quot;Team Retro Notes&quot;? This deletes it for real, not just hides it." Cancelling it leaves the panel genuinely untouched.</figcaption>
+</figure>
+
+Every other kind's Approve stays a single click, because approving them is genuinely safe or purely
+additive: a new stage or custom panel gets added, a GitHub issue gets filed, a paused run resumes --
+nothing existing is destroyed or overwritten. Only the two panel-mutating kinds, plus run deletion
+covered above, get the extra step.
+
 ## After you act
 
 <figure>
