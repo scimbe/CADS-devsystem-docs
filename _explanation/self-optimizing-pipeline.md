@@ -113,6 +113,30 @@ exchanging a real message, see [issue #13](https://github.com/scimbe/CADS-devsys
 all still genuinely happened and are still real. It's the exact case this section's own reasoning
 was written to cover, now observed rather than only described.
 
+**Correction, 2026-08-07 -- the signal's own real meaning changed underneath this section**: what
+"stalled" actually keys on was, until [issue #53](https://github.com/scimbe/CADS-devsystem/issues/53),
+subtly different from what the paragraphs above describe. It was never a live/right-now bidding
+check at all -- there's no time window, no polling of whether a `--serve` process is currently up.
+It was permanent, binary, and keyed on one thing: does *any* iteration record -- succeeded or not --
+exist for this stage in the run's own history. A real evaluator (the `bastler` persona) found the
+consequence live on this exact flagship run: `devsystem.document_extraction`,
+`devsystem.android_emulator_test`, and a third role, `devsystem.android_native_build_ci`, had each
+had exactly one iteration recorded against them, every one `succeeded: false` -- two of the three
+opening with "drive the stalled `<stage>` stage" and describing what *would* need to be built, not
+reporting that it had been. A failed attempt satisfied the old check identically to a real delivery,
+permanently, with no way to re-arm it.
+
+Fixed to key on "has a *succeeded* iteration ever run as this stage" instead. Practically, for this
+page's own running example: nothing changes for the two roles discussed above, since their real
+bidders' work genuinely succeeded, then the bidder processes stopped running -- `stalled_stages` on
+this run today, after the fix,
+reads `["devsystem.document_extraction", "devsystem.android_emulator_test", "devsystem.android_native_build_ci"]`
+-- the third role above is now correctly named too, which the old, looser reading of this section
+would have missed. The distinction this section exists to make is unchanged and, if anything, sharper
+now: "delivered, then went idle" and "never once delivered" both surface as stalled today, correctly
+-- but only the fix makes that second case actually true rather than an accident of no record ever
+having been attempted.
+
 **Update, 2026-08-07**: `devsystem.android_native_bridge` -- the very first of the four proposed
 roles above, and the one this page's own list names but had never followed up on -- delivered real,
 verified work too, the identical "declared is not filled, filled is not the same as delivered"
