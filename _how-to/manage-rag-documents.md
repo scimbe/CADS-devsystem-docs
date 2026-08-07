@@ -53,6 +53,18 @@ button, no page reload:
 If nothing is indexed yet (no repo synced, no document added), the panel says so plainly instead
 of showing an empty results list with no explanation.
 
+**Keyword matching always works, with no configuration.** Real semantic matching -- finding a
+result with no shared words at all, purely by meaning -- needs a real embedding path configured on
+the deployment, and each result honestly says which kind it is (`match_kind: "keyword"` or
+`"semantic"`, visible in the raw API response). As of 2026-08-07, two real, independent paths can
+provide that, tried in this order: a static `RAG_EMBEDDING_API_KEY` credential (an OpenAI key,
+paid, provisioned per deployment) if configured, otherwise the real `devsystem.embedding` pipeline
+role over a real CADS-Tunnel Agent-Fabric channel, the same "an auction-discovered ct-agent instead
+of a static credential" model `devsystem.document_extraction` above already uses -- see
+[The self-optimizing pipeline]({{ '/explanation/self-optimizing-pipeline/' | relative_url }}) for
+the real architecture decision behind that. A deployment with neither configured stays honestly
+keyword-only; nothing here fabricates a semantic result to look more capable than it is.
+
 ## Adding a document two ways
 
 Open **Uploaded documents** to find both real ways to add one:
