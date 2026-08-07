@@ -14,11 +14,12 @@ LLM-judgment-in-disguise.
 
 ## Two dimensions, for a real reason
 
-- **History-only checks** (`preflight_annotations`) — a security-relevant keyword in the latest
-  iteration's feedback, `devsystem.implement` running before any *substantive* `devsystem.test`
-  iteration, a new service proposal with no `price_ceiling`, a `succeeded: true` iteration whose
-  own feedback admits a known defect, real succeeded work with no substantive `devsystem.review`
-  iteration anywhere in history, and a mandatory check-in cadence that's effectively disabled.
+- **History-only checks** (`preflight_annotations`) — a security-relevant keyword in any real
+  iteration's feedback, `devsystem.implement` running with no *substantive* `devsystem.test`
+  iteration since the previous one, a new service proposal with no `price_ceiling`, a
+  `succeeded: true` iteration whose own feedback admits a known defect, real succeeded work with no
+  substantive `devsystem.review` iteration since it, and a mandatory check-in cadence that's
+  effectively disabled.
   These only need a run's `RunState` — its iteration history — so they're usable everywhere a run's
   history is available, including `devsystem_checkin`'s own binary (which never loads the run's spec
   at all).
@@ -173,13 +174,20 @@ LLM-judgment-in-disguise.
   nothing surfaces it" pattern this whole page documents, found this time inside one of the checks
   meant to catch it.
 
-  **Not every check could get the same fix, and that's stated plainly, not hidden**:
-  `touches auth/security` has the identical "only checks the latest iteration" shape, but a keyword
-  mention in some past feedback text has no equivalent checkable "is this still live" entity the way
-  a role in `added_stages` does -- there's no honest way to know a security concern was actually
-  *resolved* versus just not mentioned again. Left as the latest-iteration-only check it's always
-  been, named here as a real, remaining limitation rather than papered over with an invented
-  resolution signal.
+  **`touches auth/security` had the identical shape too, and this one did get fixed, closed
+  2026-08-07** — this page previously said it couldn't get the same treatment as `no_price_ceiling`
+  above, reasoning that a keyword mention in past feedback has no equivalent checkable "is this still
+  live" entity the way a role in `added_stages` does. That reasoning was solving the wrong problem:
+  there's no honest way to know a security concern was *resolved* versus just not mentioned again,
+  true — but a security-relevant change is a real, permanent historical fact about the run regardless
+  of whether it was ever resolved, the same as a defect admission. Live-confirmed before fixing: a
+  real iteration rewriting session auth-token handling correctly flagged `touches auth/security`; the
+  very next, completely unrelated iteration (a README typo fix) made it vanish entirely, even though
+  the sensitive change was still sitting there, still unreviewed. Fixed the same way
+  `succeeded_iteration_admits_a_defect` already does — scan all of history, collect every real hit,
+  not just the latest. Re-checked the real `webconference-android` run afterward: **7** real
+  security-relevant iterations are visible now, not 1 — a genuinely more complete picture of this
+  run's own history, not a synthetic example.
 
   **A disabled cadence isn't the same as no risk at all** — `AbortCriteria.checkin_every`'s whole
   documented purpose is a mandatory human check-in that "fires at least this often, even when every
@@ -276,14 +284,21 @@ the comparison right below for what its *absence* looks like on a run that has s
 **Compare against the real `webconference-android` run, re-checked live, 2026-08-07** — this
 example has already gone stale several times, each time corrected here rather than left wrong: an
 early version claimed the run shows `"risks": []`; a later fix found the real `no price ceiling set`
-count itself had been undercounted; most recently, the review-staleness fix above changed what
-`no review stage for real, succeeded work` even means (its own evidence text no longer says "anywhere
-in its history"). The real run currently still shows **five** risks:
+count itself had been undercounted; the review-staleness fix changed what `no review stage for real,
+succeeded work` even means; most recently, the `touches auth/security` fix above changed a single
+finding into every real one this run's actual history has. The real run currently shows **eleven**
+risks, not five:
 
 ```
 $ curl .../api/runs/webconference-android
 {
   "risks": [
+    {"label": "touches auth/security", "evidence": "iteration 1's feedback mentions \"credential\""},
+    {"label": "touches auth/security", "evidence": "iteration 2's feedback mentions \"crypto\""},
+    {"label": "touches auth/security", "evidence": "iteration 3's feedback mentions \"auth\""},
+    {"label": "touches auth/security", "evidence": "iteration 7's feedback mentions \"session\""},
+    {"label": "touches auth/security", "evidence": "iteration 11's feedback mentions \"session\""},
+    {"label": "touches auth/security", "evidence": "iteration 12's feedback mentions \"session\""},
     {"label": "touches auth/security", "evidence": "iteration 13's feedback mentions \"auth\""},
     {"label": "no review stage for real, succeeded work", "evidence": "this run has at least one succeeded:true iteration with no substantive devsystem.review iteration since it -- 25+ characters and 8+ distinct words of feedback, not a rubber-stamp, and not just an earlier review of now-superseded work -- advisory today, not a block (goal doc §5)"},
     {"label": "no price ceiling set", "evidence": "role `devsystem.document_extraction` is live in this run's own spec, ..."},
@@ -293,14 +308,17 @@ $ curl .../api/runs/webconference-android
 }
 ```
 
-(Evidence text truncated above for length -- each real entry is the identical shape, naming its own
-real role.) The middle risk is the cleanest real illustration of this page's own "declared isn't the
-same as happened" distinction: `devsystem.review` genuinely IS declared in this run's own spec (the
-process-level check stays correctly silent), and a real, substantive `devsystem.review` iteration
-genuinely did run in its history -- but real work shipped right after that review and was never
-itself reviewed, so the history-level check correctly fires anyway, on a completely different real
-signal ("since the last real work", not "ever"). And `devsystem.review` shows up a SECOND time too,
-in the last entry -- it's both stale-on-review AND genuinely cost-unbounded, two different real facts
+(Evidence text truncated above for length on the last three -- each real entry is the identical
+shape, naming its own real role. The seven `touches auth/security` entries are the honest, complete
+picture: this run's real history genuinely touched session/auth/crypto-adjacent code seven separate
+times, not once.) The `no review stage for real, succeeded work` entry is the cleanest real
+illustration of this page's own "declared isn't the same as happened" distinction:
+`devsystem.review` genuinely IS declared in this run's own spec (the process-level check stays
+correctly silent), and a real, substantive `devsystem.review` iteration genuinely did run in its
+history -- but real work shipped right after that review and was never itself reviewed, so the
+history-level check correctly fires anyway, on a completely different real signal ("since the last
+real work", not "ever"). And `devsystem.review` shows up a SECOND time too, in the last entry --
+it's both stale-on-review AND genuinely cost-unbounded, two different real facts
 about the same role, not a contradiction.
 
 ## One risk kind now leads you straight to fixing it, not just naming it
