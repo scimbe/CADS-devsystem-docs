@@ -215,6 +215,77 @@ the requirement it claims to address:
 <figcaption>Addressing a requirement and verifying it are separate, explicit signals — this iteration claims to address the requirement, but its acceptance criteria stay unchecked until a human (or, opted in per-requirement, the assistant) actually confirms them. See <a href="{{ '/explanation/requirements-and-automode/' | relative_url }}">Requirements, verification, and automode</a>.</figcaption>
 </figure>
 
+## What the server adds that you don't control
+
+The record you write only ever names the *work* — `stage`, `feedback`, `succeeded`, `proposals`,
+`requirement_indices`. Three more fields show up on the persisted record that you never set
+yourself, all server-stamped, all deliberately impossible to forge from the client:
+
+```
+$ curl -X POST .../api/runs/docs-run/iterate -H 'x-gate-email: scimbe@gmail.com' \
+    -d '{"stage":"devsystem.plan","feedback":"real plan work","succeeded":true}'
+
+$ curl .../api/runs/docs-run | jq '.state.history[0]'
+{
+  "feedback": "real plan work",
+  "id": "4870dc73d472d8f9",
+  "iteration": 1,
+  "stage": "devsystem.plan",
+  "submitted_at": 1786124925,
+  "submitted_by": "scimbe@gmail.com",
+  "succeeded": true,
+  ...
+}
+```
+
+- **`id`** — a real, unique, server-generated identifier (`format!("{:016x}", rand::random::<u64>())`,
+  the same convention every other real id in this codebase uses). Closed a real, live-found gap
+  ([issue #38](https://github.com/scimbe/CADS-devsystem/issues/38)): the exact same iteration once
+  got submitted twice, byte-for-byte, into `webconference-android`'s real history, with nothing on
+  the record to tell the two apart or say which one was real.
+- **`submitted_at`** — a real Unix timestamp, server-set at the moment the submission actually
+  landed.
+- **`submitted_by`** — the real, gate-verified account (Caddy's `x-gate-email`, the exact header
+  `GET /api/me` reports) of whoever's signed-in browser session made the call. Closed a separate
+  real gap ([issue #40](https://github.com/scimbe/CADS-devsystem/issues/40)): the platform's own
+  premise is a crew auction — distinct crews bid for and win roles — but until this fix, the winning
+  crew's identity was never written into the work record at all. The *only* place any bidder
+  identity ever appeared was the live auction view, and every bid there expires 300 seconds after
+  being issued — so "who submitted iteration N" became permanently unanswerable the moment that
+  window passed, for every iteration, on every run. Confirmed live against the actual flagship run
+  before this shipped: one real iteration's authorizing bid had long since expired, and the role's
+  current holder was a completely different, unrelated bidder.
+
+**All three are real, honest `Option`s, not sentinels.** A pre-existing history entry that predates
+these fields — or a submission with no browser session behind it at all — reports a real, visible
+`null`, never a fabricated value or a misleadingly valid-looking empty string/zero:
+
+```
+$ devsystem_iterate docs-run record.json        # the local CLI: no browser session exists here
+$ curl .../api/runs/docs-run | jq '.state.history[-1].submitted_by'
+null
+```
+
+This is deliberate, not a gap left over from the fix: the local, non-`--remote` CLI path has no
+session to attribute to, and an M2M/`--remote` bearer-token submission authenticates a *service
+account*, not a human — inventing a person's name for either would be worse than the honest absence.
+`id`/`submitted_at` do get a real value even then (server-generated regardless of how the request
+arrived); only `submitted_by` stays `null` when no real signed-in session exists.
+
+**Never trust the request body for any of the three** — a client-supplied `id`, `submitted_at`, or
+`submitted_by` in the JSON you send is silently ignored; the server's own real values are the only
+ones that ever land. Live proof: sending `"submitted_by": "someone-else@example.com"` alongside a
+real `x-gate-email: scimbe@gmail.com` header still records `scimbe@gmail.com`, never the claimed
+value.
+
+The History panel renders `submitted_by` next to `iteration N · stage`, honestly labeled when it's
+absent rather than left blank with no explanation:
+
+<figure>
+<img src="{{ '/assets/img/howto-submit-iteration/10-submitted-by.png' | relative_url }}" alt="The History panel showing 'iteration 1 · devsystem.plan · submitted by scimbe@gmail.com' for a real submission with a gate session, and 'submitted by: not recorded (local CLI or M2M submission)' for one without">
+<figcaption>Two real iterations on the same run — one submitted through a signed-in browser session, one without. The panel names the real gap honestly instead of rendering the same blank line for both.</figcaption>
+</figure>
+
 ## Proposing a new stage in the same iteration
 
 `proposals` above was left empty, but this field is the actual mechanism behind "the pipeline
