@@ -368,20 +368,34 @@ representative sample, each with its own real live before/after proof:
   way, reusing the same constant -- this appears to close out the "no length bound at all" class:
   every real free-text field in this API now has one.
 
-Real, live, currently-true data as of this writing -- the actual `webconference-android` run's own
-risks, fetched fresh:
+Real, live, currently-true data as of this writing (2026-08-07; this section has already been
+refreshed once before, from an earlier two-finding snapshot -- both real checks below got real
+staleness fixes since, which is exactly why the count moved) -- the actual `webconference-android`
+run's own risks, fetched fresh:
 
 ```
 $ curl .../api/runs/webconference-android
 "risks": [
+  {"label": "touches auth/security", "evidence": "iteration 1's feedback mentions \"credential\""},
+  {"label": "touches auth/security", "evidence": "iteration 2's feedback mentions \"crypto\""},
+  {"label": "touches auth/security", "evidence": "iteration 3's feedback mentions \"auth\""},
+  {"label": "touches auth/security", "evidence": "iteration 7's feedback mentions \"session\""},
   {"label": "touches auth/security", "evidence": "iteration 11's feedback mentions \"session\""},
-  {"label": "no price ceiling set", "evidence": "role devsystem.document_extraction ... nothing since has bounded what filling it could cost"}
+  {"label": "touches auth/security", "evidence": "iteration 12's feedback mentions \"session\""},
+  {"label": "touches auth/security", "evidence": "iteration 13's feedback mentions \"auth\""},
+  {"label": "no review stage for real, succeeded work", "evidence": "this run has at least one succeeded:true iteration with no substantive devsystem.review iteration since it ..."},
+  {"label": "no price ceiling set", "evidence": "role devsystem.document_extraction ... nothing since has bounded what filling it could cost"},
+  {"label": "no price ceiling set", "evidence": "role devsystem.android_emulator_test ... nothing since has bounded what filling it could cost"},
+  {"label": "no price ceiling set", "evidence": "role devsystem.review ... nothing since has bounded what filling it could cost"}
 ]
 ```
 
-Two honest, currently-open findings on the actual flagship run, not a synthetic example -- proof this
-methodology's own checks fire against real, in-progress work, not just scratch test runs built to
-demonstrate them.
+Eleven honest, currently-open findings on the actual flagship run, not a synthetic example -- proof
+this methodology's own checks fire against real, in-progress work, not just scratch test runs built
+to demonstrate them. See [How real risk annotations work]({{ '/explanation/risk-annotations/' | relative_url }})
+for the real story behind why this list is so much longer than it used to be: `touches auth/security`
+and `no review stage for real, succeeded work` both used to silently lose real findings once anything
+unrelated happened afterward -- fixed the same day, and this run's own history is the proof.
 
 ## The DAU lens, applied to the GUI
 
