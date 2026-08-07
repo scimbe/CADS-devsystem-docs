@@ -15,7 +15,10 @@ explicit design, while a suggestion from the GUI's chat assistant waits for a re
 see [How the pipeline proposes and grows its own stages]({{ '/explanation/self-optimizing-pipeline/' | relative_url }}).
 
 The live control panel is at **[devsystem-demo.bunsenbrenner.org](https://devsystem-demo.bunsenbrenner.org/)**
-— a real, interactive GUI, not a static status page.
+— a real, interactive GUI, not a static status page. Its own **Support** panel links straight back
+here too (a real evaluator finding, 2026-08-07: nothing in the live UI pointed to this site before) —
+so if you're already in the app, `./show support` or the panel launcher gets you back to these docs
+without leaving.
 
 ## Start here
 
