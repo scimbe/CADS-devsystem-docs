@@ -66,6 +66,39 @@ Submitting it is rejected immediately, with the real reason stated plainly:
 <figcaption>Rejected -- a label whose on-screen text could be made to lie about who you're actually trusting with a role never gets saved.</figcaption>
 </figure>
 
+## Accepting a real bid directly
+
+The **Roles** panel also lists every real, live bid on a role -- not just the auction's current
+winner -- each with its own **Accept directly** button, right next to the price. This is a separate,
+faster path to the same "Set as dedicated" outcome above: skip typing a label and picking the winner
+yourself, just click the specific bid you want.
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-controls/07-accept-directly-bid-pending.png' | relative_url }}" alt="The Roles panel showing the plan role with a live offer and the gpu_training role with a live offer of 200, each with an Accept directly button next to it">
+<figcaption>Every real bid on a role gets its own "Accept directly" button -- not just the auction's own current winner.</figcaption>
+</figure>
+
+Clicking it asks for confirmation first (naming the real bidder and price), then submits the
+identical request "Set as dedicated" above does, with the winning bid's own price attached as a real
+snapshot.
+
+**A real price_ceiling now actually bounds this, 2026-08-07**: if the role this bid is for was
+proposed with a real, positive `price_ceiling` (see [How real risk annotations
+work]({{ '/explanation/risk-annotations/' | relative_url }}) for how a run gets flagged when one is
+missing), accepting a bid priced over that ceiling is now rejected outright, with the real numbers
+stated plainly:
+
+> this role's own real price_ceiling is 50 -- accepting this bid at 200 would exceed it; accept a
+> lower bid, or raise the ceiling first by re-proposing this stage with a higher price_ceiling
+
+Before this fix, `price_ceiling` was purely informational everywhere -- stored, shown, and flagged
+by the risk panel when missing, but never actually compared against a real bid's price at the one
+place a human accepts one directly. A role with **no** real ceiling set still accepts any price, same
+as always -- there's nothing yet to enforce for that case, and the risk panel already flags it
+honestly as unbounded. Auction-cleared bids (the more common path) still aren't checked against a
+ceiling anywhere -- this fix covers the one real, local, one-click acceptance path this app owns
+outright, not the whole auction pipeline.
+
 ## Closing either popover
 
 Click anywhere outside the popover, or press **Escape** -- both close it without submitting

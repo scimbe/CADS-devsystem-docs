@@ -69,7 +69,7 @@ for how this was found and where else it applies.
 | `GET /api/runs/{id}/auction` | The real `PipelineSpec::auction_view` -- per-role bids and the winner, computed live. See [How auction selection policies work]({{ '/explanation/auction-selection-policies/' | relative_url }}) for what decides the winner. |
 | `POST /api/runs/{id}/offers/submit` | Submit a real signed `CapacityOffer` (what `devsystem_offer` posts here). |
 | `POST /api/runs/{id}/offers/quick-submit` | A GUI-friendly offer shortcut -- signs and submits in one call, no separate CLI identity needed. |
-| `POST /api/runs/{id}/roles/{tag}/fill-mode` | Switch a role between auction-fill and a directly-assigned dedicated filler. |
+| `POST /api/runs/{id}/roles/{tag}/fill-mode` | Switch a role between auction-fill and a directly-assigned dedicated filler. Directly accepting a bid (`accepted_bid`) now gets a real `400` if its price exceeds the role's own real `price_ceiling` (closed 2026-08-07 -- see [Accepting a real bid directly]({{ '/how-to/set-auto-refresh-and-fill-mode/#accepting-a-real-bid-directly' | relative_url }})); a role with no real ceiling set still accepts any price. |
 
 ## Proposals -- pipeline stages, custom panels, GitHub issues
 
