@@ -288,10 +288,10 @@ field to change. Real DAU-lens gap, found live the same day it was closed: the R
 panel's own sibling section (stalled stages) already gives a one-click fix (a button that fills in
 the iteration form with the stalled stage), but risk findings never did.
 
-Not generalized to all twelve risk kinds — eleven of them genuinely need human judgment (a vague
+Not generalized to all twelve risk kinds — ten of them genuinely need human judgment (a vague
 acceptance criterion, an admitted defect, a change touching auth/security) and an automatic "fix
 it" button for those would be dishonest, not helpful. `mandatory check-in cadence effectively
-disabled` is the one exception: a run-level setting with a single, unambiguous, always-safe fix, no
+disabled` is the first exception: a run-level setting with a single, unambiguous, always-safe fix, no
 per-role or per-stage targeting needed. That one now gets a real **Fix it →** button right next to
 its finding:
 
@@ -312,6 +312,32 @@ side of the same discipline). Live-verified via Playwright against the real depl
 not assumed from source: `document.activeElement.id` was checked directly after the click and
 confirmed to be the real `cr-checkin-every` input
 ([CADS-devsystem@e9e075c](https://github.com/scimbe/CADS-devsystem/commit/e9e075c)).
+
+**A second, harder case, closed 2026-08-07**: `no price ceiling set` is the *most* frequently-hit
+real risk in this codebase's own runs — three simultaneous hits on `webconference-android` alone
+(see the real example above) — and has the identical shape of always-safe fix: re-propose the
+identical role with a real `price_ceiling` this time (`apply_proposal` already treats that as
+updating the live role, not creating a duplicate). But unlike the check-in cadence, this fix needs
+to know *which* role — and that role's `stage_id`/`tag` only ever existed in `evidence`'s own
+human-readable text. Parsing that string in the frontend would be exactly the kind of invented
+signal this project's own discipline already rejects elsewhere on this page (see the vague-
+acceptance-criteria and defect-admission sections above) — so instead, `RiskAnnotation` gained a
+real structured field, `fix_target` (`{stage_id, tag}`), populated only for this one risk kind, and
+`null` for the other eleven. The GUI's own "Fix it →" now reads that real field, not the prose:
+
+<figure>
+<img src="{{ '/assets/img/explanation-risk-annotations/03-price-risk-before.png' | relative_url }}" alt="The Risks panel showing a real 'no price ceiling set' finding for devsystem.load_test, with a 'Fix it →' button next to it">
+<figcaption>A real scratch run with an embedded proposal for an unbounded <code>devsystem.load_test</code> role — <code>GET /api/runs/{id}</code> shows the real <code>fix_target: {"stage_id": "devsystem.load_test", "tag": "load_test"}</code> alongside this finding.</figcaption>
+</figure>
+
+<figure>
+<img src="{{ '/assets/img/explanation-risk-annotations/04-price-fix-clicked.png' | relative_url }}" alt="After clicking Fix it: the New Iteration panel is open, Propose a new stage is checked, the stage id and tag fields are pre-filled with the real role, and the price ceiling field is focused">
+<figcaption>One click later: the New Iteration panel opens, <strong>Propose a new stage</strong> is checked, <code>pr-stage-id</code>/<code>pr-tag</code> are pre-filled with the real <code>devsystem.load_test</code>/<code>load_test</code> — and <code>pr-price-ceiling</code> is focused, ready for a real number, never picked for you.</figcaption>
+</figure>
+
+Live-verified the same way as the first case: `document.activeElement.id` confirmed genuinely
+`pr-price-ceiling` right after the click, against the real redeployed container
+([CADS-devsystem@e4f77e3](https://github.com/scimbe/CADS-devsystem/commit/e4f77e3)).
 
 ## Why "3+ successful iterations", not a specific stage name
 
