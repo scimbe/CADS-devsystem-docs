@@ -280,6 +280,39 @@ real signal. And `devsystem.review` shows up a SECOND time too, in the last entr
 declared-but-never-executed AND genuinely cost-unbounded, two different real facts about the same
 role, not a contradiction.
 
+## One risk kind now leads you straight to fixing it, not just naming it
+
+Every real risk finding above was, until 2026-08-07, rendered in the GUI as plain text — a real,
+mechanical finding, but the human still had to know on their own which panel to open and which
+field to change. Real DAU-lens gap, found live the same day it was closed: the Risks & Stalled
+panel's own sibling section (stalled stages) already gives a one-click fix (a button that fills in
+the iteration form with the stalled stage), but risk findings never did.
+
+Not generalized to all twelve risk kinds — eleven of them genuinely need human judgment (a vague
+acceptance criterion, an admitted defect, a change touching auth/security) and an automatic "fix
+it" button for those would be dishonest, not helpful. `mandatory check-in cadence effectively
+disabled` is the one exception: a run-level setting with a single, unambiguous, always-safe fix, no
+per-role or per-stage targeting needed. That one now gets a real **Fix it →** button right next to
+its finding:
+
+<figure>
+<img src="{{ '/assets/img/explanation-risk-annotations/01-risk-before.png' | relative_url }}" alt="The Risks panel showing the check-in-cadence risk, with a real 'Fix it →' button next to it">
+<figcaption>A real scratch run with <code>checkin_every: 0</code> — the exact trigger condition above — showing the finding with its new button.</figcaption>
+</figure>
+
+<figure>
+<img src="{{ '/assets/img/explanation-risk-annotations/02-fix-it-clicked.png' | relative_url }}" alt="After clicking Fix it: the Health & Criteria panel is open, its criteria details expanded, and the check-in-every field focused and selected">
+<figcaption>One click later: the Health & Criteria panel is genuinely open, its collapsed details expanded, and <code>check-in every N iterations</code> focused and selected — ready to type a real value into, not auto-filled for you.</figcaption>
+</figure>
+
+It never auto-submits a value on your behalf — same "flag it, then let the human act" restraint
+`saveCriteria`'s own client-side bounds-check already applies in the other direction (see [Ask
+devsystem.assistant about your run]({{ '/how-to/ask-the-assistant/' | relative_url }}) for that
+side of the same discipline). Live-verified via Playwright against the real deployed container,
+not assumed from source: `document.activeElement.id` was checked directly after the click and
+confirmed to be the real `cr-checkin-every` input
+([CADS-devsystem@e9e075c](https://github.com/scimbe/CADS-devsystem/commit/e9e075c)).
+
 ## Why "3+ successful iterations", not a specific stage name
 
 The process-level check deliberately doesn't look for `devsystem.implement` by name. This
