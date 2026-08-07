@@ -641,6 +641,17 @@ actual deployment, not just described:
   feedback preview already uses -- live-verified with a second screenshot against the redeployed
   container, confirming every entry now fits, cleanly truncated with an ellipsis, and "what
   happened" is visible again.
+- **Found by a real evaluator, not this project's own sweep**: the logged-out landing page showed
+  only plain "not signed in" text -- no link, no button, nothing clickable anywhere. The real
+  sign-in URL was only discoverable by opening devtools and reading a failed request's own redirect
+  target, which a first-time evaluator without that habit has no way to find; they'd reasonably
+  conclude the site was simply broken. Reported as a real, reproducible
+  [GitHub issue](https://github.com/scimbe/CADS-devsystem/issues/19) from labor-setup.com's own
+  persona-comparison testing against the actual gated deployment. Fixed with a real `<a href>` "Sign
+  in" link next to the status text, pointing at the exact same `gate/start` route the redirect flow
+  already uses -- live-verified against the redeployed container (a real Playwright DOM query
+  confirming the link exists and resolves to the correct URL for that hostname), not just read from
+  the diff.
 
 ## The same lens, applied to the flagship app itself
 
