@@ -31,7 +31,7 @@ The real route table `web/src/main.rs` mounts, as of this writing -- not a desig
 | `POST /api/runs` | Create a new, empty run (`{"run_id": "..."}`). |
 | `GET /api/runs/{id}` | A run's full real state: spec, health, risks, backlog, milestones, requirements, history. `risks` are real mechanical checks, not an LLM guess -- see [How real risk annotations work]({{ '/explanation/risk-annotations/' | relative_url }}). |
 | `DELETE /api/runs/{id}` | Permanently remove a run's entire directory on disk -- every iteration, requirement, milestone, backlog item, chat exchange, and custom panel goes with it, no undo. Owner-restricted like every other GUI mutation. Real `204` on success, `404` for a run that's already gone (including a second delete racing the first). See [Delete a run]({{ '/how-to/delete-a-run/' | relative_url }}). |
-| `GET /api/runs/{id}/open-points` | Every real item this run is actually waiting on a human to decide, ordered: the paused checkpoint first if paused (with its real `pause_reason`, and any real draft next-step options nested inside it), then the same five real pending-proposal queues `pending_reviews` already sums, same order, then any leftover draft next-step option once the run isn't paused anymore (its own real open point, `kind: "next_step_draft"` -- never lost to a resume). Deliberately excludes unverified requirements and stalled stages -- both are normal run states, not a stalled decision. Powers the **Open Points** panel -- see [Work through a run's open points]({{ '/how-to/work-through-open-points/' | relative_url }}). |
+| `GET /api/runs/{id}/open-points` | Every real item this run is actually waiting on a human to decide, ordered: the paused checkpoint first if paused (with its real `pause_reason`, and any real draft next-step options nested inside it), then the same six real pending-proposal queues `pending_reviews` already sums (panel add/edit/remove, stage, issue, and -- added 2026-08-07 -- deleting the run itself), same order, then any leftover draft next-step option once the run isn't paused anymore (its own real open point, `kind: "next_step_draft"` -- never lost to a resume). Deliberately excludes unverified requirements and stalled stages -- both are normal run states, not a stalled decision. Powers the **Open Points** panel -- see [Work through a run's open points]({{ '/how-to/work-through-open-points/' | relative_url }}). |
 | `POST /api/runs/{id}/next-steps/propose` | `devsystem.assistant` drafts one real, plain-text next-iteration-plan option (`{"text": "..."}`) at a paused checkpoint. No approve/apply step -- a draft never mutates anything on its own, it's advisory text a human reads, edits, or discards. Rejects empty/whitespace-only or oversized (>4,000 byte) text. |
 | `POST /api/runs/{id}/next-steps/{draft_id}/update` | A human edits an existing draft's text directly (`{"text": "..."}`) -- same validation as proposing one. Real `404` for an unknown draft id. |
 | `POST /api/runs/{id}/next-steps/{draft_id}/remove` | A human discards a draft, permanently. Real `204` on success, `404` for an unknown draft id. |
@@ -83,6 +83,8 @@ issue) share the same 500-item defensive cap the backlog/milestones/requirements
 a real gap for a while: only the latter three ever had it. Live-confirmed before the fix: 510 custom
 panels added in a row with zero rejections. Now every list here rejects its own 501st item with a
 real `400` too. See [The DAU lens and the incompetent-agent stress test]({{ '/explanation/dau-lens-and-stress-testing/' | relative_url }}).
+`pending_delete_run_proposal` (below) doesn't need this cap -- it's a single `Option`, not a queue,
+since there's only ever one real run to propose deleting.
 
 | Route | What it does |
 |---|---|
@@ -99,6 +101,9 @@ real `400` too. See [The DAU lens and the incompetent-agent stress test]({{ '/ex
 | `POST /api/runs/{id}/panels/edit-proposals/{proposal_id}/approve` \| `/reject` | Resolve a pending panel-edit proposal -- approving actually overwrites the real panel's content. |
 | `POST /api/runs/{id}/issues/propose` | Propose filing a real GitHub issue (pending). `title`/`body` reject a [Unicode bidi control character]({{ '/explanation/requirements-and-automode/' | relative_url }}), same class as every other real free-text field. |
 | `POST /api/runs/{id}/issues/proposals/{proposal_id}/approve` \| `/reject` | Resolve a pending issue proposal -- approving actually files it. |
+| `POST /api/runs/{id}/delete-proposal` | Propose deleting this run outright (pending). `rationale` is required (non-empty, under 2,000 characters, rejects a Unicode bidi control character) -- a run disappearing for good deserves a real, stated reason. Added 2026-08-07, the same propose-then-approve trust model as panel removal, since deleting a run is exactly as destructive and irreversible. |
+| `POST /api/runs/{id}/delete-proposal/{proposal_id}/approve` | Resolve a pending delete proposal by actually deleting the run -- the identical real `fs::remove_dir_all` `DELETE /api/runs/{id}` above uses. Real `204` on success, matching `DELETE`'s own; no run left afterward to persist a "resolved" proposal into. |
+| `POST /api/runs/{id}/delete-proposal/{proposal_id}/reject` | Decline the proposal -- the run was never touched. |
 
 ## RAG (document search)
 
