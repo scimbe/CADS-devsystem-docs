@@ -119,13 +119,27 @@ existed only in `devsystem-web`'s HTTP handler, with the local CLI path calling 
 directly and never going through it
 ([CADS-devsystem@7f09ae3](https://github.com/scimbe/CADS-devsystem/commit/7f09ae3)).
 
-**If the run paused because it hit its own bound, resuming alone doesn't raise that bound** --
-live-confirmed: resuming a run that hit `max_iterations: 1` and submitting one more real iteration
-gets accepted (it's genuinely below the new, post-resume gate check), but immediately re-aborts and
-re-pauses on that same submission, since the run is still, correctly, at its configured ceiling.
-Resuming buys you exactly one more real iteration's worth of grace, not a reset. To actually raise
-the ceiling, update the run's real criteria first (Health & Criteria panel, or
-`POST /api/runs/{id}/criteria`), then resume.
+**If the run paused because it hit its own bound, resuming alone does not raise that bound, and
+does not buy you another iteration either.** Until 2026-08-07 it did: `Resume` cleared `paused`
+without re-checking whether the ceiling was still true, so the very next submission was accepted
+and durably recorded one past the declared bound -- resume, submit, re-pause, repeat, one real
+iteration of grace per click, forever (real evaluator finding, [issue
+#46](https://github.com/scimbe/CADS-devsystem/issues/46)). Fixed: a run already at its
+`max_iterations` or `max_consecutive_failures` ceiling is refused with a real `409` regardless of
+whether `paused` was just cleared, naming the actual current count --
+
+```
+$ curl -X POST .../api/runs/docs-run/resume
+{"paused": false, "pause_reason": null}
+$ curl -X POST .../api/runs/docs-run/iterate -d '{"stage":"devsystem.implement", ...}'
+already at 1 of 1 max iterations -- raise max_iterations for this run, or close it out;
+resuming a run that already reached its ceiling does not raise the ceiling
+```
+
+To actually raise the ceiling, update the run's real criteria first (Health & Criteria panel, or
+`POST /api/runs/{id}/criteria`), then resume -- `Resume` alone is now only ever correct for the
+*other* pause reasons (a milestone, a manual pause), where the underlying condition genuinely
+isn't still true the moment the run comes back.
 
 **Raising it too far gets caught immediately, not after a round-trip.** All three fields share the
 same real, generous-but-finite cap the server itself enforces (10,000 -- see

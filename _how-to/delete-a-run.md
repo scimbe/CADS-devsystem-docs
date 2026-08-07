@@ -16,15 +16,22 @@ name/summary button (clicking the name still selects the run, same as always).
 
 ## What it does
 
-Clicking 🗑 asks for a real confirmation first:
+Clicking 🗑 asks for a real confirmation first -- what it asks depends on whether the run has any
+real history, since a bare one-click confirm turned out not to be enough friction for a run that
+actually matters (real evaluator finding, [issue
+#45](https://github.com/scimbe/CADS-devsystem/issues/45), fixed 2026-08-07):
 
-> *"Delete run "&lt;run_id&gt;" permanently? This removes it and all its real state for good --
-> there's no undo."*
+- **A fresh, 0-iteration run** gets a plain confirmation: *"Delete run "&lt;run_id&gt;" permanently?
+  [ownership note]. This removes it and all its real state for good -- there's no undo."*
+- **A run with any real iteration history** asks you to type the run's own id to confirm instead --
+  *"Delete run "&lt;run_id&gt;" permanently? [ownership note]. It has N real iteration(s) of history.
+  ... Type the run id to confirm:"* -- anything else typed, including Cancel, leaves the run
+  untouched.
 
-That's not exaggerated for effect -- **Cancel** leaves the run exactly as it was, but confirming
-calls the real `DELETE /api/runs/{id}` route, which removes that run's entire directory on disk.
-Every real iteration, requirement, milestone, backlog item, chat exchange, and custom panel that
-run ever had goes with it. There's no archive, no trash, no recovery.
+Either way, confirming calls the real `DELETE /api/runs/{id}` route, which removes that run's
+entire directory on disk. Every real iteration, requirement, milestone, backlog item, chat
+exchange, and custom panel that run ever had goes with it. There's no archive, no trash, no
+recovery.
 
 This exists because it's a genuine, common need, not a rarely-used escape hatch: this project's own
 [stress-test methodology]({{ '/explanation/dau-lens-and-stress-testing/' | relative_url }}) creates
@@ -32,11 +39,21 @@ a fresh scratch run on nearly every real investigation, and before this existed 
 forever -- over a hundred real runs piled up on the actual deployment with no way to ever remove
 one.
 
-## You can only delete your own
+## Ownership only protects a run that has one
 
-If you're signed in, deleting someone else's run gets a real `403` -- the exact same
+If you're signed in, deleting someone else's *owned* run gets a real `403` -- the exact same
 per-run ownership check that already governs viewing and editing a run applies here too, not a
-separate, looser rule for deletion.
+separate, looser rule for deletion. But that check is `owner_email == you`, and only ever
+protects a run that actually has an `owner_email` recorded.
+
+**Right now, that's none of them.** A real evaluator measurement ([issue
+#44](https://github.com/scimbe/CADS-devsystem/issues/44)) found 0 of 138 runs on the live
+deployment carry a recorded owner, `webconference-android` included -- every run so far was
+created through this pipeline's own headless CLI/automation, which never carries a signed-in
+browser's identity, rather than through the GUI's own **+ New Project** button (which does record
+a real owner, confirmed live). Until a run has an owner, *"you can only delete your own"* is not
+the operative rule -- any signed-in account can delete it, which is exactly why a run with real
+history now asks you to type its id rather than trusting one click (above).
 
 ## If a run you're looking at disappears
 
