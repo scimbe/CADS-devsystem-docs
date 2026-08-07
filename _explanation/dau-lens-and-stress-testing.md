@@ -387,9 +387,10 @@ representative sample, each with its own real live before/after proof:
   every real free-text field in this API now has one.
 
 Real, live, currently-true data as of this writing (2026-08-07; this section has already been
-refreshed once before, from an earlier two-finding snapshot -- both real checks below got real
-staleness fixes since, which is exactly why the count moved) -- the actual `webconference-android`
-run's own risks, fetched fresh:
+refreshed twice before -- first from an earlier two-finding snapshot once `touches auth/security`
+and `no review stage for real, succeeded work` got their staleness fixes, then again after three of
+the findings below were genuinely closed) -- the actual `webconference-android` run's own risks,
+fetched fresh:
 
 ```
 $ curl .../api/runs/webconference-android
@@ -401,17 +402,19 @@ $ curl .../api/runs/webconference-android
   {"label": "touches auth/security", "evidence": "iteration 11's feedback mentions \"session\""},
   {"label": "touches auth/security", "evidence": "iteration 12's feedback mentions \"session\""},
   {"label": "touches auth/security", "evidence": "iteration 13's feedback mentions \"auth\""},
-  {"label": "no review stage for real, succeeded work", "evidence": "this run has at least one succeeded:true iteration with no substantive devsystem.review iteration since it ..."},
-  {"label": "no price ceiling set", "evidence": "role devsystem.document_extraction ... nothing since has bounded what filling it could cost"},
-  {"label": "no price ceiling set", "evidence": "role devsystem.android_emulator_test ... nothing since has bounded what filling it could cost"},
-  {"label": "no price ceiling set", "evidence": "role devsystem.review ... nothing since has bounded what filling it could cost"}
+  {"label": "no review stage for real, succeeded work", "evidence": "this run has at least one succeeded:true iteration with no substantive devsystem.review iteration since it ..."}
 ]
 ```
 
-Eleven honest, currently-open findings on the actual flagship run, not a synthetic example -- proof
+Eight honest, currently-open findings on the actual flagship run, not a synthetic example -- proof
 this methodology's own checks fire against real, in-progress work, not just scratch test runs built
-to demonstrate them. See [How real risk annotations work]({{ '/explanation/risk-annotations/' | relative_url }})
-for the real story behind why this list is so much longer than it used to be: `touches auth/security`
+to demonstrate them. Down from eleven: the three `no price ceiling set` findings that used to be
+here (`devsystem.document_extraction`, `devsystem.android_emulator_test`, `devsystem.review`) were
+genuinely closed the same day via the pipeline's own real "re-propose the same stage with a real
+ceiling" fix, not edited out of this example -- proof this list moves in both directions as real
+work actually lands, not just upward as new checks get added. See
+[How real risk annotations work]({{ '/explanation/risk-annotations/' | relative_url }})
+for the real story behind why this list was so much longer for a while: `touches auth/security`
 and `no review stage for real, succeeded work` both used to silently lose real findings once anything
 unrelated happened afterward -- fixed the same day, and this run's own history is the proof.
 

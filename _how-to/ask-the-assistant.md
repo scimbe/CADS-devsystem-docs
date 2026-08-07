@@ -25,8 +25,8 @@ What is blocking this run from reaching its milestone right now?
 ```
 
 <figure>
-<img src="{{ '/assets/img/howto-ask-assistant/02-assistant-reply.png' | relative_url }}" alt="The assistant's real reply: a table of two real blockers, with concrete detail and a concrete suggestion" >
-<figcaption>A real reply against the live webconference-android run -- names the actual stalled role (<code>devsystem.android_emulator_test</code>), the actual reason (no bidder, no <code>price_ceiling</code> set), the actual backlog item still open, and even a concrete, correct suggestion (set a <code>price_ceiling</code> so the auction has bounded economics). Real token usage and cost are shown too -- nothing about this reply is templated.</figcaption>
+<img src="{{ '/assets/img/howto-ask-assistant/02-assistant-reply.png' | relative_url }}" alt="The assistant's real reply: the milestone is already achieved, so it pivots honestly to a real status table of what's actually open" >
+<figcaption>A real reply against the live webconference-android run, re-captured 2026-08-07 after this run's own real state moved on (its milestone is achieved now, and its two stalled roles both got a real <code>price_ceiling</code> since the first version of this screenshot). Rather than force an answer to a premise that's no longer true, it says so plainly ("Nothing -- the run's only milestone is already <code>achieved: true</code>") and pivots to a real status table: milestones, the real backlog (including the two items this run's own live risk findings surfaced the same day), the two genuinely stalled roles (correctly no longer citing a missing <code>price_ceiling</code> -- both have one now), budget, and requirements. Real token usage and cost are shown too -- nothing about this reply is templated, and neither is this page: it reflects the run's actual current state, not a preserved-forever example.</figcaption>
 </figure>
 
 ## What it can and can't do
