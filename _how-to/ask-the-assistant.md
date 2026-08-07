@@ -39,15 +39,20 @@ security control), splits into three real categories:
 
 1. **Direct**: milestones, backlog items, requirements (including individual acceptance criteria),
    `repo_url`, creating a whole new run, a role's fill mode (dedicated/auction, in the Roles panel),
-   and this run's own abort criteria (max iterations, max consecutive failures, check-in cadence) --
-   applied immediately when you ask for one, no gate. The last two are deliberate parity with what a
-   human already has in the GUI, not a new risk: both real endpoints already bounds-check the values
-   themselves, and neither gets an extra confirmation dialog on the human path either.
+   this run's own abort criteria (max iterations, max consecutive failures, check-in cadence), and
+   pausing/resuming this run -- applied immediately when you ask for one, no gate. These are
+   deliberate parity with what a human already has in the GUI, not a new risk: the real endpoints
+   already bounds-check the criteria values, and none of these four get an extra confirmation dialog
+   on the human path either. Pause/resume is also fully reversible either direction -- asking to
+   pause, then resume, is a genuine no-op.
 2. **Propose, then you approve or reject**: a custom panel (add/edit/remove), a new pipeline stage,
-   or a GitHub issue -- queued in a real pending list, never applied on the spot. See [How the
-   pipeline proposes and grows its own stages]({{ '/explanation/self-optimizing-pipeline/' |
-   relative_url }}) and [Add, propose, and remove custom panels]({{ '/how-to/manage-custom-panels/'
-   | relative_url }}).
+   a GitHub issue, or deleting this run outright -- queued in a real pending list, never applied on
+   the spot. Deleting a run is the one exception to "direct" above being safe by default: unlike
+   pause/resume, it's permanent and irreversible, so it gets the same gate custom-panel removal
+   already has, including the identical confirmation dialog a human's own direct delete button
+   shows. See [How the pipeline proposes and grows its own stages]({{
+   '/explanation/self-optimizing-pipeline/' | relative_url }}) and [Add, propose, and remove custom
+   panels]({{ '/how-to/manage-custom-panels/' | relative_url }}).
 3. **Propose, then you edit or delete directly, no approval step**: a draft next-step option at a
    paused checkpoint -- advice, not an action, so there's nothing to approve. See [Work through a
    run's open points]({{ '/how-to/work-through-open-points/' | relative_url }}).
@@ -193,6 +198,60 @@ $ curl -X POST .../api/runs/docs-verify-eighteen-actions/assistant \
 {"response": "Nine kinds of data (milestones, backlog items, requirements, repo_url, runs, custom
  panels, stages, issues, next-step drafts) across eighteen total action types."}
 ```
+
+**A sixth and seventh real instance, both found the same day (2026-08-07) by re-auditing every
+human-editable GUI field against the assistant's own action set**: `set_paused` (nineteenth action
+type: pause/resume, direct like `update_criteria`) and `propose_delete_run` (twentieth: deleting a
+run outright, gated like a custom-panel removal). Real, live evidence against a fresh scratch run --
+pausing genuinely changes the persisted state, not just the reply text:
+
+```
+$ curl -X POST .../api/runs/docs-verify-set-paused/assistant \
+    -d '{"instruction": "Pause this run, I need to correct something."}'
+{"response": "Run paused."}
+
+$ curl .../api/runs/docs-verify-set-paused | jq '.state.paused, .state.pause_reason'
+true
+"paused manually"
+
+$ curl -X POST .../api/runs/docs-verify-set-paused/assistant \
+    -d '{"instruction": "Resume the run now, I fixed what I needed to."}'
+{"response": "Run resumed."}
+
+$ curl .../api/runs/docs-verify-set-paused | jq '.state.paused, .state.pause_reason'
+false
+null
+```
+
+Deleting a run through chat is the one direct-sounding request that does NOT take effect on the
+spot -- it's gated exactly like proposing to remove a custom panel, and needs your own explicit
+approval before anything real happens:
+
+```
+$ curl -X POST .../api/runs/docs-verify-propose-delete/assistant \
+    -d '{"instruction": "Propose deleting this run -- it was only a docs verification scratch run and is no longer needed."}'
+{"response": "Queued a delete proposal for `docs-verify-propose-delete` — approve it in the Runs
+ panel to actually delete; nothing is removed until you do."}
+
+$ curl .../api/runs/docs-verify-propose-delete | jq .state.pending_delete_run_proposal
+{"id": "31eaffae3c83332f", "rationale": "Scratch run created only to verify the docs' propose-delete
+ flow; 0 iterations, no milestones, backlog, requirements or repo_url. Operator confirmed it is no
+ longer needed.", "proposed_at": 1786065026}
+```
+
+The proposal shows up in the **Open Points** panel just like any other, with the exact same real
+Approve/Reject buttons -- approving it asks for the same confirmation the Runs panel's own direct
+delete button already requires, then genuinely deletes the run (a real `404` on the same id
+afterward, confirmed live).
+
+<figure>
+<img src="{{ '/assets/img/howto-ask-assistant/04-delete-run-proposal.png' | relative_url }}" alt="The Open Points panel showing a real delete-run proposal with its rationale and real Approve/Reject buttons">
+<figcaption>A real proposal, waiting for a real decision -- same treatment as every other proposal kind, nothing shortcut for being chat-originated.</figcaption>
+</figure>
+
+The same self-description question, asked again, now correctly says "twenty total action types."
+([CADS-devsystem@cdf7829](https://github.com/scimbe/CADS-devsystem/commit/cdf7829),
+[CADS-devsystem@f06b2ba](https://github.com/scimbe/CADS-devsystem/commit/f06b2ba))
 
 ## Marking a milestone achieved through chat pauses the run -- and it says so
 
