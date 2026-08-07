@@ -156,6 +156,19 @@ with the mutation -- caught immediately by reading the file's actual content rat
 the command, restored from a backup taken before mutating. Every mutation-test round since has
 restored from a pre-mutation backup file instead.
 
+**Three more rounds followed, deliberately picked as safe, non-escalating work while a real
+production-deploy decision sat open elsewhere**: check `[39]` (delete-run proposal safety --
+neutered the actual `fs::remove_dir_all` call to a realistic "approval reports success but never
+deletes" bug), `[40]` (`approve_destroys_panel_title` -- neutered the removal-proposal branch to
+"forgot to wire the structured field," the same shape several other real gaps this session found),
+and `[38]` (`checkin_cadence_effectively_disabled`, in `pipeline/src/preflight.rs` this time rather
+than `web/src/main.rs`, reverted to unconditionally return no finding -- literally "this check never
+existed," matching its own doc comment). All three: real teeth confirmed at the hermetic layer, live
+harness failed on exactly the targeted check while every sibling stayed green, cleanly reverted from
+a pre-mutation backup, real fix redeployed, full suite reconfirmed clean. A growing, not one-off,
+list of checks with real, live proof they'd catch their own regression coming back, spanning both
+crates this project's stress harness exercises.
+
 The same investigation that produced the harness also found a real gap in this project's own §5
 quality-bar table: it named `check-no-secrets.sh` as a real secrets-scanning gate, but that script
 had never actually existed in this repo at all -- a different project's convention, referenced in
