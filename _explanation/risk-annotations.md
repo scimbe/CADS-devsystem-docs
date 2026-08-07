@@ -34,19 +34,41 @@ LLM-judgment-in-disguise.
   count as real evidence testing happened, and the check falls through to flagging the risk as if
   no test iteration existed at all.
 
+  **One real test used to cover unlimited later, untested implement rounds, closed 2026-08-07** —
+  this only ever checked the FIRST `devsystem.implement` iteration in a run's history, so a real test
+  early on satisfied it permanently: a SECOND, much later `implement` round shipping brand-new work
+  with zero fresh test coverage since was never checked at all, because the old test stayed
+  chronologically "before" every future implement no matter how far back it happened. Fixed with a
+  real sliding window — each `devsystem.implement` occurrence is now checked against only the history
+  *since the previous* `devsystem.implement` (or the run's start, for the first one), so a fresh test
+  is required for every new round of implementation work, not just the run's earliest one. A
+  violation that already happened still doesn't retroactively clear (a test placed *after* an
+  untested implement round doesn't erase that historical fact) — this fix only closes the separate
+  gap of a *later* round silently riding on an *earlier* round's own test.
+
   **Declaring `review` isn't the same as it ever actually happening** — [the goal document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)'s
   own §5 names this gap directly: "a role-filler can mark an iteration `succeeded: true` without
   passing through `review`... at all." `no review stage for real, succeeded work` flags a run with
-  at least one real `succeeded: true` iteration but no `devsystem.review` iteration anywhere in
-  history substantive enough to count (the identical 25+ character / 8+ distinct word bar as the
+  at least one real `succeeded: true` iteration but no `devsystem.review` iteration since it
+  substantive enough to count (the identical 25+ character / 8+ distinct word bar as the
   test-stage check above, same rubber-stamp-proofing). Deliberately advisory, not a block — a
   separate, narrower hard `409` already exists for marking a *requirement* verified without real
   review evidence (see [Requirements, verification, and automode]({{ '/explanation/requirements-and-automode/' | relative_url }})),
   but nothing yet stops an *iteration* itself from counting as done the same way. Complementary to,
   not the same as, the process-level "review role declared" check below: that one asks whether
   `devsystem.review` exists in the run's own spec at all; this one asks whether real review
-  substance ever actually showed up in history, regardless of whether the role was ever declared —
-  a run can pass one and still fail the other.
+  substance ever actually covered the run's own most recent real work, regardless of whether the
+  role was ever declared — a run can pass one and still fail the other.
+
+  **A single early review used to satisfy this forever, closed 2026-08-07** — until then, "anywhere
+  in history" meant exactly that: one real, substantive review, however long ago, permanently cleared
+  the risk, no matter how much further `succeeded: true` work shipped afterward with zero review of
+  its own. Live-confirmed against the actual `webconference-android` run before fixing: a real review
+  genuinely cleared the risk, but real, new work landed right after it and was never itself reviewed
+  — the risk stayed silently gone regardless, an honest fact about the project's own state that was
+  going unreported. Fixed by requiring a substantive review at or after the run's own most recent
+  succeeded, non-review work, not just anywhere in history — a run that keeps shipping real work
+  after its last real review now correctly stays flagged until a fresh review actually covers it.
 
   **Contradicting yourself doesn't go unnoticed either** — a different flavor of the same
   discipline, this one going after a gap [the goal document's §5 quality-bar table](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)
@@ -236,7 +258,7 @@ $ curl .../api/runs/{id}
   "risks": [
     {
       "label": "no test stage before implement",
-      "evidence": "devsystem.implement first ran at iteration 1, with no devsystem.test iteration before it that's substantive enough to count as real evidence testing happened (25+ characters and 8+ distinct words of feedback, not a rubber-stamp)"
+      "evidence": "devsystem.implement ran at iteration 1, with no devsystem.test iteration since the previous implement (or the run's start) that's substantive enough to count as real evidence testing happened (25+ characters and 8+ distinct words of feedback, not a rubber-stamp)"
     },
     {
       "label": "succeeded iteration admits a known defect",
@@ -251,19 +273,19 @@ successful iterations to fire, so a single-iteration example like this one never
 the comparison right below for what its *absence* looks like on a run that has since declared
 `review`.)
 
-**Compare against the real `webconference-android` run, re-checked live, 2026-08-06** — this
-example has already gone stale twice, both times corrected here rather than left wrong: first an
-earlier version claimed the run shows `"risks": []`; that was fixed once the real two long-standing
-risks (`touches auth/security`, `no price ceiling set`) and a genuinely new one were found live. Then
-the multi-unbounded-role fix above found the real `no price ceiling set` count itself had been
-undercounted the whole time -- the real run currently shows **five** risks, not three:
+**Compare against the real `webconference-android` run, re-checked live, 2026-08-07** — this
+example has already gone stale several times, each time corrected here rather than left wrong: an
+early version claimed the run shows `"risks": []`; a later fix found the real `no price ceiling set`
+count itself had been undercounted; most recently, the review-staleness fix above changed what
+`no review stage for real, succeeded work` even means (its own evidence text no longer says "anywhere
+in its history"). The real run currently still shows **five** risks:
 
 ```
 $ curl .../api/runs/webconference-android
 {
   "risks": [
-    {"label": "touches auth/security", "evidence": "iteration 11's feedback mentions \"session\""},
-    {"label": "no review stage for real, succeeded work", "evidence": "this run has at least one succeeded:true iteration, but no devsystem.review iteration anywhere in its history that's substantive enough to count as real evidence review happened (25+ characters and 8+ distinct words of feedback, not a rubber-stamp) -- advisory today, not a block (goal doc §5)"},
+    {"label": "touches auth/security", "evidence": "iteration 13's feedback mentions \"auth\""},
+    {"label": "no review stage for real, succeeded work", "evidence": "this run has at least one succeeded:true iteration with no substantive devsystem.review iteration since it -- 25+ characters and 8+ distinct words of feedback, not a rubber-stamp, and not just an earlier review of now-superseded work -- advisory today, not a block (goal doc §5)"},
     {"label": "no price ceiling set", "evidence": "role `devsystem.document_extraction` is live in this run's own spec, ..."},
     {"label": "no price ceiling set", "evidence": "role `devsystem.android_emulator_test` is live in this run's own spec, ..."},
     {"label": "no price ceiling set", "evidence": "role `devsystem.review` is live in this run's own spec, ..."}
@@ -274,11 +296,12 @@ $ curl .../api/runs/webconference-android
 (Evidence text truncated above for length -- each real entry is the identical shape, naming its own
 real role.) The middle risk is the cleanest real illustration of this page's own "declared isn't the
 same as happened" distinction: `devsystem.review` genuinely IS declared in this run's own spec (the
-process-level check stays correctly silent), but no substantive `devsystem.review` iteration has
-ever actually run in its history -- the history-level check fires anyway, on a completely different
-real signal. And `devsystem.review` shows up a SECOND time too, in the last entry -- it's both
-declared-but-never-executed AND genuinely cost-unbounded, two different real facts about the same
-role, not a contradiction.
+process-level check stays correctly silent), and a real, substantive `devsystem.review` iteration
+genuinely did run in its history -- but real work shipped right after that review and was never
+itself reviewed, so the history-level check correctly fires anyway, on a completely different real
+signal ("since the last real work", not "ever"). And `devsystem.review` shows up a SECOND time too,
+in the last entry -- it's both stale-on-review AND genuinely cost-unbounded, two different real facts
+about the same role, not a contradiction.
 
 ## One risk kind now leads you straight to fixing it, not just naming it
 
