@@ -653,6 +653,31 @@ actual deployment, not just described:
   already uses -- live-verified against the redeployed container (a real Playwright DOM query
   confirming the link exists and resolves to the correct URL for that hostname), not just read from
   the diff.
+- **The very next real evaluator finding in the same corner of the app, and an honest partial fix
+  rather than a claimed-complete one**: clicking the in-app "logout" link (added for #19 above)
+  looked fully effective -- the control panel genuinely returned to an unauthenticated state -- but
+  a real evaluator then signed back in as a *different* account and landed silently back on the
+  *first* account, with zero indication anything had gone wrong.
+  [Reported](https://github.com/scimbe/CADS-devsystem/issues/20) as a real, reproducible sequence:
+  `/gate/logout` only ever clears this app's own gate cookie, never the shared Keycloak SSO session
+  at `auth.bunsenbrenner.org` -- so `gate/start` silently reuses that still-live session the moment
+  anyone signs back in. An earlier fix already carried this exact caveat, but only in a `title`
+  tooltip -- unreachable on touch/mobile, and easy to never trigger on desktop when the link's own
+  visible text ("logout") looks completely unambiguous. This report is real, live proof a hover-only
+  warning doesn't work for this particular danger.
+
+  Checked whether the real, structural fix (forcing a fresh Keycloak login on sign-in) was possible
+  from this repo alone before settling for less: read CT-Tunnel's own `gate.rs` directly -- no
+  forced-reauth parameter exists for this route to even request. That's shared, multi-tenant
+  infrastructure serving every host on `bunsenbrenner.org`, correctly out of scope for a unilateral
+  change from this app's own loop. What shipped instead is the honest, bounded version: the real
+  session scope is now stated in the *visible* link text itself -- `logout (this app only)` and
+  `Sign in (reuses existing login)` -- with the fuller explanation kept in the tooltip as
+  supplementary detail, not the only copy of the warning. Live-verified against the redeployed
+  container at a real, unremarkable viewport width: the caveat text is genuinely visible, and the
+  header row does not overflow (`document.body.scrollWidth` measured against `window.innerWidth`,
+  not eyeballed). Left open on GitHub rather than closed -- the full structural fix is real,
+  separate work this page doesn't claim to have done.
 - **A second real evaluator finding, and an honest partial fix rather than a claimed-complete one**:
   on a genuinely fresh session at a realistic browser width, this app's own default-visible panels
   (Runs, Process, Pipeline, Requirements) could spawn stacked exactly on top of each other -- silent
