@@ -23,9 +23,13 @@ is its own independently movable/resizable window. On your very first visit, onl
 default — enough to get oriented without being overwhelmed:
 
 <figure>
-<img src="{{ '/assets/img/tutorial-first-run/01-landing.png' | relative_url }}" alt="The GUI landing page with a small default set of panels open: Runs, Process, Pipeline, Requirements, and a small orange dot fixed in the bottom-left corner">
-<figcaption>Runs, Process, Pipeline, and Requirements are open by default. Every other panel — Backlog, Milestones, Roles, Check-in, and so on — is one click away on the orange dot in the bottom-left corner. See <a href="{{ '/how-to/navigate-with-the-panel-launcher/' | relative_url }}">Open panels with the launcher</a> for what it does and why panels aren't all the same size.</figcaption>
+<img src="{{ '/assets/img/tutorial-first-run/01-landing.png' | relative_url }}" alt="The GUI landing page with a small default set of panels open, all reading 'Select a run in the Runs panel', and the top bar reading 'no project selected'">
+<figcaption>Runs, Process, Pipeline, and Requirements are open by default. A genuinely fresh visit like this one selects no run at all — "no project selected" in the top bar, and every run-scoped panel says so plainly rather than guessing which project you meant (real gap closed 2026-08-09, <a href="https://github.com/scimbe/CADS-devsystem/issues/58">issue #58</a>: a reload used to silently pick an arbitrary run out of the real list). Every other panel — Backlog, Milestones, Roles, Check-in, and so on — is one click away on the orange dot in the bottom-left corner. See <a href="{{ '/how-to/navigate-with-the-panel-launcher/' | relative_url }}">Open panels with the launcher</a> for what it does and why panels aren't all the same size.</figcaption>
 </figure>
+
+Once you do select or create a run (next section), every run-scoped panel's own title bar names it
+directly — "REQUIREMENTS — your-run-id" — not just the highlighted row in the Runs panel, so it's
+always visible which project a write is about to land in.
 
 ## 2. Create a new project
 
