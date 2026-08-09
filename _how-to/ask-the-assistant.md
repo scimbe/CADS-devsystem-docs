@@ -288,6 +288,40 @@ false
 Same direct-action treatment as `set_paused` above -- takes effect immediately, no approval gate,
 since acknowledging is explicit and never destructive.
 
+**A real gap in that action, found and closed 2026-08-09**: the [check-in note field]({{ '/how-to/review-a-checkin/' | relative_url }}#knowing-a-check-in-is-actually-due-even-if-you-missed-the-moment)
+above lets the GUI's own Acknowledge button carry a real reply -- but `acknowledge_checkin` still
+had no `note` field, so the exact same reply typed into chat instead of the textarea was silently
+dropped. Fixed by giving the action an optional `note` --
+[CADS-devsystem@5d546c3](https://github.com/scimbe/CADS-devsystem/commit/5d546c3). Live-verified
+against the real deployment, not just the commit message: a fresh scratch run,
+`checkin_every: 1`, one real iteration to cross the boundary, then a plain-language reply with a
+note baked into the sentence:
+
+```
+$ curl -X POST .../api/runs/docs-verify-checkin-note-action/assistant \
+    -d '{"instruction": "I have reviewed the check-in, please acknowledge it with a reply saying:
+ looks good, proceed with the next iteration."}'
+{"response": "Acknowledged check-in through iteration 1 with your note.\n\n---\n**Actions taken:**\n-
+ done: acknowledge this run's most recently fired check-in, with a reply: looks good, proceed with
+ the next iteration\n"}
+
+$ curl .../api/runs/docs-verify-checkin-note-action | jq .state.checkin_notes
+[
+  {
+    "iteration": 1,
+    "note": "looks good, proceed with the next iteration",
+    "acknowledged_by": null,
+    "acknowledged_at": 1786310721
+  }
+]
+```
+
+Same real, append-only `checkin_notes` record either entry point produces -- the note shows up in
+the Check-in panel's own **Past answers** list regardless of whether it arrived via the textarea or
+a chat sentence. `acknowledged_by` is honestly `null` here because this `curl` call carried no
+`X-Gate-Email` session header, same rule every other provenance field in this API follows -- never
+guessed from context.
+
 ## Marking a milestone achieved through chat pauses the run -- and it says so
 
 Toggling a milestone to achieved has a real, run-wide consequence regardless of how you do it: see
