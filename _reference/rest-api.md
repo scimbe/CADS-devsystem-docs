@@ -70,12 +70,14 @@ Added 2026-08-07 (issue #36): a real, downloadable build artifact per run -- the
 made a requirement like `webconference-android`'s #5 ("SHALL produce a downloadable, installable
 release APK artifact that is traceable to the exact source commit") impossible to actually satisfy,
 since an iteration is free text only and nothing stopped an unverifiable claim like "APK built, sha256
-abc123" from being marked `succeeded: true`. No GUI panel exists yet -- these are REST-only for now,
-the same backend-first precedent `devsystem_document_extraction_client` set before its own GUI wiring
-landed. A defensive cap of 10 artifacts per run and 150,000,000 bytes (150 MB) per upload applies.
+abc123" from being marked `succeeded: true`. A defensive cap of 10 artifacts per run and
+150,000,000 bytes (150 MB) per upload applies. Shipped backend-only first (the same backend-first
+precedent `devsystem_document_extraction_client` set); the **Build Artifacts** GUI panel followed
+2026-08-09 -- see [Upload, download, and remove a build artifact]({{ '/how-to/manage-build-artifacts/' | relative_url }}).
 
 | Route | What it does |
 |---|---|
+| `GET /api/runs/{id}/artifacts` | List every real artifact uploaded to this run (added 2026-08-09, alongside the GUI panel -- nothing could previously enumerate a run's own artifacts at all). Owner-gated like every other per-run read that isn't the top-level listing. |
 | `POST /api/runs/{id}/artifacts` | Upload a real build artifact -- `multipart/form-data` with a `file` field plus required `producing_iteration` (an integer) and `producing_stage` fields, and optional `source_commit`/`version_name`/`version_code`/`signing_identity` text fields. `sha256` is always computed server-side from the actual uploaded bytes via `sha2` -- there is no client-supplied `sha256` field to send, and one is silently ignored if sent as an extra multipart field, since the response's `sha256` always reflects what the server itself hashed. `producing_iteration` is cross-checked against this run's own real iteration history and rejected with a real `400` if it doesn't name one that actually exists -- traceability that's actually checkable, not just a number typed into a form. `uploaded_by` is stamped from the real `X-Gate-Email` session header, honestly `null` for a header-less upload. Real `400` past the 10-artifact-per-run cap. |
 | `GET /api/runs/{id}/artifacts/{artifact_id}/download` | Download the real file, byte-identical to what was uploaded, as `Content-Disposition: attachment` under its original filename. Owner-gated like every other per-run read that isn't the top-level listing. Real `404` for an unknown artifact id. |
 | `POST /api/runs/{id}/artifacts/{artifact_id}/remove` | Permanently delete a real artifact -- both its metadata and the actual file on disk. No undo. Real `404` for an unknown artifact id. |
