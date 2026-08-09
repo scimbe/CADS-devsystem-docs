@@ -64,6 +64,27 @@ for how this was found and where else it applies.
 | `POST /api/runs/{id}/requirements/{index}/criteria/{criterion_index}/toggle` | Toggle one acceptance criterion. As of 2026-08-07 a confirmed criterion is a real object, `{"confirmed_by": ..., "confirmed_at": ...}`, not a bare `true` -- `confirmed_by` is the real `X-Gate-Email` session header (honestly `null` if the request carried none), `confirmed_at` a real Unix timestamp. Un-confirming clears the whole record back to `null`, not just a boolean flip. A pre-migration run's legacy `true` becomes `{"confirmed_by": null, "confirmed_at": null}` on first load -- confirmed, but who/when predates this field and is honestly unknown, never fabricated. See [See a requirement's real decision basis]({{ '/how-to/see-a-requirements-decision-basis/' | relative_url }}#who-confirmed-a-criterion-and-when). |
 | `GET /api/runs/{id}/requirements/export` | A real, downloadable Markdown document of every requirement -- statement, a real checklist per acceptance criterion, and provenance (human vs. LLM-proposed, per `proposed_by`). Each heading uses the run's own real 0-based ordinal (`## #{i}`, matching the GUI and `requirement_indices` exactly, fixed 2026-08-07 -- see [Requirements, verification, and automode]({{ '/explanation/requirements-and-automode/' | relative_url }})'s export section for why the old 1-based numbering silently pointed at the wrong requirement), and a real coverage line per requirement (`*Addressed by iteration(s) N.*` / `*Not yet addressed by any iteration.*`). Real `Content-Disposition: attachment`. |
 
+## Build artifacts
+
+Added 2026-08-07 (issue #36): a real, downloadable build artifact per run -- the structural gap that
+made a requirement like `webconference-android`'s #5 ("SHALL produce a downloadable, installable
+release APK artifact that is traceable to the exact source commit") impossible to actually satisfy,
+since an iteration is free text only and nothing stopped an unverifiable claim like "APK built, sha256
+abc123" from being marked `succeeded: true`. No GUI panel exists yet -- these are REST-only for now,
+the same backend-first precedent `devsystem_document_extraction_client` set before its own GUI wiring
+landed. A defensive cap of 10 artifacts per run and 150,000,000 bytes (150 MB) per upload applies.
+
+| Route | What it does |
+|---|---|
+| `POST /api/runs/{id}/artifacts` | Upload a real build artifact -- `multipart/form-data` with a `file` field plus required `producing_iteration` (an integer) and `producing_stage` fields, and optional `source_commit`/`version_name`/`version_code`/`signing_identity` text fields. `sha256` is always computed server-side from the actual uploaded bytes via `sha2` -- there is no client-supplied `sha256` field to send, and one is silently ignored if sent as an extra multipart field, since the response's `sha256` always reflects what the server itself hashed. `producing_iteration` is cross-checked against this run's own real iteration history and rejected with a real `400` if it doesn't name one that actually exists -- traceability that's actually checkable, not just a number typed into a form. `uploaded_by` is stamped from the real `X-Gate-Email` session header, honestly `null` for a header-less upload. Real `400` past the 10-artifact-per-run cap. |
+| `GET /api/runs/{id}/artifacts/{artifact_id}/download` | Download the real file, byte-identical to what was uploaded, as `Content-Disposition: attachment` under its original filename. Owner-gated like every other per-run read that isn't the top-level listing. Real `404` for an unknown artifact id. |
+| `POST /api/runs/{id}/artifacts/{artifact_id}/remove` | Permanently delete a real artifact -- both its metadata and the actual file on disk. No undo. Real `404` for an unknown artifact id. |
+
+Live-verified 2026-08-09 against the deployed `devsystem-demo.bunsenbrenner.org` container: uploaded a
+real file, independently confirmed the server-computed `sha256` against a local `sha256sum` of the same
+bytes, confirmed the downloaded bytes were byte-identical to the original, and confirmed a forged
+client-supplied `sha256` field was silently ignored and the real hash recomputed server-side regardless.
+
 ## Auction and roles
 
 | Route | What it does |
