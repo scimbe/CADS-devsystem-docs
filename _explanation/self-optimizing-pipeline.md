@@ -356,3 +356,39 @@ reads and trusts for a decision in this codebase -- requirement statement/criter
 backlog items, custom-panel title, and now stage-proposal rationale. Custom-panel `html` stays
 deliberately untouched: it's rendered only inside a sandboxed iframe, untrusted-by-design, so the
 same rule there would contradict its own existing security model rather than close a gap.
+
+**Update, 2026-08-09 -- requirement #5 is genuinely 5/5, and a real platform bug found getting the
+last artifact uploaded.** [`CADS-webconference-android` PR #16](https://github.com/scimbe/CADS-webconference-android/pull/16)
+added a real `verify-release-install` CI job (a clean, GitHub-hosted x86_64 Android emulator, `adb
+install` against the actual built release APK, then a real package-manager check -- not just an
+install command's exit code) after its first two real CI attempts genuinely failed for real reasons,
+not flakiness: dash's `set -o pipefail` incompatibility, then this action's own per-line `sh -c`
+execution splitting a `\` line continuation into a literal argument on the next line. Both root-caused
+from the actual failing logs, not assumed, before shipping the fix. Merged
+[`c045c2d`](https://github.com/scimbe/CADS-webconference-android/commit/c045c2d).
+
+Confirming criterion 3 against that evidence needed the real post-merge artifact, not the PR-preview
+run's own ephemeral merge-commit SHA (`$GITHUB_SHA` on a `pull_request` event, not the real branch
+head) -- waited for the actual `push`-triggered run on `main`, downloaded that artifact, and
+independently recomputed its SHA-256 by hand before trusting it. With that, only criterion 0
+("downloadable from this run's own UI") remained -- and issue #36 (the platform gap that criterion
+depended on) had already closed earlier the same session with the Build Artifacts panel. Uploading
+the real, CI-verified APK through it hit a second real bug on the very first genuine attempt: axum's
+`Multipart` extractor enforces its own default 2 MiB request-body limit, completely independent of
+`upload_artifact`'s own stated 150MB cap -- the handler's limit was dead code for anything past
+2MiB, and no prior upload in this project had ever been large enough to hit it. Fixed with
+`DefaultBodyLimit::max(MAX_ARTIFACT_BYTES)` on the router, a regression test uploading a real 3MB
+payload (deliberately over the old failure point), then the real APK re-uploaded, downloaded back
+byte-identical, and confirmed genuinely visible in the live Build Artifacts panel via Playwright.
+**Every acceptance criterion requirement #5 names is now true, live-verifiably, closing an item that
+was 0/5 at the start of this session** -- see [Upload, download, and remove a build
+artifact]({{ '/how-to/manage-build-artifacts/' | relative_url }}) for the real, current screenshot.
+
+Requirement #17's own last remaining criterion (an automated emulator test for the exact
+`hex_decode_32` non-ASCII repro) is in progress the same way: [PR
+#17](https://github.com/scimbe/CADS-webconference-android/pull/17) added a real Espresso
+instrumented test, reusing PR #16's own emulator CI infrastructure. Its first real run also failed
+for a real, root-caused reason -- Espresso's `typeText()` drives the on-device IME's own key-event
+synthesis, and the AVD's default IME has no key event for U+20AC, throwing before the app ever saw
+the input. Fixed by switching to `replaceText()`, which is also the more faithful simulation of the
+actual bug report this test reproduces: a *pasted* key, not one typed character by character.
