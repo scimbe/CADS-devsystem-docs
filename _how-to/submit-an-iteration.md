@@ -395,6 +395,22 @@ iteration, and the still-checked box silently reported it as a success instead
 [CADS-devsystem@e32c741](https://github.com/scimbe/CADS-devsystem/commit/e32c741)). Marking work
 succeeded is meant to be a deliberate, explicit click now, every time.
 
+## The Roles panel's own iteration count says how many actually succeeded
+
+Every role's card shows a real, running total of iterations submitted against it -- but until
+2026-08-09, that total didn't say how many actually *succeeded*. A role bid once and immediately
+failed looked identical, from this line alone, to one with a real, shipped success behind it:
+
+<figure>
+<img src="{{ '/assets/img/howto-submit-iteration/11-role-count-succeeded-failed.png' | relative_url }}" alt="Two role cards, each reading '1 iteration(s) total for this role (0 succeeded, 1 failed)' underneath a real failed iteration's own feedback text">
+<figcaption>Real, current data -- two genuinely dead roles on the flagship run, each with exactly one failed attempt and zero real successes. Distinguishing this from "has some history" is the whole point.</figcaption>
+</figure>
+
+`N iteration(s) total for this role (S succeeded, F failed)` -- the split comes straight from each
+iteration's own real `succeeded` flag, the same one recorded on every submission this page
+describes. A role can have real history and still be functionally dead; this line no longer hides
+that.
+
 ## `--remote` against this deployment: M2M bearer-token auth
 
 `devsystem-demo.bunsenbrenner.org` gates every route — including the API — behind a browser-based
