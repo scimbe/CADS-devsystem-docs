@@ -89,6 +89,20 @@ Open **Uploaded documents** to find both real ways to add one:
 
 Both land in the same real index as a repo sync would, searchable immediately.
 
+A real, visible confirmation names both the file and the run once the upload actually lands --
+until 2026-08-09 this panel's own refresh (needed to show the newly-indexed item in the list)
+replaced the whole panel body before the message could ever be seen, and the plain-text upload
+path didn't even set one to begin with:
+
+<figure>
+<img src="{{ '/assets/img/howto-manage-rag-documents/06-write-success-names-run.png' | relative_url }}" alt="The upload form with a green confirmation reading 'Uploaded retry-notes-48922.md to docs-rag-howto-demo.' beneath it">
+<figcaption>Real, current data -- the confirmation names the exact file and run, surviving the panel's own refresh.</figcaption>
+</figure>
+
+**Sync now** shows the same kind of confirmation ("Synced: 3/3 file(s), 12 chunk(s), for
+&lt;run&gt;.") for the same reason -- knowing a write landed, and where, matters most with several
+runs open side by side.
+
 ## Removing one is real and permanent
 
 The **Remove** button next to a document asks for confirmation before doing anything -- and means
