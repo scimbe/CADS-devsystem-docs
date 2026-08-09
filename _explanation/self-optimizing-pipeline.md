@@ -401,9 +401,24 @@ field: `Starting emulator.` -> `Starting 1 tests on test(AVD) - 10` -> `Finished
 test(AVD) - 10` -> `BUILD SUCCESSFUL in 2m 16s`, no `FAILED` line anywhere. Criterion 0 confirmed
 against the real deployment on that evidence.
 
-Requirement #17 stands at 4/5. The genuinely last remaining criterion is a distinct one, criterion
-4 -- an automated emulator test asserting no Rust panic appears in `logcat` itself, not just that
-the UI shows the right error. `ConnectFlowInstrumentedTest` proves the app survives the exact repro
-and shows `R.string.invalid_peer_key`, but it never inspects `logcat`, so it doesn't cover this
-criterion's own distinct claim; that remains real, open work belonging to
-`devsystem.android_emulator_test`, the same still-stalled role noted above.
+**Update, 2026-08-09 -- requirement #17 is now genuinely 5/5, fully closed.** Criterion 4, the
+last one open, made a distinct claim from criterion 0: not just that the UI shows the right error,
+but that no Rust panic trace appears in `logcat` itself. `ConnectFlowInstrumentedTest` (the same
+test criterion 0 closed) never inspected `logcat` at all -- its own KDoc had claimed this since
+PR #17, but the assertion never existed, only implicit survival (reaching the final Espresso
+check). Closed for real in
+[PR #18](https://github.com/scimbe/CADS-webconference-android/pull/18): `logcat -c` before the
+Connect interaction, `logcat -d` after, asserting none of three real markers appear (Rust's own
+default panic-hook output, the platform's `FATAL EXCEPTION` line any uncaught exception produces
+regardless of app-side logging setup, and UniFFI's own `Rust panic` `InternalException` message
+text).
+
+A real, separate bug surfaced shipping it: the local `webconference-android` checkout still had
+PR #17's own pre-squash commits as its "main", so the new branch conflicted with the real
+`origin/main` (`00fb390`'s squash-merge) the moment a PR was opened. Root-caused rather than
+force-pushed blind -- rebuilt the branch cleanly on the real `origin/main` plus just the one new
+commit before pushing. Merged as
+[`a00f9ed`](https://github.com/scimbe/CADS-webconference-android/commit/a00f9ed), confirmed on the
+real post-merge `push` run (not the pre-merge preview), criterion 4 toggled via the live API and
+re-verified through `/requirements/export`: requirement #17 stands at 5/5, every criterion
+carrying real confirmation evidence.

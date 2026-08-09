@@ -322,6 +322,82 @@ a chat sentence. `acknowledged_by` is honestly `null` here because this `curl` c
 `X-Gate-Email` session header, same rule every other provenance field in this API follows -- never
 guessed from context.
 
+## Asking the assistant to propose a new requirement
+
+CADS-devsystem issue #56 (operator-directed): the assistant can already add a requirement directly
+(`add_requirement`, above) when you dictate its exact shape -- but it had no way to *suggest* one
+on its own, the way it can already suggest a pipeline stage or a custom panel. `propose_requirement`,
+the twenty-second action type, closes the first real slice of that gap
+([CADS-devsystem@99b2fc2](https://github.com/scimbe/CADS-devsystem/commit/99b2fc2)). Re-asked the
+same self-description question against the actual live deployment:
+
+```
+$ curl -X POST .../api/runs/docs-verify-propose-requirement/assistant \
+    -d '{"instruction": "In one sentence, how many kinds of data can you take action on, and how many total action types?"}'
+{"response": "I can act on 9 kinds of data (milestones, backlog items, requirements, repo_url,
+ runs, custom panels, stages, issues, next-step drafts) via 22 total action types — 14 applied
+ immediately, 7 queued for your approve/reject, and 1 (propose_next_step) queued as a directly
+ editable draft."}
+```
+
+Same "proposes, human clicks install" trust model as every other `propose_*` action -- a
+requirement it suggests never touches the real Requirements list, the review gate, or coverage
+until you explicitly approve it in the Requirements panel. A real, live round trip, not just the
+count -- this run already had a requirement covering the happy path of deleting a message
+(requirement #1), so the assistant was asked to round out coverage around it:
+
+```
+$ curl -X POST .../api/runs/docs-verify-propose-requirement/assistant \
+    -d '{"instruction": "We just talked about the delete-message flow -- propose a requirement
+ rounding that out."}'
+{"response": "Requirement #1 only covers the happy path — proposed two edge cases (failed delete,
+ irreversible-action confirm) for your approve/reject in the Requirements panel."}
+
+$ curl .../api/runs/docs-verify-propose-requirement | jq '.state.pending_requirement_proposals | map({id, statement, rationale})'
+[
+  {
+    "id": "334fe5e6f2c28f72",
+    "statement": "WHEN a delete request fails or the device is offline, THE SYSTEM SHALL restore
+ the message to the thread and show an error indicating the delete did not apply",
+    "rationale": "Requirement index 1 only specifies the success path of the delete flow; without
+ this, an optimistic local removal on a failed request silently diverges from server state and the
+ user believes a message is gone when it is not."
+  },
+  {
+    "id": "ffa6cced3d04ee8c",
+    "statement": "WHEN the user taps delete, THE SYSTEM SHALL require an explicit confirmation
+ before the message is removed",
+    "rationale": "Deletion is irreversible under requirement index 1 (no undo is specified anywhere
+ in this run), so a single mis-tap destroys data permanently; this closes that gap without adding
+ an undo mechanism."
+  }
+]
+```
+
+Exactly the real behavior issue #56 asked for -- not a generic restatement of the requirement just
+discussed, but two real, distinct edge cases (a failure path, a destructive-action confirm) with a
+rationale naming specifically what gap each one closes. Neither is a real requirement yet:
+
+```
+$ curl .../api/runs/docs-verify-propose-requirement | jq '.state.requirements | length'
+1
+```
+
+The Requirements panel itself renders each proposal as a real card with **Approve & add**/**Reject**
+buttons -- the same treatment Custom Panels already gives an assistant-proposed panel, and each one
+also shows up in the Open Points panel as its own `requirement_proposal` open point. Approving
+stamps `proposed_by: "devsystem.assistant"` (an honest "LLM-proposed" badge in the GUI) and
+`created_by` from the real approving human's own session -- never the assistant, never guessed.
+
+<figure>
+<img src="{{ '/assets/img/howto-ask-assistant/05-propose-requirement.png' | relative_url }}" alt="The Requirements panel showing a real pending requirement proposal -- the failed-delete/offline restore one from the transcript above -- with its statement, proposed timestamp, rationale, and acceptance criteria">
+<figcaption>The first of the two real proposals from the transcript above, captured live in the same run -- the panel's own default size only shows one card at a time without scrolling; the second sits right below it.</figcaption>
+</figure>
+
+The guided, interview-style dialog issue #56 also asks for (ask one focused question at a time,
+help you arrive at a well-formed requirement from scratch) is real, separate, larger work, still
+open -- this closes the "propose additional requirements that round out coverage" half specifically.
+
 ## Marking a milestone achieved through chat pauses the run -- and it says so
 
 Toggling a milestone to achieved has a real, run-wide consequence regardless of how you do it: see
