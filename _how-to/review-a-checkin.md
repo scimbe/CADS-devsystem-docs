@@ -212,11 +212,11 @@ checkable record of the answer instead of nothing.
 
 ## The real pre-flight checks
 
-`preflight_annotations` (`pipeline/src/preflight.rs`) runs five mechanical checks over a run's
+`preflight_annotations` (`pipeline/src/preflight.rs`) runs nine mechanical checks over a run's
 history -- not an LLM judgment call, just patterns a human reviewer would otherwise have to notice
-by hand. (A sixth, process-level check needs the run's own live spec too, not just history -- see
+by hand. (A tenth, process-level check needs the run's own live spec too, not just history -- see
 [How real risk annotations work]({{ '/explanation/risk-annotations/' | relative_url }}) for that
-one.) Two of these five were added after this page was first written, each one found live by this
+one.) Six of these nine were added after this page was first written, most found live by this
 project's own incompetent-agent stress test -- the table below is kept current, not the original
 three:
 
@@ -226,7 +226,11 @@ three:
 | **no test stage before implement** | `devsystem.implement` ran before any *substantive* `devsystem.test` iteration -- a rubber-stamp `"tests pass"` no longer counts as real evidence testing happened. |
 | **no price ceiling set** | A proposal declares a brand-new service (no `use_existing_service`) with no `price_ceiling` -- nothing bounds what filling it could actually cost. |
 | **succeeded iteration admits a known defect** | A `succeeded: true` iteration's own feedback contains a real defect-admission phrase ("known issue", "not fixed", "workaround needed", ...) -- catches an iteration contradicting itself. |
+| **no review stage for real, succeeded work** | This run has at least one real `succeeded: true` iteration with no *substantive* `devsystem.review` iteration since it -- the same 25+ character / 8+ distinct word bar as the test-stage check, so a rubber-stamp review doesn't count either. |
 | **mandatory check-in cadence effectively disabled** | `checkin_every` is `0`, or at/past `max_iterations` -- either way, the "check in at least this often" cadence this whole page is about can never actually fire on its own before the run's hard iteration ceiling does. |
+| **check-in acknowledgment watermark no longer matches the record it was recorded against** | Added 2026-08-09 (issue #42, suggestion #1). `checkin_acknowledged_through` (a position into `history`) and `checkin_acknowledged_through_id` (the real id of the record acknowledged at the time) now disagree -- the clearest sign the history array itself was mutated (a repair, a compaction) since the last real acknowledgment, so the watermark may no longer cover the iteration a human actually reviewed. Silent on a `None` id (every acknowledgment recorded before this field existed) -- a legacy gap, not fresh evidence of drift. |
+| **acceptance criteria too vague to be deterministic** | A requirement's own acceptance criterion has fewer than 3 distinct words (e.g. "works", "is fast") -- clears the add-time length gate but still leaves the actual behavior up to the role-filler's own judgment. |
+| **stored text contains a Unicode bidi control character** | A [Trojan Source (CVE-2021-42574)]({{ '/explanation/requirements-and-automode/' | relative_url }})-style bidi override character sits in already-persisted text (a requirement, milestone, backlog item, panel title, or stage-proposal rationale) -- defense-in-depth for data written before the write-time guards existed. |
 
 Each one that fires gets seeded into the canvas conversation as a real chat message (the
 `seeded pre-flight annotation: ...` lines in `devsystem_checkin`'s own output above) *before* a

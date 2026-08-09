@@ -18,8 +18,10 @@ LLM-judgment-in-disguise.
   iteration's feedback, `devsystem.implement` running with no *substantive* `devsystem.test`
   iteration since the previous one, a new service proposal with no `price_ceiling`, a
   `succeeded: true` iteration whose own feedback admits a known defect, real succeeded work with no
-  substantive `devsystem.review` iteration since it, and a mandatory check-in cadence that's
-  effectively disabled.
+  substantive `devsystem.review` iteration since it, a mandatory check-in cadence that's
+  effectively disabled, a check-in acknowledgment watermark that no longer matches the record it
+  was recorded against, an acceptance criterion too vague to be deterministic, and already-persisted
+  text containing a Unicode bidi control character.
   These only need a run's `RunState` — its iteration history — so they're usable everywhere a run's
   history is available, including `devsystem_checkin`'s own binary (which never loads the run's spec
   at all).
@@ -211,6 +213,24 @@ LLM-judgment-in-disguise.
   practical purpose. Fixed with a real, generous ceiling (10,000) on all three fields -- real runs
   here use single- or low-double-digit values, nowhere close to it.
 
+  **`check-in acknowledgment watermark no longer matches the record it was recorded against`,
+  added 2026-08-09 (issue #42, suggestion #1)** — a different flavor of staleness than anything
+  above: not a risk that fades from view, one that silently starts lying. Issue #42's own real
+  incident: a history repair (compacting out a duplicate record, closing #38) re-pointed every
+  ordinal cross-reference in a run, including `checkin_acknowledged_through` -- a bare position
+  into `history` -- with no way for anyone to tell the watermark now covers a *different* iteration
+  than the one a human actually acknowledged. `IterationRecord::id` already gave every record real,
+  stable identity (issue #38/#52); this check is what actually uses it for this field:
+  `checkin_acknowledged_through_id` records the real id of the acknowledged record at
+  `POST /checkin/acknowledge` time, and this check compares it against whatever id sits at that
+  position *now*. A mismatch means the array moved underneath the watermark since the last real
+  acknowledgment. Deliberately silent on a `None` id -- every acknowledgment recorded before this
+  field existed has nothing to compare against, and that's an honest legacy gap, not fresh evidence
+  of drift; flagging it would be a false positive on day one. Live-verified against the real
+  `webconference-android` run right after shipping: its own watermark (`checkin_acknowledged_through:
+  33`) predates this field (`checkin_acknowledged_through_id: null`) and correctly produces zero
+  findings, not a false alarm.
+
   **A criterion clearing the add-time length gate isn't the same as being specific** — the [goal
   document](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md)'s
   own §1 commits to "acceptance criteria specific enough to leave no real decision to the LLM."
@@ -281,13 +301,12 @@ successful iterations to fire, so a single-iteration example like this one never
 the comparison right below for what its *absence* looks like on a run that has since declared
 `review`.)
 
-**Compare against the real `webconference-android` run, re-checked live, 2026-08-07** — this
+**Compare against the real `webconference-android` run, re-checked live, 2026-08-09** — this
 example has already gone stale several times, each time corrected here rather than left wrong: an
 early version claimed the run shows `"risks": []`; a later fix found the real `no price ceiling set`
 count itself had been undercounted; the review-staleness fix changed what `no review stage for real,
-succeeded work` even means; most recently, the `touches auth/security` fix above changed a single
-finding into every real one this run's actual history has. The real run currently shows **eleven**
-risks, not five:
+succeeded work` even means; the `touches auth/security` fix changed a single finding into every
+real one this run's history had at the time. The real run currently shows **eighteen** risks:
 
 ```
 $ curl .../api/runs/webconference-android
@@ -297,29 +316,37 @@ $ curl .../api/runs/webconference-android
     {"label": "touches auth/security", "evidence": "iteration 2's feedback mentions \"crypto\""},
     {"label": "touches auth/security", "evidence": "iteration 3's feedback mentions \"auth\""},
     {"label": "touches auth/security", "evidence": "iteration 7's feedback mentions \"session\""},
+    {"label": "touches auth/security", "evidence": "iteration 10's feedback mentions \"session\""},
     {"label": "touches auth/security", "evidence": "iteration 11's feedback mentions \"session\""},
-    {"label": "touches auth/security", "evidence": "iteration 12's feedback mentions \"session\""},
-    {"label": "touches auth/security", "evidence": "iteration 13's feedback mentions \"auth\""},
-    {"label": "no review stage for real, succeeded work", "evidence": "this run has at least one succeeded:true iteration with no substantive devsystem.review iteration since it -- 25+ characters and 8+ distinct words of feedback, not a rubber-stamp, and not just an earlier review of now-superseded work -- advisory today, not a block (goal doc §5)"},
-    {"label": "no price ceiling set", "evidence": "role `devsystem.document_extraction` is live in this run's own spec, ..."},
-    {"label": "no price ceiling set", "evidence": "role `devsystem.android_emulator_test` is live in this run's own spec, ..."},
-    {"label": "no price ceiling set", "evidence": "role `devsystem.review` is live in this run's own spec, ..."}
+    {"label": "touches auth/security", "evidence": "iteration 12's feedback mentions \"auth\""},
+    {"label": "touches auth/security", "evidence": "iteration 14's feedback mentions \"auth\""},
+    {"label": "touches auth/security", "evidence": "iteration 17's feedback mentions \"auth\""},
+    {"label": "touches auth/security", "evidence": "iteration 18's feedback mentions \"auth\""},
+    {"label": "touches auth/security", "evidence": "iteration 22's feedback mentions \"security\""},
+    {"label": "touches auth/security", "evidence": "iteration 27's feedback mentions \"handshake\""},
+    {"label": "touches auth/security", "evidence": "iteration 29's feedback mentions \"session\""},
+    {"label": "touches auth/security", "evidence": "iteration 30's feedback mentions \"auth\""},
+    {"label": "touches auth/security", "evidence": "iteration 31's feedback mentions \"auth\""},
+    {"label": "touches auth/security", "evidence": "iteration 32's feedback mentions \"auth\""},
+    {"label": "touches auth/security", "evidence": "iteration 33's feedback mentions \"session\""},
+    {"label": "no review stage for real, succeeded work", "evidence": "this run has at least one succeeded:true iteration with no substantive devsystem.review iteration since it -- 25+ characters and 8+ distinct words of feedback, not a rubber-stamp, and not just an earlier review of now-superseded work -- advisory today, not a block (goal doc §5)"}
   ]
 }
 ```
 
-(Evidence text truncated above for length on the last three -- each real entry is the identical
-shape, naming its own real role. The seven `touches auth/security` entries are the honest, complete
-picture: this run's real history genuinely touched session/auth/crypto-adjacent code seven separate
-times, not once.) The `no review stage for real, succeeded work` entry is the cleanest real
-illustration of this page's own "declared isn't the same as happened" distinction:
+(Seventeen `touches auth/security` entries now, not seven -- this run's real history keeps
+genuinely touching session/auth/crypto-adjacent code as it grows, an honest count that goes up over
+time, not a fixed example.) The `no review stage for real, succeeded work` entry is the cleanest
+real illustration of this page's own "declared isn't the same as happened" distinction:
 `devsystem.review` genuinely IS declared in this run's own spec (the process-level check stays
-correctly silent), and a real, substantive `devsystem.review` iteration genuinely did run in its
-history -- but real work shipped right after that review and was never itself reviewed, so the
-history-level check correctly fires anyway, on a completely different real signal ("since the last
-real work", not "ever"). And `devsystem.review` shows up a SECOND time too, in the last entry --
-it's both stale-on-review AND genuinely cost-unbounded, two different real facts
-about the same role, not a contradiction.
+correctly silent), and real, substantive `devsystem.review` iterations genuinely did run in its
+history -- but real work keeps shipping after the most recent one and hasn't itself been reviewed
+yet, so the history-level check correctly fires anyway, on a completely different real signal
+("since the last real work", not "ever"). The three `no price ceiling set` findings from this
+example's own earlier version are gone now, honestly -- every role that was unbounded then has
+since either been given a real `price_ceiling` or is no longer live in the spec, and the check-in
+watermark drift check (above) stays silent here too: this run's own watermark predates
+`checkin_acknowledged_through_id`, a legacy gap rather than fresh evidence of drift.
 
 ## One risk kind now leads you straight to fixing it, not just naming it
 
@@ -329,9 +356,10 @@ field to change. Real DAU-lens gap, found live the same day it was closed: the R
 panel's own sibling section (stalled stages) already gives a one-click fix (a button that fills in
 the iteration form with the stalled stage), but risk findings never did.
 
-Not generalized to all twelve risk kinds — ten of them genuinely need human judgment (a vague
-acceptance criterion, an admitted defect, a change touching auth/security) and an automatic "fix
-it" button for those would be dishonest, not helpful. `mandatory check-in cadence effectively
+Not generalized to all ten risk kinds — eight of them genuinely need human judgment (a vague
+acceptance criterion, an admitted defect, a change touching auth/security, a check-in watermark
+that no longer matches its record) and an automatic "fix it" button for those would be dishonest,
+not helpful. `mandatory check-in cadence effectively
 disabled` is the first exception: a run-level setting with a single, unambiguous, always-safe fix, no
 per-role or per-stage targeting needed. That one now gets a real **Fix it →** button right next to
 its finding:
