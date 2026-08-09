@@ -74,10 +74,9 @@ canvas) always has the same shape:
 - **Decision needed** -- names two real, different channels rather than one generic prompt (issue
   #41: this section used to unconditionally tell every reader to reply `approve`/`request-changes`, a
   verb that only exists in `ecc-plan-canvas`, the CLI channel below -- the web control panel implements
-  neither; its only check-in action is the content-free **Acknowledge check-in** button described
-  further down). If you're in `ecc-plan-canvas`, reply `approve` or `request-changes` as below. If
-  you're reading this in the web panel, there's no reply field there at all -- Acknowledge is the only
-  real action for *this specific check-in*, and it carries no answer.
+  neither). If you're in `ecc-plan-canvas`, reply `approve` or `request-changes` as below. If you're
+  reading this in the web panel, see the real reply field below -- it doesn't speak `approve`/
+  `request-changes` either, but as of 2026-08-09 it's no longer silent.
 
   **A real, related but distinct mechanism landed 2026-08-07**: the web panel does now have its own
   real `approve`/`request_changes` verdicts -- for reviewing a run's own `devsystem.plan` iteration
@@ -186,6 +185,30 @@ own stress-test methodology keeps finding and closing elsewhere (see
 `ecc-plan-canvas`-driven review (above) and this GUI-side acknowledgment are independent, real
 signals -- opening the canvas doesn't clear `checkin_pending`, and acknowledging doesn't touch the
 canvas session; use whichever fits how a given run is actually being watched.
+
+**A real reply field landed 2026-08-09** (issue #41's own suggestion #2): a real evaluator read
+this exact `## Decision needed` section end to end, on a run one iteration from its own ceiling
+with a genuine product decision escalated to the operator, and found nowhere in the web panel to
+give the "answer/direction" the document itself asked for. The optional textarea right above
+**Acknowledge check-in** is that field:
+
+<figure>
+<img src="{{ '/assets/img/howto-review-checkin/01-checkin-note-field.png' | relative_url }}" alt="The Check-in panel's due banner with a real optional textarea above the Acknowledge check-in button, filled in with a real answer">
+<figcaption>Leaving it blank still works exactly as before -- this is additive, not a new requirement.</figcaption>
+</figure>
+
+A non-empty note is real, persisted history -- never overwritten, with its own real provenance
+(who acknowledged it, when, which iteration it answers) -- surfaced back in a **Past answers**
+list so it isn't a write-only field:
+
+<figure>
+<img src="{{ '/assets/img/howto-review-checkin/02-checkin-past-answers.png' | relative_url }}" alt="The Check-in panel's Past answers list, expanded, showing one real recorded note with its iteration number and timestamp">
+<figcaption>Every real note stays here, oldest first -- acknowledging again with a new note adds to this list rather than replacing anything.</figcaption>
+</figure>
+
+This doesn't yet feed back into the run's own next iteration the way `ecc-plan-canvas`'s own
+`--reply` does (that's issue #41's own larger, separate suggestion #3, still open) -- it's a real,
+checkable record of the answer instead of nothing.
 
 ## The real pre-flight checks
 
