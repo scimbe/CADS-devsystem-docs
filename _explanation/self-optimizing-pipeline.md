@@ -384,11 +384,26 @@ byte-identical, and confirmed genuinely visible in the live Build Artifacts pane
 was 0/5 at the start of this session** -- see [Upload, download, and remove a build
 artifact]({{ '/how-to/manage-build-artifacts/' | relative_url }}) for the real, current screenshot.
 
-Requirement #17's own last remaining criterion (an automated emulator test for the exact
-`hex_decode_32` non-ASCII repro) is in progress the same way: [PR
+Requirement #17's criterion 0 (the exact `hex_decode_32` non-ASCII repro, pasted through the real
+UI) closed the same way: [PR
 #17](https://github.com/scimbe/CADS-webconference-android/pull/17) added a real Espresso
 instrumented test, reusing PR #16's own emulator CI infrastructure. Its first real run also failed
 for a real, root-caused reason -- Espresso's `typeText()` drives the on-device IME's own key-event
 synthesis, and the AVD's default IME has no key event for U+20AC, throwing before the app ever saw
 the input. Fixed by switching to `replaceText()`, which is also the more faithful simulation of the
 actual bug report this test reproduces: a *pasted* key, not one typed character by character.
+
+Merged as [`00fb390`](https://github.com/scimbe/CADS-webconference-android/commit/00fb390) --
+but not confirmed on the strength of the merge alone. Waited for the real post-merge `push` run on
+`origin/main` (databaseId 31336212256), not the `pull_request`-triggered preview run the fix
+itself was validated against, then read the actual job log rather than trusting the conclusion
+field: `Starting emulator.` -> `Starting 1 tests on test(AVD) - 10` -> `Finished 1 tests on
+test(AVD) - 10` -> `BUILD SUCCESSFUL in 2m 16s`, no `FAILED` line anywhere. Criterion 0 confirmed
+against the real deployment on that evidence.
+
+Requirement #17 stands at 4/5. The genuinely last remaining criterion is a distinct one, criterion
+4 -- an automated emulator test asserting no Rust panic appears in `logcat` itself, not just that
+the UI shows the right error. `ConnectFlowInstrumentedTest` proves the app survives the exact repro
+and shows `R.string.invalid_peer_key`, but it never inspects `logcat`, so it doesn't cover this
+criterion's own distinct claim; that remains real, open work belonging to
+`devsystem.android_emulator_test`, the same still-stalled role noted above.
