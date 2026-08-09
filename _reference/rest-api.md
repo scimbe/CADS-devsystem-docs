@@ -137,7 +137,7 @@ since there's only ever one real run to propose deleting.
 | `POST /api/runs/{id}/rag/sync` | Re-sync the run's indexed repo docs. |
 | `GET /api/runs/{id}/rag/search` | Search the run's RAG index -- keyword always, or real semantic matching (`match_kind: "semantic"` per result) when either a static `RAG_EMBEDDING_API_KEY` credential or the `devsystem.embedding` channel (added 2026-08-07, same auction-discovered-ct-agent model as `devsystem.document_extraction`) is configured on this deployment. See [Add, search, and remove indexed documents]({{ '/how-to/manage-rag-documents/' | relative_url }}#search-is-live-as-you-type). |
 | `POST /api/runs/{id}/rag/documents` | Add a document by URL/text. |
-| `POST /api/runs/{id}/rag/upload-file` | Upload a real file. Unstructured API first if configured (PDF/DOCX/image); otherwise the real `devsystem.document_extraction` channel if that's configured instead (PDF/DOCX/legacy DOC/plain text/markdown, never images). Real `503`, naming both, if neither is set. |
+| `POST /api/runs/{id}/rag/upload-file` | Upload a real file. Unstructured API first if configured; otherwise the real `devsystem.document_extraction` channel if that's configured instead. As of 2026-08-09 both paths handle the same real format set -- PDF, DOCX, legacy DOC, plain text/markdown, and PNG/JPEG/TIFF/WebP/BMP/GIF images (real OCR via `tesseract` on the channel path) -- `image/svg+xml` stays unsupported on both. Real `503`, naming both, if neither is set. |
 | `POST /api/runs/{id}/rag/documents/{doc_id}/remove` | Remove an indexed document. |
 
 ## Assistant

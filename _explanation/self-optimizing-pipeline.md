@@ -94,9 +94,21 @@ shipped a real PDF-extraction handler, merged after independent re-verification 
 end-to-end run against a hand-built PDF, not just trusting the PR), then a second real increment
 added real DOCX support via headless `libreoffice --convert-to txt:Text` -- independently
 re-verified the same way: a hand-built, valid `.docx` through the actual compiled binary and a real
-`libreoffice` install, not just the PR's own claim. `image`/OCR stays honestly unbuilt (no
-`tesseract` CLI on the bidder's host, confirmed rather than assumed) -- an unsupported request gets
-a real `Error`, never a fabricated extraction. At the time this was first written, neither role
+`libreoffice` install, not just the PR's own claim. `image`/OCR stayed honestly unbuilt at the time
+(no `tesseract` CLI on the bidder's host, confirmed rather than assumed) -- an unsupported request
+got a real `Error`, never a fabricated extraction.
+
+**Correction, 2026-08-09 -- the image/OCR gap above is closed, real and independently verified,
+not merely merged**: the blocker in the paragraph above was wrong about *why*, not merely
+outdated -- *installing* `tesseract-ocr`'s CLI needs root, but *obtaining* it does not (`apt-get
+download` + `dpkg -x` into a userspace prefix), and `libtesseract5` was already present. Reviewed
+the same way every real external contribution here is (not a rubber stamp): re-ran the full 23/23
+test suite in an isolated worktree after a clean rebuild, and built the real compiled binary myself
+-- fed it a real, freshly generated PNG (via ImageMagick, not a fixture) and got back the exact text
+that image actually contained. `image/svg+xml` stays honestly unsupported (leptonica, the OCR
+library this path uses, does not rasterize SVG). Merged as
+[CADS-devsystem@c1e09f4](https://github.com/scimbe/CADS-devsystem/commit/c1e09f4). At the time this
+page was first written, neither role
 showed up in `stalled_stages` -- and that's the real, important distinction this section exists to
 make: **auction liveness and "the work got done" are two separate signals.** A role can have
 already delivered real, shipped work and still show as stalled once its bidder's process isn't
