@@ -58,6 +58,23 @@ from one checked, struck-through line back to two plain, unchecked ones.
 wrote the first draft — are **not** touched by an edit. Correcting the wording doesn't change who
 first wrote it.
 
+## A successful write says so, and names the run
+
+Adding a requirement, and saving a correction here, both now show a real, visible confirmation
+naming the exact run the write landed in -- "Requirement added to docs-edit-requirement-demo.",
+or "Requirement #0 updated in docs-edit-requirement-demo." for a save. Until 2026-08-09 this status
+line only ever rendered for a *rejection* -- a successful write set the same text, then the panel's
+own refresh immediately replaced the whole panel body before anyone could actually see it. A
+successful write and a silent write to the wrong run looked identical from the user's side.
+
+<figure>
+<img src="{{ '/assets/img/howto-edit-requirement/04-write-success-names-run.png' | relative_url }}" alt="The Add requirement form with a green confirmation reading 'Requirement added to docs-edit-requirement-demo.' beneath it">
+<figcaption>Real, current data -- the confirmation names the run, not just "saved".</figcaption>
+</figure>
+
+This matters most when several runs are open at once: naming the run is what tells you a write
+landed where you meant it to, not silently on whichever run happened to be selected.
+
 ## Why this is an edit, not a delete-and-recreate
 
 A requirement's index is what iteration history's `requirement_indices` field actually points at.
