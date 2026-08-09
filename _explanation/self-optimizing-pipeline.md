@@ -190,6 +190,40 @@ interaction, so it stays unconfirmed rather than being marked done on the streng
 Criterion 4 (an automated emulator test) remains what it always was: real, open work belonging to
 `devsystem.android_emulator_test`, a separate stalled role this merge deliberately didn't touch.
 
+**Update, 2026-08-09 -- a real defect no existing gate could see, found by measuring the actual
+published artifact rather than trusting a green build**: iteration 31 downloaded `app-debug.apk`
+from a real CI run and looked inside it, rather than trusting `assembleDebug`'s own exit code.
+It packaged seven ABI directories -- `arm64-v8a`, `armeabi`, `armeabi-v7a`, `mips`, `mips64`, `x86`,
+`x86_64` -- while `app/src/main/jniLibs/` ships `libnative_bridge.so` for exactly two of them. The
+other five carried nothing but the JNA `@aar` dependency's own `libjnidispatch.so`: real bytes that
+can never do any work. `armeabi-v7a` sits squarely inside this app's `minSdk 26` device range, so a
+real device selecting it as its primary ABI installs the app, then dies with `UnsatisfiedLinkError`
+on the very first FFI call -- every function the app exists to perform. Nothing in the pipeline
+could see this: `assembleDebug` exits 0 regardless, and the Robolectric unit tests run on the JVM
+and never load a `.so` at all -- exactly the class of defect requirement #5 (a real, verifiable,
+downloadable artifact) exists to catch.
+
+Fixed as [`CADS-webconference-android` PR #13](https://github.com/scimbe/CADS-webconference-android/pull/13),
+merged [`716c206`](https://github.com/scimbe/CADS-webconference-android/commit/716c206): a real
+`defaultConfig.ndk.abiFilters` pins the packaged ABI set to the set an actual native bridge exists
+for, plus a new Android CI step that fails the build if the packaged ABI set and the `jniLibs` ABI
+set ever diverge again, or if a packaged ABI is missing its own `libnative_bridge.so` -- a real,
+bidirectional invariant, not just the one-time fix. Both directions of that guard were checked
+against real bytes before it shipped: it failed on the actual, already-published defective APK
+(naming the five offending ABIs) and passed once they were gone.
+
+**This is also the review the goal doc's own `no_review_for_succeeded_work` risk exists to
+demand, not skip**: this fix, plus a separate, earlier real security fix
+([`CADS-webconference-android@79774cd`](https://github.com/scimbe/CADS-webconference-android/commit/79774cd),
+`recv_text` overriding a forged `sender_pubkey` with the real handshake-authenticated key), had
+both landed as real `succeeded: true` iterations with no substantive review since -- the live run's
+own real risk annotation said so. Iteration 32 closed that honestly: the native-bridge test suite
+rebuilt and run hermetically from scratch (15/15 pass, including the exact forged-key regression
+test), `cargo clippy -- -D warnings` independently clean, the ABI-fix diff read directly against
+`origin/main` rather than trusted from its own commit message, and both the PR branch's and
+post-merge `main`'s real CI runs confirmed green. No new defect found in either -- the point of a
+real review isn't to always find something, it's to have actually looked.
+
 **Update, 2026-08-06**: the two real `SignedChannelGrant`s are minted. The blocker really was the
 bidder's real full holder public key -- the auction view deliberately only ever shows a 4-byte
 display prefix (the section above explains why), and no `AgentCard` for this role was registered in
