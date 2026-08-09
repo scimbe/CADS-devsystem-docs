@@ -42,6 +42,7 @@ The real route table `web/src/main.rs` mounts, as of this writing -- not a desig
 | `POST /api/runs/{id}/pause` / `/resume` | Pause/resume a run. |
 | `POST /api/runs/{id}/repo` | Set the run's target `repo_url`. Must start with `https://` (or be empty, to clear it) and be under 2,000 characters -- the same real length cap every other short free-text field in this API has, closed 2026-08-06 after a live test found this one had none (a genuine GitHub URL is nowhere near this length). |
 | `POST /api/runs/{id}/operator-pubkey` | Set the real ed25519 operator public key a role's `ChannelId` derives from. |
+| `POST /api/runs/{id}/adopt` | Give an unowned run a real owner -- the real `X-Gate-Email` caller, only when `owner_email` is currently unset (added 2026-08-09). Real `409` (naming the existing owner) against an already-owned run -- one-shot claim, not a transfer. Real `401` for a headless/no-gate-header caller. Not admin-restricted -- narrower than the write access an unowned run already grants everyone, not a new permission. See [Claim an unowned run]({{ '/how-to/claim-a-run/' | relative_url }}). |
 
 ## Backlog, milestones, requirements
 

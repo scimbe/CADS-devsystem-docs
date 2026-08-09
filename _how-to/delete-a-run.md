@@ -46,14 +46,18 @@ per-run ownership check that already governs viewing and editing a run applies h
 separate, looser rule for deletion. But that check is `owner_email == you`, and only ever
 protects a run that actually has an `owner_email` recorded.
 
-**Right now, that's none of them.** A real evaluator measurement ([issue
-#44](https://github.com/scimbe/CADS-devsystem/issues/44)) found 0 of 138 runs on the live
-deployment carry a recorded owner, `webconference-android` included -- every run so far was
-created through this pipeline's own headless CLI/automation, which never carries a signed-in
-browser's identity, rather than through the GUI's own **+ New Project** button (which does record
-a real owner, confirmed live). Until a run has an owner, *"you can only delete your own"* is not
-the operative rule -- any signed-in account can delete it, which is exactly why a run with real
-history now asks you to type its id rather than trusting one click (above).
+**Most runs on this deployment still don't have one.** A real evaluator measurement ([issue
+#44](https://github.com/scimbe/CADS-devsystem/issues/44)) found 0 of 138 runs carried a recorded
+owner, `webconference-android` included -- every run so far was created through this pipeline's
+own headless CLI/automation, which never carries a signed-in browser's identity, rather than
+through the GUI's own **+ New Project** button (which does record a real owner, confirmed live).
+Until a run has an owner, *"you can only delete your own"* is not the operative rule -- any
+signed-in account can delete it, which is exactly why a run with real history asks you to type its
+id rather than trusting one click (above).
+
+This is no longer a permanent state, though -- since 2026-08-09, an unowned run can be given a real
+owner. See [Claim an unowned run]({{ '/how-to/claim-a-run/' | relative_url }}) for the real 🏳
+button that does it, right next to this same 🗑.
 
 ## If a run you're looking at disappears
 
