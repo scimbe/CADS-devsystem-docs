@@ -72,6 +72,27 @@ never re-rendered a restored panel at its real maximized size, only its old pre-
 at the source -- a panel you left maximized now correctly renders maximized again when you come back,
 so the very first click behaves as expected.
 
+## The title bar names the run you're actually working in
+
+Every run-scoped panel's title bar names the run it's currently pointed at -- not just a bare
+noun like "Requirements", but "Requirements — webconference-android". This updates the moment
+you select or create a run (see [Set up your first run]({{ '/tutorials/first-run/' | relative_url }}))
+in the Runs panel, for every open run-scoped panel at once (Requirements, Roles, Risks, Backlog,
+Milestones, Code, Check-in, Memory, Architecture, RAG, Artifacts, Process, and the rest), not
+just the one you clicked into.
+
+<figure>
+<img src="{{ '/assets/img/howto-panel-windows/06-title-bar-run-name.png' | relative_url }}" alt="The Requirements panel's title bar reading 'REQUIREMENTS — WEBCONFERENCE-ANDROID', naming the run this panel is currently scoped to">
+<figcaption>Real, current data -- the title bar of an open Requirements panel, naming the exact run it reads from and writes to.</figcaption>
+</figure>
+
+This closes a real gap: before, the *only* place the active run was ever named on screen was one
+highlighted row inside the separate, floating Runs panel -- close or minimize that panel (and a
+minimized panel isn't always trivially easy to find again) and there was no longer any indication
+anywhere of which run a Requirements edit, a Check-in acknowledgment, or a new iteration would
+actually land in. A long run id is truncated with an ellipsis if it doesn't fit the header, same as
+any other panel title -- hover it to see the full id in a tooltip.
+
 ## Drag and resize
 
 Drag anywhere on a panel's header (not on one of the three buttons) to move it. Drag the small
