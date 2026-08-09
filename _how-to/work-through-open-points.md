@@ -31,18 +31,24 @@ decision -- both are deliberately left out so the queue stays a real signal, not
 <figcaption>One real open point -- a role-filler's own proposed stage, showing its real rationale. Approve/Reject here call the exact same endpoint the Pipeline panel's own proposal card does.</figcaption>
 </figure>
 
-Each entry shows its kind (a new stage proposal, a custom-panel add/edit/removal proposal, a GitHub
-issue proposal, or a paused checkpoint) and a real, human-readable summary -- a stage proposal's own
-rationale, a panel's title, or the run's own real `pause_reason`. **Prev**/**Next** move through the
-queue without acting on anything.
+Each entry shows its kind and a real, human-readable summary -- a stage proposal's own rationale, a
+panel's title, a proposed requirement's own statement, or the run's own real `pause_reason`.
+**Prev**/**Next** move through the queue without acting on anything. Every real kind this queue can
+show, as of 2026-08-09: a new pipeline stage proposal, a custom-panel add/edit/removal proposal, a
+GitHub issue proposal, a **new requirement proposal** (added 2026-08-09, issue #56's first slice --
+see [Ask devsystem.assistant about your run]({{ '/how-to/ask-the-assistant/' | relative_url }}#asking-the-assistant-to-propose-a-new-requirement)),
+a run-deletion proposal, a paused checkpoint, an unacknowledged check-in, and an unresolved
+next-step draft.
 
 The action buttons differ by kind, but every single one calls the identical endpoint its own
 dedicated panel already uses -- this panel adds no new *state-changing* action beyond what already
 existed, just a faster way to reach the same real ones:
 
-- A proposal (stage, panel add/edit/removal, GitHub issue, or run deletion) gets **Approve**/
-  **Reject**.
+- A proposal (stage, panel add/edit/removal, GitHub issue, requirement, or run deletion) gets
+  **Approve**/**Reject**.
 - A paused checkpoint gets **Resume run**.
+- An unacknowledged check-in gets **Acknowledge** -- see [Review a mandatory check-in]({{ '/how-to/review-a-checkin/' | relative_url }}).
+- A next-step draft has no approve/reject step at all (it's advice, not an action) -- see below.
 
 **Reject asks first here too now, 2026-08-07**: rejecting a proposal permanently discards it --
 exactly as real and unrecoverable as the destructive actions this GUI already confirms everywhere
