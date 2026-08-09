@@ -38,8 +38,8 @@ You never type in a hash. `sha256` is always computed server-side from the actua
 shown afterward on the artifact itself:
 
 <figure>
-<img src="{{ '/assets/img/howto-manage-build-artifacts/02-uploaded-with-metadata.png' | relative_url }}" alt="The Build Artifacts panel showing one real uploaded artifact with its filename, server-computed sha256, source iteration and stage, version, and commit, plus the still-open upload form for a second one">
-<figcaption>A real upload, with every field shown exactly as the server recorded it -- the sha256 here is independently verifiable against the actual file (try <code>sha256sum</code> on whatever you download).</figcaption>
+<img src="{{ '/assets/img/howto-manage-build-artifacts/02-uploaded-with-metadata.png' | relative_url }}" alt="The Build Artifacts panel showing the real webconference-android release APK, 7.8 MB, its server-computed sha256, iteration 31 (devsystem.android_native_build_ci), version 0.1.0-scaffold, and commit c045c2d">
+<figcaption>Real, current data -- the actual release APK that closed requirement #5, not a placeholder. The sha256 here is independently verifiable against the actual file (try <code>sha256sum</code> on whatever you download).</figcaption>
 </figure>
 
 ## Downloading and removing
