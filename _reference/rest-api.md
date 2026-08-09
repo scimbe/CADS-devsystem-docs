@@ -101,6 +101,17 @@ client-supplied `sha256` field was silently ignored and the real hash recomputed
 | `POST /api/runs/{id}/offers/quick-submit` | A GUI-friendly offer shortcut -- signs and submits in one call, no separate CLI identity needed. |
 | `POST /api/runs/{id}/roles/{tag}/fill-mode` | Switch a role between auction-fill and a directly-assigned dedicated filler. Directly accepting a bid (`accepted_bid`) now gets a real `400` if its price exceeds the role's own real `price_ceiling` (closed 2026-08-07 -- see [Accepting a real bid directly]({{ '/how-to/set-auto-refresh-and-fill-mode/#accepting-a-real-bid-directly' | relative_url }})); a role with no real ceiling set still accepts any price. |
 
+## Plan Canvas
+
+The real "review by pointing, not retyping" panel -- see [Review a plan with Plan
+Canvas]({{ '/how-to/review-a-plan-with-plan-canvas/' | relative_url }}).
+
+| Route | What it does |
+|---|---|
+| `POST /api/runs/{id}/plan-canvas/annotate` | Anchor a real comment to a real excerpt of the run's latest `devsystem.plan` feedback: `{"anchor_snippet": "...", "text": "..."}`. `anchor_snippet` must be non-empty and under 300 bytes; `text` must be non-empty and under 2,000 bytes; both reject a Unicode bidi control character. Returns the real, persisted annotation with a server-generated `id` and `created_at`. |
+| `POST /api/runs/{id}/plan-canvas/annotations/{annotation_id}/remove` | Discard one annotation before delivering a verdict. Real `404` for an unknown id, real `204` on success -- same permanent, no-undo shape as removing a next-step draft. |
+| `POST /api/runs/{id}/plan-canvas/verdict` | Deliver the real review decision: `{"verdict": "approve"}` or `{"verdict": "request_changes"}`. Real `400` if this run has no `devsystem.plan` iteration yet -- nothing real to review. **`approve`** goes through the exact same gates a normal `/iterate` call does (a real `409` if paused, a real `409` at the iteration ceiling) and folds the session into a real, succeeded `devsystem.review` iteration -- not a separate, less-guarded path just because it originated from this panel -- then clears the annotations, since the session concluded. **`request_changes`** requires at least one real annotation (a real `400` otherwise -- asking for changes with nothing pointed at isn't an actionable signal) and deliberately does *not* record a review iteration or clear the annotations; they land as a real backlog item instead, staying visible as structured feedback for the plan's own next author. |
+
 ## Proposals -- pipeline stages, custom panels, GitHub issues
 
 Each of the three proposal kinds follows the same real shape: `propose` lands in a pending queue,
