@@ -86,6 +86,10 @@ Open **Uploaded documents** to find both real ways to add one:
   (the channel path's own OCR library) rasterizes SVG. The response's `extracted_via` field says
   honestly which one actually ran. Reports itself unconfigured with a real `503` naming both if
   neither is set on this deployment, rather than silently failing or fabricating extracted text.
+  A **scanned PDF** (a real text layer is tried first via `pdftotext`; only when that comes back
+  empty does the channel path rasterize the pages and OCR each one) is handled the same way, not a
+  dead end -- bounded at 20 pages *by erroring with the real page count*, not by silently
+  returning only the first 20 as if they were the whole document.
 
 Both land in the same real index as a repo sync would, searchable immediately.
 

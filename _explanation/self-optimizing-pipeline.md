@@ -311,6 +311,34 @@ project's own stress-test methodology keeps finding elsewhere in this codebase. 
 changes that a live upload through this channel still needs the operator's own Keycloak action
 first.
 
+**Update, 2026-08-09**: a fourth and fifth real increment on the handler side -- real image OCR
+(PNG/JPEG/TIFF/WebP/BMP/GIF, via a real `tesseract` invocation; `image/svg+xml` deliberately stays
+unsupported, since leptonica -- tesseract's own image library -- does not rasterize SVG), and the
+scanned-PDF fallback that becomes possible once OCR exists: `pdftotext` still runs first, and only
+when it comes back empty does the document get rasterized (`pdftoppm`) and OCR'd page by page.
+Bounded at 20 pages *by erroring, not by truncating* -- the real page count is read from `pdfinfo`
+before any rendering happens, so an over-cap document reports its own real size rather than quietly
+returning its first pages as the whole thing. See [Add, remove, and manage RAG
+documents]({{ '/how-to/manage-rag-documents/' | relative_url }}) for the current, full format list.
+
+This PR (#57) merged without the real, hands-on review every prior increment on this thread got --
+found and closed as its own gap, not waved through retroactively: a real verification image
+(`rust:1-slim` plus the actual `poppler-utils`/`tesseract-ocr`/`imagemagick`/`libreoffice-writer`
+toolchain, none of which CI's own image carries) drove the compiled binary directly, not the
+unit-tested fakes -- confirmed all 6 image formats OCR real generated text, a real 2-page scanned
+PDF (control-verified via `pdftotext` to genuinely have no text layer first) OCR-falls-back
+correctly in page order, a real 21-page scanned PDF is rejected naming its real page count rather
+than truncated, and a real text-layer PDF still takes the fast `pdftotext` path with `tesseract`
+genuinely absent from `PATH`. One real, minor, non-blocking finding along the way: a BMP encoded
+with an alpha channel fails with an honest leptonica error (`cannot read compressed BMP files`) --
+reproduced identically invoking `tesseract` directly, so a real leptonica format gap, not a bug in
+this PR's own code; the handler's own behavior (a real, honest error, never a fabricated success)
+is still correct.
+
+**Still genuinely open**: the same OIDC bearer-token blocker above, still. Format coverage on the
+handler side is real, tested, and now reviewed -- none of it is the same as a live upload actually
+reaching this channel in production yet.
+
 ## Why role-filler proposals skip the queue
 
 The operator's own reasoning (stated directly, not inferred): the pipeline is meant to *inform
