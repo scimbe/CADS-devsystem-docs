@@ -138,6 +138,40 @@ could always be asked, in a plain chat message, to judge and verify any requirem
 flag. Deliberately not deleted: it stays a real, honest, persisted placeholder for whatever future
 opt-in judgment logic eventually gets built, without pretending that logic already exists.
 
+## `automode`: [issue #31](https://github.com/scimbe/CADS-devsystem/issues/31)'s own honest first slice
+
+Issue #31 asked for something much broader than `auto_judge` above: a requirement that, once
+flagged, flows through proposal → bidding → role-fill → iteration entirely unattended, no human
+clicking through each step. Real investigation of that ask (not guessed at) surfaced a genuine,
+unresolved tension before any of it could be built safely: an automated path that auto-submits
+iterations and auto-marks requirements verified with no real review in the loop is, structurally,
+the same hole the [mandatory review gate](#the-real-mandatory-review-gate) below exists to close --
+just through a different door. Three concrete design questions (does `automode` reuse `auto_judge`
+or stay separate; does `price_ceiling` still hard-bound an unattended bid; does an automode-driven
+iteration still have to clear the real review gate) were posted on the issue and remain open.
+
+**Shipped instead, mirroring `auto_judge`'s own precedent exactly**: a real, genuinely separate
+`automode` bool, persisted and visible, that does not yet drive any actual automatic behavior --
+the same honest-placeholder shape, not a guess at the unresolved design.
+
+<figure>
+<img src="{{ '/assets/img/howto-requirements-automode/14-automode-checkboxes-default.png' | relative_url }}" alt="A requirement card in the Requirements panel showing two unchecked checkboxes: 'opt in to LLM judgment (not wired to any real behavior yet -- see tooltip)' and 'automode (issue #31 -- unattended pipeline progression, not wired to any real behavior yet)'">
+<figcaption>Both flags default off. Note the two distinct labels -- see the naming collision below for why that distinction matters.</figcaption>
+</figure>
+
+<figure>
+<img src="{{ '/assets/img/howto-requirements-automode/15-automode-checked-auto-judge-untouched.png' | relative_url }}" alt="The same requirement card with only the automode checkbox now checked; the LLM judgment checkbox above it remains unchecked" >
+<figcaption>Checking <code>automode</code> leaves <code>auto_judge</code> untouched -- real, live proof the two are independent bits, not two labels on the same one.</figcaption>
+</figure>
+
+**A real naming collision, found and fixed alongside this, not after**: the *existing* `auto_judge`
+checkbox was already labeled "automode flag" in the GUI, predating issue #31 -- an informal name
+from before a real, differently-scoped `automode` field existed. Shipping the new flag next to a
+control already using that exact word would have been actively confusing, exactly the class of gap
+this project's own DAU lens exists to catch. Both labels above were rewritten for clarity as part
+of the same change:
+[`CADS-devsystem@465d060`](https://github.com/scimbe/CADS-devsystem/commit/465d060).
+
 ## The real, mandatory review gate
 
 Every signal above (`verified`, `verified_criteria`, `auto_judge`, `proposed_by`) was, until
