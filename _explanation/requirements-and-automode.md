@@ -170,8 +170,38 @@ mechanical proxies, not fake LLM-judgment-in-disguise -- **25 characters AND 8 d
 (case-insensitive, punctuation-collapsing, so `"Good! good? GOOD."` still counts as one distinct
 word). Neither bar claims to verify the review is actually *good* -- only that it isn't trivially
 empty or trivially repetitive. A generic-but-varied review ("looks good, works fine, nothing to
-flag, all clear here") would still clear both bars without being real scrutiny either -- a known,
-honestly-named, still-open gap, not claimed solved.
+flag, all clear here") would still clear both bars without being real scrutiny either -- flagged at
+the time as a known, honestly-named, still-open gap, not claimed solved.
+
+**Closed for real, 2026-08-10**: a third mechanical bar, `GENERIC_REVIEW_WORDS` --
+a curated list of generic praise/filler and common function words (the same crude-but-explainable
+proxy discipline as the two bars above) -- stripped from a review's distinct words before counting
+against a real floor (**4 distinct non-generic words**, scaled by `requirement_indices.len()` the
+same way the other two bars already are). Neither this bar nor the two above claims to be a
+comprehensive defense against every possible lazy phrasing -- a reviewer who avoids every listed
+word while still saying nothing requirement-specific could still slip through -- but the exact
+phrase this page used as its own worked example of the gap is closed, live-verified against the
+actual deployment:
+
+```
+$ curl -X POST .../api/runs/{id}/iterate -d '{"stage":"devsystem.review","feedback":"looks good, works fine, nothing to flag, all clear here","succeeded":true,"requirement_indices":[0]}'
+HTTP 200
+
+$ curl -X POST .../api/runs/{id}/requirements/0/toggle
+requirement 0 cannot be marked verified yet -- the devsystem.review iteration addressing it
+is long and varied enough to pass the length/distinct-word bars, but that's entirely generic
+praise and filler ('0 distinct non-generic word(s)', minimum 4) -- it never engages with
+anything specific to this requirement. A varied-sounding rubber-stamp doesn't satisfy this
+gate any more than a short one does.
+HTTP 409
+
+$ curl -X POST .../api/runs/{id}/iterate -d '{"stage":"devsystem.review","feedback":"verified the draft survives onConfigurationChange by rotating the emulator mid-compose and checking the EditText restores its exact text via onSaveInstanceState","succeeded":true,"requirement_indices":[0]}'
+HTTP 200
+
+$ curl -X POST .../api/runs/{id}/requirements/0/toggle   # real, specific review -- passes
+{"requirements":[{...,"verified":true,...}]}
+HTTP 200
+```
 
 **A real self-correction, 2026-08-06**: the two bars above were flat constants, but a single review
 iteration can name an arbitrary number of requirements at once via `requirement_indices` -- a live
