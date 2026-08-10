@@ -398,6 +398,33 @@ The guided, interview-style dialog issue #56 also asks for (ask one focused ques
 help you arrive at a well-formed requirement from scratch) is real, separate, larger work, still
 open -- this closes the "propose additional requirements that round out coverage" half specifically.
 
+## A sixth real instance of the same self-description drift, found live 2026-08-10
+
+The assistant gained a real twenty-third action type, `toggle_requirement_automode`: the
+per-requirement `automode` checkbox (see [Requirements, verification, and
+automode]({{ '/explanation/requirements-and-automode/' | relative_url }})) was already toggleable
+by a human directly in the Requirements panel, but the assistant had no matching action to do the
+same from chat
+([CADS-devsystem@80f4389](https://github.com/scimbe/CADS-devsystem/commit/80f4389)). Same bug
+class as the five instances above -- a new direct action shipped without the system prompt's own
+hardcoded self-description sentence moving with it. Checked live rather than assumed correct,
+against the real deployed assistant:
+
+```
+$ curl -X POST .../api/runs/docs-verify-toggle-automode-count/assistant \
+    -d '{"instruction": "In one sentence, how many kinds of data can you take action on, and how
+ many total action types, broken into applied-immediately vs queued-for-approval vs draft?"}'
+{"response": "Nine kinds of data, twenty-three action types: fifteen applied immediately
+ (milestones, backlog, requirements, repo_url, create_run, role-fill mode, criteria, pause,
+ check-in ack, automode), seven queued for your approve/reject (custom panel add/edit/remove,
+ stage, issue, requirement, run deletion), and one draft-only (`propose_next_step`)."}
+```
+
+Real count as of this page: **9 kinds of data, 23 action types -- 15 applied immediately, 7 queued
+for approve/reject, 1 draft-only.** (The `propose_requirement` transcript above, from
+2026-08-06, is left as-is -- it was accurate the day it was written; this section is the current
+number, not a correction of that one.)
+
 ## Marking a milestone achieved through chat pauses the run -- and it says so
 
 Toggling a milestone to achieved has a real, run-wide consequence regardless of how you do it: see
