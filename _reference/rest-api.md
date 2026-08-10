@@ -129,7 +129,19 @@ An unanswered decision is a real [Open Point]({{ '/how-to/work-through-open-poin
 (kind `pending_decision`) and appears by name in the [check-in
 document]({{ '/how-to/review-a-checkin/' | relative_url }})'s own "Decision needed" section; an
 answered one stays in `pending_decisions` (visible via `GET /api/runs/{id}`) as a real, permanent
-record but no longer counts as open.
+record but no longer counts as open. It also counts toward the Runs list's own `pending_reviews`
+tally (and `needs_attention`) while unanswered, the same real "something is waiting on you" signal
+every other pending-proposal queue already contributes to.
+
+**Gating, added 2026-08-10 (issue #39 suggestion #3)**: a run cannot be allowed to burn its final
+iteration slot with a real decision still unanswered -- doing so would mean no further submission
+could ever act on the answer. `POST /api/runs/{id}/iterate` and the [Plan Canvas]({{ '/how-to/review-a-plan-with-plan-canvas/' | relative_url }})
+verdict's `approve` path both return a real `409` naming the unanswered question(s) verbatim when
+the submission would be the run's LAST remaining slot (`history.len() + 1 == max_iterations`) and
+`pending_decisions` still has an entry with no `answer`. Deliberately narrow: an ordinary mid-run
+decision never blocks an ordinary iteration, only the one that would consume the run's own last
+chance to act on the answer. Answer the decision (or raise `max_iterations`) to unblock the
+identical submission.
 
 ## Proposals -- pipeline stages, custom panels, GitHub issues
 
