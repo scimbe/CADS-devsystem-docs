@@ -138,7 +138,7 @@ could always be asked, in a plain chat message, to judge and verify any requirem
 flag. Deliberately not deleted: it stays a real, honest, persisted placeholder for whatever future
 opt-in judgment logic eventually gets built, without pretending that logic already exists.
 
-## `automode`: [issue #31](https://github.com/scimbe/CADS-devsystem/issues/31)'s own honest first slice
+## `automode`: [issue #31](https://github.com/scimbe/CADS-devsystem/issues/31)'s own real first slice
 
 Issue #31 asked for something much broader than `auto_judge` above: a requirement that, once
 flagged, flows through proposal → bidding → role-fill → iteration entirely unattended, no human
@@ -148,11 +148,35 @@ iterations and auto-marks requirements verified with no real review in the loop 
 the same hole the [mandatory review gate](#the-real-mandatory-review-gate) below exists to close --
 just through a different door. Three concrete design questions (does `automode` reuse `auto_judge`
 or stay separate; does `price_ceiling` still hard-bound an unattended bid; does an automode-driven
-iteration still have to clear the real review gate) were posted on the issue and remain open.
+iteration still have to clear the real review gate) were posted on the issue.
 
-**Shipped instead, mirroring `auto_judge`'s own precedent exactly**: a real, genuinely separate
-`automode` bool, persisted and visible, that does not yet drive any actual automatic behavior --
-the same honest-placeholder shape, not a guess at the unresolved design.
+**First shipped as an honest placeholder** (`CADS-devsystem@465d060`), mirroring `auto_judge`'s
+own precedent: a real, genuinely separate `automode` bool, persisted and visible, that didn't yet
+drive any actual automatic behavior.
+
+**Real first behavior, 2026-08-10** (`CADS-devsystem@01b1939`): the operator answered the first of
+the three open design questions directly -- *"Ja es soll einen automode geben. Zumindest einen wo
+das System erste Vorschläge macht"* (yes, automode should exist; at least one where the system
+makes initial proposals). That scoping matters: it deliberately sidesteps the review-gate
+question entirely, since nothing here auto-approves or auto-verifies anything -- toggling
+`automode` **on** (a real `false → true` transition, not on every toggle or on toggling off) now
+fires one real call to `devsystem.assistant`, asking it to propose 1-3 concrete requirements or
+next steps that round out coverage for the one just enabled. Every result lands in the same
+human-reviewed pending-proposal queue every other proposal on this platform already uses --
+nothing becomes a real requirement until a person approves it.
+
+<figure>
+<img src="{{ '/assets/img/howto-requirements-automode/16-real-proposal-after-toggle.png' | relative_url }}" alt="The Requirements panel showing a real pending proposal, 'Proposed by devsystem.assistant -- review before it's a real requirement', with the statement 'WHEN a user uploads a document of exactly 50MB, THE SYSTEM SHALL accept it and complete the upload normally', a real rationale about an off-by-one boundary, two acceptance criteria, and Approve/Reject buttons">
+<figcaption>A real proposal from a real toggle: two genuinely distinct, concrete follow-ons landed here for a "reject uploads over 50MB" requirement -- this boundary case, and a separate Content-Length-spoofing security variant -- not generic filler.</figcaption>
+</figure>
+
+**Still genuinely bounded, not the full ask**: this is one real slice, not the whole issue.
+Question 2 (does `price_ceiling` still hard-bound an unattended bid) and the entire
+proposal → bidding → role-fill → iteration chain past this first step remain open and
+unattempted -- `automode` today makes an initial proposal once, then does nothing further on its
+own. If no assistant bridge is configured on a deployment, or the bridge call itself fails, the
+toggle still succeeds and the flag still persists -- the proposal attempt is additive, never a
+precondition.
 
 <figure>
 <img src="{{ '/assets/img/howto-requirements-automode/14-automode-checkboxes-default.png' | relative_url }}" alt="A requirement card in the Requirements panel showing two unchecked checkboxes: 'opt in to LLM judgment (not wired to any real behavior yet -- see tooltip)' and 'automode (issue #31 -- unattended pipeline progression, not wired to any real behavior yet)'">
