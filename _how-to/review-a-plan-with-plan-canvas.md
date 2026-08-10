@@ -69,6 +69,19 @@ The annotation lands immediately, listed below the plan text:
 
 You can add as many annotations as the plan actually needs, each anchored to its own block.
 
+**Removing asks first, 2026-08-10**: a real gap, live-found and fixed the same day -- every other
+permanent removal in this app (a custom panel, an uploaded RAG document, a build artifact, a
+next-step draft) already confirms before doing anything; this button, since the panel first shipped,
+never did. Clicking **Remove** now pops a real browser confirmation naming the exact comment about
+to go: *"Remove this annotation: "Split this into its own follow-up iteration -- too big for one
+phase."? This is real -- there's no undo."* Cancelling it leaves the annotation genuinely untouched;
+only confirming actually discards it.
+
+<figure>
+<img src="{{ '/assets/img/howto-plan-canvas/06-remove-confirms.png' | relative_url }}" alt="The same annotated Plan Canvas panel, Remove button visible under the real annotation text">
+<figcaption>Clicking <b>Remove</b> here now pops a real confirmation naming the annotation's own text before anything is discarded.</figcaption>
+</figure>
+
 ## 3. Deliver a real verdict
 
 Two buttons, two real, different outcomes -- both calling `POST /api/runs/{id}/plan-canvas/verdict`:
