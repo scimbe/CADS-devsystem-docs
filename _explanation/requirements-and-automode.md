@@ -170,6 +170,26 @@ nothing becomes a real requirement until a person approves it.
 <figcaption>A real proposal from a real toggle: two genuinely distinct, concrete follow-ons landed here for a "reject uploads over 50MB" requirement -- this boundary case, and a separate Content-Length-spoofing security variant -- not generic filler.</figcaption>
 </figure>
 
+**Update, 2026-08-10 -- a DAU-lens gap found and closed** (`CADS-devsystem@29cbdc2`): the proposal
+above showed as a generic "Proposed by devsystem.assistant" card, with no structural link back to
+the toggle that caused it -- only whatever prose the LLM happened to write in its own free-text
+rationale. A person who toggles `automode` **on** (curious what it does), sees nothing happen
+immediately (the assistant call can take several seconds), and toggles it back **off** believing
+they cancelled the action, would later see 1-3 unexplained proposals appear with no visible
+connection to something they thought they'd already reversed. Relying on an LLM to remember to
+mention "this is from automode" in free text is exactly the class of unenforced guidance this
+project's own governing principle exists to harden into a real guarantee: *"it is the fault of the
+pipeline, not the user of the pipeline."*
+
+Fixed structurally, not by asking the LLM to be more careful: every proposal that lands as a direct
+result of an automode toggle is now tagged server-side with the real requirement that triggered it,
+independent of whatever the LLM's own rationale says.
+
+<figure>
+<img src="{{ '/assets/img/howto-requirements-automode/17-automode-triggered-by.png' | relative_url }}" alt="The Requirements panel showing a pending proposal with a highlighted line reading 'automode: WHEN a user sends a message while offline, THE SYSTEM SHALL queue it locally for retry' between the proposed-at timestamp and the rationale text">
+<figcaption>Live-verified against the actual deployment, no mock: toggling automode on a real "queue messages while offline" requirement produced three genuinely distinct real proposals (message ordering/idempotency on reconnect, at-rest encryption + cross-account isolation, and a bounded queue with an explicit over-capacity error) -- every one traceable back to the exact requirement that triggered it, not just a generic "the assistant proposed this."</figcaption>
+</figure>
+
 **Still genuinely bounded, not the full ask**: this is one real slice, not the whole issue.
 Question 2 (does `price_ceiling` still hard-bound an unattended bid) and the entire
 proposal → bidding → role-fill → iteration chain past this first step remain open and
