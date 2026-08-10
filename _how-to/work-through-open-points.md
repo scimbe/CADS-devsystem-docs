@@ -34,11 +34,11 @@ decision -- both are deliberately left out so the queue stays a real signal, not
 Each entry shows its kind and a real, human-readable summary -- a stage proposal's own rationale, a
 panel's title, a proposed requirement's own statement, or the run's own real `pause_reason`.
 **Prev**/**Next** move through the queue without acting on anything. Every real kind this queue can
-show, as of 2026-08-09: a new pipeline stage proposal, a custom-panel add/edit/removal proposal, a
+show, as of 2026-08-10: a new pipeline stage proposal, a custom-panel add/edit/removal proposal, a
 GitHub issue proposal, a **new requirement proposal** (added 2026-08-09, issue #56's first slice --
 see [Ask devsystem.assistant about your run]({{ '/how-to/ask-the-assistant/' | relative_url }}#asking-the-assistant-to-propose-a-new-requirement)),
-a run-deletion proposal, a paused checkpoint, an unacknowledged check-in, and an unresolved
-next-step draft.
+a run-deletion proposal, a paused checkpoint, an unacknowledged check-in, an unresolved next-step
+draft, and an **open question a role-filler escalated** (added 2026-08-10, see below).
 
 The action buttons differ by kind, but every single one calls the identical endpoint its own
 dedicated panel already uses -- this panel adds no new *state-changing* action beyond what already
@@ -48,6 +48,7 @@ existed, just a faster way to reach the same real ones:
   **Approve**/**Reject**.
 - A paused checkpoint gets **Resume run**.
 - An unacknowledged check-in gets **Acknowledge** -- see [Review a mandatory check-in]({{ '/how-to/review-a-checkin/' | relative_url }}).
+- An escalated question gets a real input field and an **Answer** button -- see below.
 - A next-step draft has no approve/reject step at all (it's advice, not an action) -- see below.
 
 **Reject asks first here too now, 2026-08-07**: rejecting a proposal permanently discards it --
@@ -87,6 +88,34 @@ Every other kind's Approve stays a single click, because approving them is genui
 additive: a new stage or custom panel gets added, a GitHub issue gets filed, a paused run resumes --
 nothing existing is destroyed or overwritten. Only the two panel-mutating kinds, plus run deletion
 covered above, get the extra step.
+
+## Answering an escalated question
+
+**Added 2026-08-10, issue #39's root fix**: a role-filler can hit a genuine open question it has no
+standing to decide -- not a technical proposal, a real product fork. Until this shipped, the only
+place for that was free prose buried in a backlog item; now it's a real, structured open point, kind
+`pending_decision`.
+
+<figure>
+<img src="{{ '/assets/img/howto-open-points/12-pending-decision-open-point.png' | relative_url }}" alt="The Open Points panel showing a card labeled 'Open question (needs your answer)', the real question 'should this run ever support offline/store-and-forward delivery?', its two options yes and no, a textarea labeled 'your answer', and an Answer button">
+<figcaption>A real escalated question, reached through Open Points -- the exact same shape a live run hit: `devsystem.plan` decided forward-only delivery for its own scope, but flagged that the actual product answer needed a human.</figcaption>
+</figure>
+
+Unlike a proposal, there's nothing to Approve/Reject here -- the question needs an actual answer, not
+a yes/no on someone else's suggestion. Type it in the field and click **Answer**. This calls
+`POST /api/runs/{id}/decisions/{decision_id}/answer`, gated to this run's own owner (or any account,
+for a run with none recorded), and can only happen once per question -- a second attempt is refused
+rather than silently overwriting the first real answer:
+
+<figure>
+<img src="{{ '/assets/img/howto-open-points/13-after-answering-decision.png' | relative_url }}" alt="The Open Points panel showing 'Nothing open right now -- every real proposal is reviewed, and this run isn't paused.' after answering the one pending decision">
+<figcaption>After answering -- the question drops out of Open Points (nothing left waiting on you), but the answer itself is never discarded: it stays on the run's own record, visible via <code>GET /api/runs/{id}</code> -> <code>pending_decisions</code>, for any later iteration to read back.</figcaption>
+</figure>
+
+An unanswered decision also appears, by name, in the mandatory [check-in document]({{ '/how-to/review-a-checkin/' | relative_url }})'s
+own "Decision needed" section -- so a reader going through `ecc-plan-canvas` or a raw API call sees
+the real open question too, not only someone who happens to open this panel. See the [REST API
+reference]({{ '/reference/rest-api/#decisions' | relative_url }}) for the full request/response shape.
 
 ## After you act
 

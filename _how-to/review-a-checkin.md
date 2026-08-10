@@ -87,6 +87,22 @@ canvas) always has the same shape:
   only someone in the GUI. Closes a real, live-found staleness bug: this section used to flatly claim
   "there is currently no reply field here" long after one actually shipped.
 
+  **The section now names real open questions by name, not just past answers (issue #39's root fix,
+  2026-08-10)**: when a role-filler has raised a genuine open question through the run's real
+  `pending_decisions` channel (see [How the pipeline proposes and grows its own
+  stages]({{ '/explanation/self-optimizing-pipeline/' | relative_url }}#the-inverse-a-channel-for-questions-the-pipeline-cannot-answer)),
+  every unanswered one appears at the very top of `## Decision needed`, quoted verbatim with its
+  options if any, ahead of the general reply-field guidance below -- a reader no longer has to dig
+  through an iteration's own feedback prose (or a backlog item) to find the actual question the run
+  is blocked on. Answering it is a separate, dedicated action in the [Open Points
+  panel]({{ '/how-to/work-through-open-points/' | relative_url }}), not the general reply field --
+  the answer lands in a real, structured, per-question record, not free text next to a watermark.
+
+<figure>
+<img src="{{ '/assets/img/howto-review-checkin/03-checkin-decision-enumeration.png' | relative_url }}" alt="The check-in document's own 'Decision needed' section, headed 'This run has a real, unanswered question it cannot resolve on its own', quoting the real question 'should the broker-mediated discovery role be added this run, or deferred to a later milestone?' with its options add now and defer, and the iteration that asked it">
+<figcaption>A real, live check-in document -- the question is quoted verbatim from `pending_decisions`, not summarized or paraphrased, with the exact options a role-filler proposed.</figcaption>
+</figure>
+
   **A real, related but distinct mechanism landed 2026-08-07**: the web panel does now have its own
   real `approve`/`request_changes` verdicts -- for reviewing a run's own `devsystem.plan` iteration
   specifically, via the [Plan Canvas panel]({{ '/how-to/review-a-plan-with-plan-canvas/' | relative_url }}).
