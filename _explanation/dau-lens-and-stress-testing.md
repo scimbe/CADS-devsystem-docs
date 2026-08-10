@@ -678,16 +678,29 @@ actual deployment, not just described:
 
   Checked whether the real, structural fix (forcing a fresh Keycloak login on sign-in) was possible
   from this repo alone before settling for less: read CT-Tunnel's own `gate.rs` directly -- no
-  forced-reauth parameter exists for this route to even request. That's shared, multi-tenant
+  forced-reauth parameter existed for this route to even request. That's shared, multi-tenant
   infrastructure serving every host on `bunsenbrenner.org`, correctly out of scope for a unilateral
-  change from this app's own loop. What shipped instead is the honest, bounded version: the real
-  session scope is now stated in the *visible* link text itself -- `logout (this app only)` and
+  change from this app's own loop. What shipped first was the honest, bounded version: the real
+  session scope stated in the *visible* link text itself -- `logout (this app only)` and
   `Sign in (reuses existing login)` -- with the fuller explanation kept in the tooltip as
-  supplementary detail, not the only copy of the warning. Live-verified against the redeployed
-  container at a real, unremarkable viewport width: the caveat text is genuinely visible, and the
-  header row does not overflow (`document.body.scrollWidth` measured against `window.innerWidth`,
-  not eyeballed). Left open on GitHub rather than closed -- the full structural fix is real,
-  separate work this page doesn't claim to have done.
+  supplementary detail, not the only copy of the warning.
+
+  **Update, 2026-08-10**: the structural fix itself shipped too, with the operator's explicit
+  go-ahead given the cross-repo blast radius. `gate_start`'s OIDC authorize redirect
+  ([CADS-Tunnel@659cda1](https://github.com/scimbe/CADS-Tunnel/commit/659cda1)) now always sends
+  the standard `prompt=login` parameter, which Keycloak honors -- forces the real credentials
+  form regardless of any existing SSO session, instead of silently reusing it. Deployed live to
+  the real production `control-plane` container (not just merged), then verified against the
+  actual running service, not just the diff:
+  ```
+  $ curl -sIL "https://devsystem-demo.bunsenbrenner.org/gate/start?host=devsystem-demo.bunsenbrenner.org&return=/"
+  ...
+  location: https://auth.bunsenbrenner.org/realms/ct-demo/protocol/openid-connect/auth?...&prompt=login&ui_locales=en
+  ```
+  The visible-label mitigation above stays as useful supplementary clarity, but clicking "logout"
+  then "Sign in" as a different account now genuinely reaches a real login form, closing the
+  account-mixup risk at its actual source rather than only naming it. Issue #20 closed with this
+  live evidence.
 - **A second real evaluator finding, and an honest partial fix rather than a claimed-complete one**:
   on a genuinely fresh session at a realistic browser width, this app's own default-visible panels
   (Runs, Process, Pipeline, Requirements) could spawn stacked exactly on top of each other -- silent
