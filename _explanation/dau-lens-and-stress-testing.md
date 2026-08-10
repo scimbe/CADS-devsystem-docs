@@ -352,9 +352,14 @@ day -- the paused banner now shows the actual real reason for all three, not a g
 
 ## The real track record
 
-As of this writing, the stress test has run **sixty-four** real rounds against the actual
-deployment, finding and closing fifty-one real gaps -- not simulated, not hypothetical. A
-representative sample, each with its own real live before/after proof:
+As of 2026-08-06, the stress test had run **sixty-four** real rounds against the actual deployment,
+finding and closing fifty-one real gaps -- not simulated, not hypothetical. That count is a real,
+precise number as of that date, but it is a floor, not the current total: real work has kept landing
+well past it (the [goal doc's own dated firing
+log](https://github.com/scimbe/CADS-devsystem/blob/main/docs/development-system-goal.md) records
+each one), and re-deriving an exact new figure honestly needs a dedicated counting pass against every
+commit since -- not a number guessed at here just to keep this page looking current. A representative
+sample from the original count, each with its own real live before/after proof:
 
 - A one-line rubber-stamp review (`"looks fine to me"`) satisfied the mandatory review gate just as
   well as real scrutiny -- closed with a minimum length bar, then a **distinct-word** bar once padded
