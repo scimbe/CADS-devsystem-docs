@@ -148,6 +148,43 @@ five separate check-in pauses without ever acknowledging leaves the run genuinel
 needing attention in the Runs list and Open Points. Acknowledge, not Resume, is the button that
 actually closes the loop.
 
+## A fourth real trigger: a real decision left unanswered on the final slot
+
+This one is not a `paused` pause at all -- it's a real `409` refusal on the submission itself,
+same shape as the `max_iterations`/`max_consecutive_failures` ceiling above, but for a different
+reason: [issue #39](https://github.com/scimbe/CADS-devsystem/issues/39)'s own "a run should not be
+allowed to burn its final iteration with a blocking question outstanding." If a role-filler raised
+a real open question through the [Decisions channel]({{ '/reference/rest-api/#decisions' | relative_url }})
+and it's still unanswered, the ONE submission that would consume the run's last remaining
+`max_iterations` slot is refused -- naming the real question, not just a generic count:
+
+```
+$ curl -X POST .../api/runs/docs-run/decisions -d '{"question":"should CADS-webconference ever support offline delivery?","options":["yes","no"]}'
+$ curl -X POST .../api/runs/docs-run/iterate -d '{"stage":"devsystem.implement","succeeded":true,...}'
+this would be the run's final iteration (1 of 1 max_iterations) while 1 real decision(s) remain
+unanswered -- answer them first (POST /api/runs/{id}/decisions/{decision_id}/answer), or raise
+max_iterations before submitting: should CADS-webconference ever support offline delivery?
+HTTP 409
+```
+
+Deliberately narrow, matching the issue's own wording: only the submission that would consume the
+*final* slot is refused -- an ordinary decision raised mid-run never blocks an ordinary iteration,
+only the point where the run is about to lose its own ability to act on the answer at all. Answer
+the decision (the same [Open Points]({{ '/how-to/work-through-open-points/#answering-an-escalated-question' | relative_url }})
+input+Answer button, or `POST /api/runs/{id}/decisions/{decision_id}/answer` directly), and the
+identical submission is let through:
+
+```
+$ curl -X POST .../api/runs/docs-run/decisions/<id>/answer -d '{"answer":"no, forward-only for this run scope"}'
+$ curl -X POST .../api/runs/docs-run/iterate -d '{"stage":"devsystem.implement","succeeded":true,...}'
+{"outcome":"Abort","iteration":1, ...}
+HTTP 200
+```
+
+The real `Abort` outcome above is the run's own ordinary ceiling firing as expected once the
+iteration lands -- this gate only ever blocks the one submission that would otherwise have skipped
+past a real open question with no way back, not the ceiling itself.
+
 ## Getting going again
 
 Click **Resume run** in the Health & Criteria panel, or call `POST /api/runs/{id}/resume`
