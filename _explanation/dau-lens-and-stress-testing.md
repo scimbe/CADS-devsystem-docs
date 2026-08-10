@@ -43,8 +43,8 @@ for what these checks look like in the code.
 Thirty-four rounds in, this whole methodology was still one-off manual investigation every single
 time -- nothing stopped a later change from silently reintroducing a gap already found and fixed.
 [`scripts/incompetent-agent-stress-test.sh`](https://github.com/scimbe/CADS-devsystem/blob/main/scripts/incompetent-agent-stress-test.sh)
-is a real, live-HTTP script that reproduces fifty-eight of the concrete lazy shortcuts below
-(131 total assertions when a `devsystem.assistant` is reachable locally, live-confirmed 2026-08-07 --
+is a real, live-HTTP script that reproduces sixty of the concrete lazy shortcuts below
+(146 total assertions when a `devsystem.assistant` is reachable locally, live-confirmed 2026-08-10 --
 the newest check
 gracefully skips, not fails, if one isn't deployed, a genuinely optional dependency; since several
 checks prove both the failing case and the genuinely-clear
@@ -75,13 +75,18 @@ security-sensitive iteration's own risk flag silently vanishing the moment any u
 follows it, a fired but unacknowledged check-in cadence silently resetting to "not due" the instant
 it fires instead of staying a real, persistent signal until a human explicitly acknowledges it, and
 that same signal never reaching the Open Points panel -- the one endpoint whose entire purpose is
-"every real item this run is actually waiting on a human to decide", and a stale Docker build-cache
-silently serving a binary that doesn't match this repo's actual real, current source)
+"every real item this run is actually waiting on a human to decide", a stale Docker build-cache
+silently serving a binary that doesn't match this repo's actual real, current source, a bad history
+record only ever repairable by the exact manual array-compaction that caused
+[issue #42](https://github.com/scimbe/CADS-devsystem/issues/42)'s own ordinal-drift incident instead
+of a real, safe, id-keyed withdrawal that never moves any other record's ordinal, and a proposed
+requirement's own approval carrying a client-forged `created_by` instead of the real, gate-verified
+approving human)
 against a real running deployment, creating and cleaning up its own real scratch run every
 time via the actual `DELETE /api/runs/{id}` endpoint. It's now wired into this project's own real CI
 (`pipeline-ci.yml`'s `web` job, confirmed green against a real GitHub Actions run, not just
 locally), run against the exact Docker image that gets deployed -- a PR that reintroduces one of
-these fifty-eight fails CI instead of waiting for the next manual stress-test firing to notice.
+these sixty fails CI instead of waiting for the next manual stress-test firing to notice.
 Honestly scoped, and
 self-correcting: the evidentiary-gate check above was originally left out on the wrong assumption it
 needed a real LLM call to test -- a later firing caught that it's actually pure header-based server
