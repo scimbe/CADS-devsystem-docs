@@ -472,5 +472,29 @@ test's own result row, 1/1, 0 failures. Merged as
 PR run and the real post-merge `push` run fully green.
 
 Criterion 2 (no decode failure may cross the UniFFI boundary as a Rust panic, proven by a real
-on-device emulator test inspecting `logcat`) remains open -- requirement #22 is not yet fully
+on-device emulator test inspecting `logcat`) remained open -- requirement #22 is not yet fully
 verified.
+
+**Update, 2026-08-10 -- criterion 2's native-session half proven hermetically, plus a real CI gap
+found and closed along the way.** `send_text` always encodes a well-formed message (there's no way
+to construct a malformed one through it), so a new hermetic test sends raw, deliberately invalid
+bytes through the exact same real `a2a_send` encryption `send_text` uses internally -- a genuine
+authenticated-hostile-peer scenario, not a mock -- and confirms `recv_text` returns a real, typed
+`ChannelError::Decode`, never panics, and (criterion 3's own claim, proven again at this level) a
+real follow-up message from the same peer still arrives normally afterward.
+
+A real, significant CI gap surfaced verifying this same test actually ran anywhere:
+`native-bridge`'s own hermetic test suite -- every test this whole thread has relied on -- was never
+actually run by CI at all. `verify-native-bridge` only rebuilds and diffs committed artifacts;
+`build-and-test`'s own "Unit tests" step is Gradle's `testDebugUnitTest`, the Kotlin/Robolectric
+side, never `cargo test`. A real regression in this crate's own logic could have merged with zero CI
+signal. Fixed with a real `cargo test --locked` step, verified locally first before trusting it in
+CI. Merged as [PR #21](https://github.com/scimbe/CADS-webconference-android/pull/21)
+(`2a2e36b`) -- confirmed by reading the actual CI job log, not just its conclusion field: the new
+test's own name and a real `24 passed; 0 failed` line both appear in it. Both the pre-merge PR run
+and the real post-merge `push` run went fully green (4/4 jobs each).
+
+Requirement #22 now stands at 3.5/4: criteria 0, 1, 3 fully verified; criterion 2's native-session
+half is real and tested, its on-device emulator half remains open -- no UniFFI API exists yet to
+send deliberately malformed bytes from Kotlin, so that half needs a new native-bridge API surface
+plus new instrumented-test infrastructure, correctly scoped as a separate, larger follow-up.
