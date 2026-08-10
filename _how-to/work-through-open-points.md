@@ -102,10 +102,15 @@ place for that was free prose buried in a backlog item; now it's a real, structu
 </figure>
 
 Unlike a proposal, there's nothing to Approve/Reject here -- the question needs an actual answer, not
-a yes/no on someone else's suggestion. Type it in the field and click **Answer**. This calls
-`POST /api/runs/{id}/decisions/{decision_id}/answer`, gated to this run's own owner (or any account,
-for a run with none recorded), and can only happen once per question -- a second attempt is refused
-rather than silently overwriting the first real answer:
+a yes/no on someone else's suggestion. Type it in the field and click **Answer**. Since the server
+refuses a second attempt at the same question (below), answering is exactly as permanent as the
+panel-mutating Approves described in
+[The proposal kinds are inverted on purpose]({{ '/how-to/manage-custom-panels/' | relative_url }}#the-proposal-kinds-are-inverted-on-purpose)
+-- so it gets the same real `confirm()` guard, naming the exact question and the exact answer you
+typed, before the request is sent. Cancelling leaves the question untouched, still open, still
+answerable. Confirming calls `POST /api/runs/{id}/decisions/{decision_id}/answer`, gated to this
+run's own owner (or any account, for a run with none recorded), and can only happen once per
+question -- a second attempt is refused rather than silently overwriting the first real answer:
 
 <figure>
 <img src="{{ '/assets/img/howto-open-points/13-after-answering-decision.png' | relative_url }}" alt="The Open Points panel showing 'Nothing open right now -- every real proposal is reviewed, and this run isn't paused.' after answering the one pending decision">
