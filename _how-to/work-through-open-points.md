@@ -65,6 +65,21 @@ assistant's own drafted GitHub issue.
 <figcaption>A real pending stage proposal, reached through Open Points. Clicking Reject here now pops a real browser confirmation: "Reject this new pipeline stage proposal? This discards it for real -- there's no undo." Cancelling it leaves the proposal genuinely untouched; only confirming actually discards it.</figcaption>
 </figure>
 
+**A requirement proposal or next-step draft that came from automode shows exactly where it came from,
+2026-08-10**: toggling [automode]({{ '/explanation/requirements-and-automode/' | relative_url }}#automode)
+on a requirement can make `devsystem.assistant` propose new requirements or next-step drafts of its
+own. The Requirements panel's own review list already tagged these with a "⚡ automode: ..." note
+naming the real requirement that triggered them -- this queue shows the identical tag, so you get the
+same traceability no matter which of the two real review surfaces you happen to be using:
+
+<figure>
+<img src="{{ '/assets/img/howto-open-points/14-open-points-shows-automode-tag.png' | relative_url }}" alt="The Open Points panel showing a New requirement proposal card with a tag reading '⚡ automode: WHEN offline, THE SYSTEM SHALL queue' above the proposal's own summary text">
+<figcaption>A requirement proposal that appeared because automode was toggled on -- the ⚡ tag names the real requirement responsible, so it never looks like an unexplained proposal appeared out of nowhere.</figcaption>
+</figure>
+
+A proposal or draft you (or another chat message) triggered directly never shows this tag -- it's
+only ever present for the real automode case.
+
 The one deliberate exception is a run-deletion proposal's own **Reject**: rejecting it is genuinely
 safe (the run itself was never touched -- only the pending proposal goes away), so it stays a single
 click, matching the same reasoning that already puts the confirmation on its **Approve** button
