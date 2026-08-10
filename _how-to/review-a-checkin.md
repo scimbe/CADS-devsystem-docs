@@ -78,6 +78,15 @@ canvas) always has the same shape:
   reading this in the web panel, see the real reply field below -- it doesn't speak `approve`/
   `request-changes` either, but as of 2026-08-09 it's no longer silent.
 
+  **The section's own text now echoes real history, not just the mechanism (issue #39, 2026-08-09)**:
+  right below the reply-field description, `## Decision needed` lists every real past answer already
+  on record for the run -- `(iteration N, who) `the actual answer text`` -- or an honest "No reply has
+  been recorded for this run yet." when there are none. This is the same real `checkin_notes` data the
+  web panel's own **Past answers** list (below) also shows, but embedded directly in the document
+  itself, so a reader going through `ecc-plan-canvas` or a raw `GET .../checkin` call sees it too, not
+  only someone in the GUI. Closes a real, live-found staleness bug: this section used to flatly claim
+  "there is currently no reply field here" long after one actually shipped.
+
   **A real, related but distinct mechanism landed 2026-08-07**: the web panel does now have its own
   real `approve`/`request_changes` verdicts -- for reviewing a run's own `devsystem.plan` iteration
   specifically, via the [Plan Canvas panel]({{ '/how-to/review-a-plan-with-plan-canvas/' | relative_url }}).
