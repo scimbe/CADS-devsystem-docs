@@ -46,6 +46,39 @@ conversation, with no won auction backing it -- a human in the loop confirms it 
 real, biddable role. Same underlying mechanism, different gate, because the caller's real
 accountability differs.
 
+## The inverse: a channel for questions the pipeline cannot answer
+
+Every path above is "the pipeline wants to do something and needs signed off." A run can just as
+easily hit the opposite shape: a role-filler reaches a genuine product question it has no standing
+to decide -- not a technical proposal, a real fork in what the project should even do -- and until
+2026-08-10 there was no structured channel for that at all. It degraded to prose: an iteration would
+write something like `"OPERATOR DECISION NEEDED (escalated by iteration 19, devsystem.plan): should
+this project ever support offline/store-and-forward delivery?"` into a plain backlog item, because a
+backlog item (`{done: bool, text: string}`) was the only container available. Nothing indexed it,
+nothing summarized it, nothing waited for it -- a real evaluator's finding, [issue
+#39](https://github.com/scimbe/CADS-devsystem/issues/39).
+
+`RunState.pending_decisions` is the structured inverse of `pending_stage_proposals` and its five
+proposal-queue siblings: `POST /api/runs/{id}/decisions` raises a real question (`{"question": "...",
+"options": [...]}`, `options` optional), at the *same* trust level as a role-filler's own
+iteration-embedded `StageProposal` above -- no owner-gate, applies immediately, because asking a
+question changes nothing about the run's real state, it only makes a real gap visible. `POST
+/api/runs/{id}/decisions/{decision_id}/answer` is the operator's own real answer, gated like
+`checkin/acknowledge`, recorded exactly once (a `400`, not a silent overwrite, on a second attempt).
+
+An unanswered decision is a real [Open Point]({{ '/how-to/work-through-open-points/' | relative_url }})
+-- kind `pending_decision`, with its own input field and Answer button, not just a proposal's
+Approve/Reject -- and the mandatory [check-in document]({{ '/how-to/review-a-checkin/' | relative_url }})
+now enumerates every real open question by name in its own "Decision needed" section, instead of the
+static boilerplate that used to sit there regardless of what the run actually needed. See [REST API
+reference: Decisions]({{ '/reference/rest-api/#decisions' | relative_url }}) for the full shape.
+
+Deliberately scoped, not the whole ask: [issue #39](https://github.com/scimbe/CADS-devsystem/issues/39)'s
+own suggested gating policy -- a run should not be allowed to burn its final iteration, or otherwise
+proceed, with a blocking question still unanswered -- is real, separate work, not attempted in this
+same increment. The channel exists and is fully visible; nothing yet *stops* a run for an unanswered
+decision the way a paused checkpoint does.
+
 ## What that looks like on a real run
 
 The `webconference-android` run started with one role (`plan`). Four real StageProposals landed on
