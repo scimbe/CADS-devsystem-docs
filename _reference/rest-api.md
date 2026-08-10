@@ -112,6 +112,25 @@ Canvas]({{ '/how-to/review-a-plan-with-plan-canvas/' | relative_url }}).
 | `POST /api/runs/{id}/plan-canvas/annotations/{annotation_id}/remove` | Discard one annotation before delivering a verdict. Real `404` for an unknown id, real `204` on success -- same permanent, no-undo shape as removing a next-step draft. |
 | `POST /api/runs/{id}/plan-canvas/verdict` | Deliver the real review decision: `{"verdict": "approve"}` or `{"verdict": "request_changes"}`. Real `400` if this run has no `devsystem.plan` iteration yet -- nothing real to review. **`approve`** goes through the exact same gates a normal `/iterate` call does (a real `409` if paused, a real `409` at the iteration ceiling) and folds the session into a real, succeeded `devsystem.review` iteration -- not a separate, less-guarded path just because it originated from this panel -- then clears the annotations, since the session concluded. **`request_changes`** requires at least one real annotation (a real `400` otherwise -- asking for changes with nothing pointed at isn't an actionable signal) and deliberately does *not* record a review iteration or clear the annotations; they land as a real backlog item instead, staying visible as structured feedback for the plan's own next author. |
 
+## Decisions
+
+A real channel for the inverse of a proposal: not "the pipeline wants to do something and needs
+signed off" (the queues below), but "the pipeline cannot decide something on its own and needs
+answered" -- a role-filler hit a genuine product question, escalates it here instead of guessing or
+burying it in backlog prose. See [Answer an open question a run has
+escalated]({{ '/how-to/work-through-open-points/#answering-an-escalated-question' | relative_url }}).
+
+| Route | What it does |
+|---|---|
+| `POST /api/runs/{id}/decisions` | Raise a real open question: `{"question": "...", "options": ["...", "..."]}` (`options` optional, at most 8). No owner-gate -- same trust level as a role-filler's own iteration-embedded `StageProposal`, which also applies immediately with no approve step. `question`/each option reject empty, over 2,000 characters, or a Unicode bidi control character. Server-stamps `id`, `asked_by_iteration` (the run's current iteration count), `asked_by_iteration_id` (the real id of that history record, if any -- the same position-plus-id pairing `checkin_acknowledged_through_id` uses, so a later history mutation can't silently disconnect the question from the record that asked it), and `asked_at`. Returns `{"decision": {...}}`. |
+| `POST /api/runs/{id}/decisions/{decision_id}/answer` | Answer a pending decision exactly once: `{"answer": "..."}`. Owner-gated, like `checkin/acknowledge`. Real `404` for an unknown id, real `400` if this decision already has an answer -- a would-be second answer never silently overwrites the first. Stamps `answered_at` and `answered_by` (`X-Gate-Email`, honestly `None` for a header-less caller). Returns `{"decision": {...}}` with the real answer filled in. |
+
+An unanswered decision is a real [Open Point]({{ '/how-to/work-through-open-points/' | relative_url }})
+(kind `pending_decision`) and appears by name in the [check-in
+document]({{ '/how-to/review-a-checkin/' | relative_url }})'s own "Decision needed" section; an
+answered one stays in `pending_decisions` (visible via `GET /api/runs/{id}`) as a real, permanent
+record but no longer counts as open.
+
 ## Proposals -- pipeline stages, custom panels, GitHub issues
 
 Each of the three proposal kinds follows the same real shape: `propose` lands in a pending queue,
