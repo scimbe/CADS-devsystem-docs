@@ -531,3 +531,29 @@ Requirement #22 now stands at 3.5/4: criteria 0, 1, 3 fully verified; criterion 
 half is real and tested, its on-device emulator half remains open -- no UniFFI API exists yet to
 send deliberately malformed bytes from Kotlin, so that half needs a new native-bridge API surface
 plus new instrumented-test infrastructure, correctly scoped as a separate, larger follow-up.
+
+**Update, 2026-08-10 -- the actual blocker named above is closed; the on-device instrumented test
+itself remains the next slice.** Added `ChannelSession::send_raw_bytes_for_testing`, a real
+UniFFI-exported, test-only method that sends raw bytes through the exact same real `a2a_send`
+framing+encryption `send_text` uses internally -- the identical authenticated-hostile-peer
+mechanism the native-session hermetic test above already proved by reaching into private fields,
+now a real public surface a Kotlin instrumented test can actually call. A new hermetic test proves
+the public API reproduces the identical scenario end to end through a real handshake, not just the
+crate's own internals -- de-risking the follow-up before it's attempted.
+
+Regenerating the exported method's own committed Kotlin bindings hit a real, live disk-space wall:
+`native-bridge/build-android.sh`'s documented process (verified inside `mingc/android-build-box`)
+failed mid-pull, "no space left on device," on this host's constrained disk -- confirmed live, the
+same real constraint this page's earlier update above already named as the reason this repo's own
+Kotlin-side work leans on real CI rather than local Android SDK builds. Used the established
+alternative instead: `verify-native-bridge`'s own "Upload freshly built native-bridge artifacts"
+step uploads a fresh build unconditionally, specifically for this situation. Downloaded it from the
+CI run it came from, verified it before trusting it (a real `nm -D --defined-only` exported-symbol
+diff against the committed `.so` confirmed the only difference on both ABIs is exactly the three
+new symbols, no unexpected toolchain drift), then committed the verified artifacts. CI on that
+commit went fully green, 4/4 jobs, confirming the fix held -- not just locally asserted. Merged as
+[`5239adb`](https://github.com/scimbe/CADS-webconference-android/commit/5239adb) (the new API) and
+[`c024925`](https://github.com/scimbe/CADS-webconference-android/commit/c024925) (the regenerated
+bindings). The actual Kotlin instrumented test that calls this API on two real sessions and
+inspects `logcat` for a Rust panic marker remains the correctly-scoped next slice, not attempted
+here.
