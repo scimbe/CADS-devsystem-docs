@@ -185,6 +185,20 @@ Fixed structurally, not by asking the LLM to be more careful: every proposal tha
 result of an automode toggle is now tagged server-side with the real requirement that triggered it,
 independent of whatever the LLM's own rationale says.
 
+**Update, 2026-08-10 -- the same fix mirrored onto next-step drafts**
+(`CADS-devsystem@e4a8f82`): automode's own instruction to `devsystem.assistant` explicitly allows
+*either* `propose_requirement` or `propose_next_step` ("round out coverage... using
+propose_requirement or propose_next_step") -- the first fix above only tagged the former, leaving
+the exact same DAU confusion open for a next-step draft that happened to land in the Open Points
+panel instead of the Requirements panel. Closed the same way: `trigger_automode_initial_proposals`
+now snapshots both queues before its call and tags whatever's new in either, and the Open Points
+panel's draft cards show the same real `⚡ automode: <statement>` line the Requirements panel's
+proposal cards do. Proven by a real test (not just a live screenshot, since which of the two kinds
+a given call actually produces is the LLM's own real judgment call, not something this fix
+controls): the test's mock assistant inserts both a proposal and a draft while handling one real
+`/ask` call, and asserts both are correctly tagged while a pre-existing item of each kind is
+correctly left untagged.
+
 <figure>
 <img src="{{ '/assets/img/howto-requirements-automode/17-automode-triggered-by.png' | relative_url }}" alt="The Requirements panel showing a pending proposal with a highlighted line reading 'automode: WHEN a user sends a message while offline, THE SYSTEM SHALL queue it locally for retry' between the proposed-at timestamp and the rationale text">
 <figcaption>Live-verified against the actual deployment, no mock: toggling automode on a real "queue messages while offline" requirement produced three genuinely distinct real proposals (message ordering/idempotency on reconnect, at-rest encryption + cross-account isolation, and a bounded queue with an explicit over-capacity error) -- every one traceable back to the exact requirement that triggered it, not just a generic "the assistant proposed this."</figcaption>
