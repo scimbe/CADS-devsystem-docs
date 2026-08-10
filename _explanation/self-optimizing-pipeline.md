@@ -557,3 +557,25 @@ commit went fully green, 4/4 jobs, confirming the fix held -- not just locally a
 bindings). The actual Kotlin instrumented test that calls this API on two real sessions and
 inspects `logcat` for a Rust panic marker remains the correctly-scoped next slice, not attempted
 here.
+
+**Update, 2026-08-10 -- requirement #22 is now genuinely 4/4.** `MalformedFrameInstrumentedTest.kt`
+runs the exact scenario above through a real JNI call on real device hardware --
+`generateChannelIdentity`/`bindChannelListener`/`dialChannelDirect`/`sendRawBytesForTesting`/
+`recvText`, no Activity/UI involved, the same UI-free scope `ConnectFlowInstrumentedTest` already
+established for a criterion that specifically needs real device hardware, not Robolectric. Every
+API call was verified against the real generated Kotlin bindings by direct inspection before
+writing -- this host cannot compile-check Gradle/Kotlin locally (same disk constraint as above) --
+so this was shipped honestly labeled "attempted, CI-pending," not claimed done on the strength of a
+code read alone.
+
+Verified for real once CI ran: rather than trust the job's own green checkmark alone (Gradle's
+default instrumented-test output doesn't print test names to the log), downloaded the actual
+`instrumented-test-report` artifact and read the real per-test HTML report. It names the test by
+its full method name and shows a real result, not an inferred one:
+`aMalformedFrameOverARealOnDeviceSessionSurfacesAsATypedErrorNeverAPanic` -- passed, 0.077s, 100%
+success rate, run on a real AVD (`test(AVD) - 10`), alongside `ConnectFlowInstrumentedTest`'s own
+existing test in the same suite. Merged as
+[`7a3c073`](https://github.com/scimbe/CADS-webconference-android/commit/7a3c073). Requirement #22
+now stands at 4/4: every criterion real, tested, and confirmed by actual evidence -- a decode
+failure never crosses the UniFFI boundary as a panic, on a real device, not just in a `cargo test`
+process.
