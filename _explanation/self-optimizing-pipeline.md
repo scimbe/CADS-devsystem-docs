@@ -450,3 +450,27 @@ commit before pushing. Merged as
 real post-merge `push` run (not the pre-merge preview), criterion 4 toggled via the live API and
 re-verified through `/requirements/export`: requirement #17 stands at 5/5, every criterion
 carrying real confirmation evidence.
+
+**Update, 2026-08-10 -- requirement #22 (native-bridge frame-decoding robustness), two of four
+criteria real and merged.** `ChannelSession::recv_text` decrypts whatever bytes a peer sends on an
+established Noise_IK channel -- authenticated, but still attacker-controlled content, exactly the
+class of input a hostile or simply buggy peer can corrupt. Criteria 0 and 1 (a hermetic hostile-frame
+test set in `native-bridge/src/message.rs`, and a named `MAX_MESSAGE_BYTES` bound checked before any
+real parsing work) were already real and passing.
+
+Criterion 3 -- "a rejected frame is dropped without tearing down the established channel or dropping
+subsequent well-formed messages from the same peer" -- traced into a real, live bug reading the
+actual `MainActivity.receiveLoop()` code: it caught `ChannelException` around its whole
+`while(true)`, so a single malformed frame ended the loop identically to a genuinely dead connection
+and reset the UI with a misleading "disconnected" status, even though the transport was still
+healthy. Fixed in [PR #20](https://github.com/scimbe/CADS-webconference-android/pull/20): the catch
+now scopes to one `recvText()` call, and a new, directly-testable `isFatalChannelError()`
+distinguishes a single rejected frame (keep listening) from a genuinely dead channel (reset).
+Confirmed against the real CI test-report artifact, not just "build succeeded": the new Robolectric
+test's own result row, 1/1, 0 failures. Merged as
+[`b3d9bcb`](https://github.com/scimbe/CADS-webconference-android/commit/b3d9bcb), both the pre-merge
+PR run and the real post-merge `push` run fully green.
+
+Criterion 2 (no decode failure may cross the UniFFI boundary as a Rust panic, proven by a real
+on-device emulator test inspecting `logcat`) remains open -- requirement #22 is not yet fully
+verified.
